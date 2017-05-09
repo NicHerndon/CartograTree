@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * @file
+ * CartograTree installation
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function cartogratree_requirements($phase) {
+    $requirements = array();
+    // Ensure translations don't break at install time
+    $t = get_t();
+
+    // Check to see if the OpenLayers library is available for CartograTree
+    if ($phase == 'runtime') {
+        $library = libraries_detect('openlayers');
+
+        if ($library['installed']) {
+            $version = explode('.', $library['version']);
+
+            if ($version[0] == CARTOGRATREE_COMPATIBLE_MAJOR_VERSION) {
+                $requirements['cartogratree'] = array(
+                  'value' => $library['version'],
+                  'severity' => REQUIREMENT_OK,
+                );
+            }
+            else {
+                $requirements['cartogratree'] = array(
+                  'value' => $library['version'],
+                  'description' => $t('Incompatible version detected. The OpenLayers library version for CartograTree must be from the %version.x branch.', array('%version' => CARTOGRATREE_COMPATIBLE_MAJOR_VERSION)),
+                  'severity' => REQUIREMENT_WARNING,
+                );
+            }
+        }
+        else {
+            $requirements['cartogratree'] = array(
+              'value' => $t('OpenLayers library for CartograTree not found.'),
+              'description' => $t('The OpenLayers library for CartograTree could not be detected. Please consult the README.md for installation instructions.'),
+              'severity' => REQUIREMENT_ERROR,
+            );
+        }
+
+        $requirements['cartogratree']['title'] = $t('CartograTree');
+    }
+
+    return $requirements;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function cartogratree_schema() {
+    $schema = array();
+
+    $schema['servers'] = array(
+      'description' => 'Keeps track of servers for use with CartograTree module.',
+      'fields' => array(
+        'server_id' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'gis' => array(
+          'description' => 'URL of the GIS server.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+        'api' => array(
+          'description' => 'URL of the API server.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+      ),
+      'primary key' => array('server_id'),
+    );
+
+    $schema['layers'] = array(
+      'description' => 'Keeps track of layers for use with CartograTree module.',
+      'fields' => array(
+        'layer_id' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'title' => array(
+          'description' => 'Human-readable name for the layer.',
+          'type' => 'varchar',
+          'length' => 512,
+        ),
+        'name' => array(
+          'description' => 'Machine name for the layer.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+        'url' => array(
+          'description' => 'The URL for the provider of the layer.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+      ),
+      'primary key' => array('layer_id'),
+    );
+
+    $schema['layer_permissions'] = array(
+      'description' => 'Keeps track of permissions for layers.',
+      'fields' => array(
+        'layer_permissions_id' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'layer_id' => array(
+          'description' => 'Links to the layers table.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'rid' => array(
+          'description' => 'The ROLE ID of a role to provide access to.',
+          'type' => 'int',
+        ),
+        'uid' => array(
+          'description' => 'The USER ID of a user to provide access to.',
+          'type' => 'int',
+        ),
+      ),
+      'primary key' => array('layer_permissions_id'),
+    );
+
+    return $schema;
+}
