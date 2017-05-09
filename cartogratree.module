@@ -192,3 +192,18 @@ function cartogratree_app_page() {
       '#markup' => $content,
     );
 }
+
+/**
+ * Implements hook_theme().
+ */
+function cartogratree_theme($existing, $type, $theme, $path) {
+  $items = array();
+
+  $items['cartogratree_admin_form_permission_table'] = array(
+    'function' => 'cartogratree_admin_form_permission_table',
+    'render element' => 'element',
+    'file' => 'includes/cartogratree.admin.inc',
+  );
+
+  return $items;
+}
