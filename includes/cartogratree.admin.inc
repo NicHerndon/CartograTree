@@ -14,29 +14,18 @@ function cartogratree_admin_list() {
     $output .= '<p>This module provides a form so users can manage GIS server settings, and layers.</p>';
     
     // servers
-    $output .= '<p>The URL for the GIS server and the API server must be provided.</p>';
-
-    $table = array(
-      'header' => array('GIS server', 'API server', 'Operations'),
-      'rows' => array(),
-    );
-
-    $results = db_query('SELECT * FROM {servers}');
-    foreach ($results as $r) {
-        $table['rows'][] = array(
-          'gis' => $r->gis,
-          'api' => $r->api,
-          l('edit', 'admin/cartogratree/settings/server/edit/' . $r->server_id) . ' | '
-          . l('delete', 'admin/cartogratree/settings/server/delete/' . $r->server_id)
-        );
+    $gis = variable_get('cartogratree_gis', FALSE);
+    $api = variable_get('cartogratree_api', FALSE);
+    if ($gis == FALSE || $api == FALSE) {
+        $output .= '<p>The URL for the GIS server and the API server must be provided. ';
+        $output .= l('Add', 'admin/cartogratree/settings/servers/add');
+        $output .= ' GIS and API servers.</p>';
     }
-    // If there are no servers yet, then tell the admin this.
-    if (empty($table['rows'])) {
-        $output .= l('Add', 'admin/cartogratree/settings/server/add');
-        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 3));
+    else {
+        $output .= '<p>GIS server: ' . $gis . ', API server: ' . $api . '. ';
+        $output .= l('Update', 'admin/cartogratree/settings/servers/edit');
+        $output .= ' GIS and API servers.</p>';
     }
-
-    $output .= theme('table', $table);
 
     // layers
     $output .= '<p>In order to make a layer available to users, it must first be included below.</p>';
@@ -48,7 +37,7 @@ function cartogratree_admin_list() {
       'rows' => array(),
     );
 
-    $results = db_query('SELECT * FROM {layers}');
+    $results = db_query('SELECT * FROM {cartogratree_layers}');
     foreach ($results as $r) {
         $table['rows'][] = array(
           'name' => $r->title,
@@ -72,11 +61,11 @@ function cartogratree_admin_list() {
 /**
  * Form API Definition for layer admin form.
  */
-function cartogratree_admin_layer_form($form, &$form_state) {
+function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
     $obj = NULL;
     if (isset($form_state['build_info']['args'][1])) {
-        $obj = db_query('SELECT * FROM {layers} WHERE layer_id=:id',
+        $obj = db_query('SELECT * FROM {cartogratree_layers} WHERE layer_id=:id',
             array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
     }
 
@@ -147,15 +136,53 @@ function cartogratree_admin_layer_form($form, &$form_state) {
 }
 
 /**
+ * Form API Definition for servers admin form.
+ */
+function cartogratree_admin_settings_servers_form($form, &$form_state) {
+    $form['gis'] = array(
+      '#type' => 'textfield',
+      '#title' => 'GIS server',
+      '#description' => 'This is the URL prefix used to request layers from the GIS server.',
+      '#default_value' => variable_get('cartogratree_gis'),
+    );
+
+    $form['api'] = array(
+      '#type' => 'textfield',
+      '#title' => 'API',
+      '#description' => 'This is the URL prefix used to request data from the API server.',
+      '#default_value' => variable_get('cartogratree_api'),
+    );
+
+    $op = ucwords($form_state['build_info']['args'][0]);
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
+    );
+
+    return $form;
+}
+
+/**
+ * Servers admin form: Submission.
+ */
+function cartogratree_admin_settings_servers_form_submit($form, &$form_state) {
+    $form_state['rebuild'] = FALSE;
+    $form_state['redirect'] = 'admin/cartogratree/settings';
+    
+    variable_set('cartogratree_gis', $form_state['values']['gis']);
+    variable_set('cartogratree_api', $form_state['values']['api']);
+}
+
+/**
  * Layer admin form: Submission.
  */
-function cartogratree_admin_layer_form_submit($form, &$form_state) {
+function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
     $form_state['rebuild'] = FALSE;
     $form_state['redirect'] = 'admin/cartogratree/settings';
 
     if ($form_state['values']['op'] == 'Delete') {
-        db_query('DELETE FROM {layers} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
-        db_query('DELETE FROM {layer_permissions} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
+        db_query('DELETE FROM {cartogratree_layers} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
+        db_query('DELETE FROM {cartogratree_layer_permissions} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
         drupal_set_message('Successfully deleted <em>' . $form_state['values']['name'] . '</em>');
     }
     else {
@@ -166,11 +193,11 @@ function cartogratree_admin_layer_form_submit($form, &$form_state) {
         );
 
         if ($form_state['values']['op'] == 'Add') {
-            drupal_write_record('layers', $record);
+            drupal_write_record('cartogratree_layers', $record);
         }
         else {
             $record['layer_id'] = $form_state['values']['layer_id'];
-            drupal_write_record('layers', $record, 'layer_id');
+            drupal_write_record('cartogratree_layers', $record, 'layer_id');
         }
     }
 }
@@ -182,7 +209,7 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
 
     $obj = NULL;
     if (isset($form_state['build_info']['args'][1])) {
-        $obj = db_query('SELECT * FROM {layers} WHERE layer_id=:id',
+        $obj = db_query('SELECT * FROM {cartogratree_layers} WHERE layer_id=:id',
             array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
     }
 
@@ -241,7 +268,7 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
     $count = 0;
     $resource = db_query('
     SELECT r.rid, r.name
-    FROM {layer_permissions} perm
+    FROM {cartogratree_layer_permissions} perm
     LEFT JOIN {role} r ON r.rid=perm.rid
     WHERE perm.rid IS NOT NULL AND layer_id=:id', array(':id' => $obj->layer_id));
     foreach ($resource as $r) {
@@ -299,7 +326,7 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
     $count = 0;
     $resource = db_query('
     SELECT u.uid, u.name
-    FROM {layer_permissions} perm
+    FROM {cartogratree_layer_permissions} perm
     LEFT JOIN {users} u ON u.uid=perm.uid
     WHERE perm.uid IS NOT NULL AND layer_id=:id', array(':id' => $obj->layer_id));
     foreach ($resource as $r) {
@@ -351,7 +378,7 @@ function cartogratree_admin_layer_permissions_form_submit($form, &$form_state) {
           'layer_id' => $form_state['values']['layer_id'],
           'rid' => $form_state['values']['role']['add']['form_element'],
         );
-        drupal_write_record('layer_permissions', $record);
+        drupal_write_record('cartogratree_layer_permissions', $record);
     }
     elseif ($form_state['clicked_button']['#value'] == 'Add User') {
         $uid = db_query('SELECT uid FROM {users} WHERE name=:name',
@@ -361,7 +388,7 @@ function cartogratree_admin_layer_permissions_form_submit($form, &$form_state) {
               'layer_id' => $form_state['values']['layer_id'],
               'uid' => $uid,
             );
-            drupal_write_record('layer_permissions', $record);
+            drupal_write_record('cartogratree_layer_permissions', $record);
         }
     }
 }
@@ -384,7 +411,7 @@ function cartogratree_admin_layer_permission_remove_callback($layer_id, $action,
 
     if ($action == 'remove-role') {
 
-        $num_deleted = db_delete('layer_permissions')
+        $num_deleted = db_delete('cartogratree_layer_permissions')
             ->condition('layer_id', $layer_id)
             ->condition('rid', $id)
             ->execute();
@@ -394,7 +421,7 @@ function cartogratree_admin_layer_permission_remove_callback($layer_id, $action,
     }
     elseif ($action == 'remove-user') {
 
-        $num_deleted = db_delete('layer_permissions')
+        $num_deleted = db_delete('cartogratree_layer_permissions')
             ->condition('layer_id', $layer_id)
             ->condition('uid', $id)
             ->execute();

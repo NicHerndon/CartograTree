@@ -65,42 +65,32 @@ function cartogratree_menu() {
       'file' => 'includes/cartogratree.admin.inc',
     );
 
-//    // -- Add server.
-//    $items['admin/cartogratree/settings/server/add'] = array(
-//      'title' => 'Add CartograTree server',
-//      'description' => 'Make a server available to the CartograTree application.',
-//      'page callback' => 'drupal_get_form',
-//      'page arguments' => array('cartogratree_admin_server_form', 'add'),
-//      'access arguments' => array('administer cartogratree'),
-//      'file' => 'includes/cartogratree.admin.inc',
-//    );
-//
-//    // -- Edit server.
-//    $items['admin/cartogratree/settings/server/edit'] = array(
-//      'title' => 'Edit CartograTree server',
-//      'description' => 'Edit an existing CartograTree server.',
-//      'page callback' => 'drupal_get_form',
-//      'page arguments' => array('cartogratree_admin_server_form', 'edit'),
-//      'access arguments' => array('administer cartogratree'),
-//      'file' => 'includes/cartogratree.admin.inc',
-//    );
-//
-//    // -- Delete server.
-//    $items['admin/cartogratree/settings/server/delete'] = array(
-//      'title' => 'Delete CartograTree server',
-//      'description' => 'Delete an existing CartograTree server.',
-//      'page callback' => 'drupal_get_form',
-//      'page arguments' => array('cartogratree_admin_server_form', 'delete'),
-//      'access arguments' => array('administer cartogratree'),
-//      'file' => 'includes/cartogratree.admin.inc',
-//    );
+    // -- Add servers.
+    $items['admin/cartogratree/settings/servers/add'] = array(
+      'title' => 'Add CartograTree Servers',
+      'description' => 'Provide servers used by the CartograTree application.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_servers_form', 'add'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit servers.
+    $items['admin/cartogratree/settings/servers/edit'] = array(
+      'title' => 'Update CartograTree Servers',
+      'description' => 'Update servers used by the CartograTree application.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_servers_form', 'edit'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
 
     // -- Add layer.
     $items['admin/cartogratree/settings/layer/add'] = array(
       'title' => 'Add CartograTree Layer',
       'description' => 'Make a layer available to the CartograTree application.',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('cartogratree_admin_layer_form', 'add'),
+      'page arguments' => array('cartogratree_admin_settings_layer_form', 'add'),
       'access arguments' => array('administer cartogratree'),
       'file' => 'includes/cartogratree.admin.inc',
     );
@@ -110,7 +100,7 @@ function cartogratree_menu() {
       'title' => 'Edit CartograTree Layer',
       'description' => 'Edit an existing CartograTree Layer.',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('cartogratree_admin_layer_form', 'edit'),
+      'page arguments' => array('cartogratree_admin_settings_layer_form', 'edit'),
       'access arguments' => array('administer cartogratree'),
       'file' => 'includes/cartogratree.admin.inc',
     );
@@ -120,7 +110,7 @@ function cartogratree_menu() {
       'title' => 'Delete CartograTree Layer',
       'description' => 'Delete an existing CartograTree Layer.',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('cartogratree_admin_layer_form', 'delete'),
+      'page arguments' => array('cartogratree_admin_settings_layer_form', 'delete'),
       'access arguments' => array('administer cartogratree'),
       'file' => 'includes/cartogratree.admin.inc',
     );
@@ -150,6 +140,12 @@ function cartogratree_menu() {
 }
 
 function cartogratree_app_page() {
+    $options = '';
+    $results = db_query('SELECT * FROM {cartogratree_layers}');
+    foreach ($results as $r) {
+        $options .= '<option value="' . $r->title . '" label="' . $r->name . '">' . $r->url . '</option>' . PHP_EOL;
+    }
+
     $content = "
     <span class=\"cartogratree_navbtn\" onclick=\"cartogratree_nav()\">&#9776;</span>
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
@@ -159,11 +155,11 @@ function cartogratree_app_page() {
           <div id=\"cartogratree_layers_select\" style=\"display:none;\">
             <b>Select up to 4 layers to show:</b><br/>
             <select name=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" multiple>
-                <option value=\"min_t\">Minimum temperature</option>
+                " . $options . "
             </select>
             <b>Select other layers to use:</b><br/>
             <select name=\"cartogratree_layers_use_select\" class=\"cartogratree_layers_select\" multiple>
-                <option value=\"min_t\">Minimum temperature</option>
+                " . $options . "
             </select>
           </div>
         </li>
@@ -186,6 +182,13 @@ function cartogratree_app_page() {
     libraries_load('openlayers');
     drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
     drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css');
+    $settings = array(
+      'cartogratree' => array(
+        'gis' => variable_get('cartogratree_gis'),
+        'api' => variable_get('cartogratree_api'),
+      ),
+    );
+    drupal_add_js($settings, 'setting');
 
     return array(
       '#type' => 'markup',

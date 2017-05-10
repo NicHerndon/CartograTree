@@ -54,29 +54,7 @@ function cartogratree_requirements($phase) {
 function cartogratree_schema() {
     $schema = array();
 
-    $schema['servers'] = array(
-      'description' => 'Keeps track of servers for use with CartograTree module.',
-      'fields' => array(
-        'server_id' => array(
-          'description' => 'Primary Key',
-          'type' => 'serial',
-          'not null' => TRUE,
-        ),
-        'gis' => array(
-          'description' => 'URL of the GIS server.',
-          'type' => 'varchar',
-          'length' => 256,
-        ),
-        'api' => array(
-          'description' => 'URL of the API server.',
-          'type' => 'varchar',
-          'length' => 256,
-        ),
-      ),
-      'primary key' => array('server_id'),
-    );
-
-    $schema['layers'] = array(
+    $schema['cartogratree_layers'] = array(
       'description' => 'Keeps track of layers for use with CartograTree module.',
       'fields' => array(
         'layer_id' => array(
@@ -103,7 +81,7 @@ function cartogratree_schema() {
       'primary key' => array('layer_id'),
     );
 
-    $schema['layer_permissions'] = array(
+    $schema['cartogratree_layer_permissions'] = array(
       'description' => 'Keeps track of permissions for layers.',
       'fields' => array(
         'layer_permissions_id' => array(

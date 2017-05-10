@@ -1,6 +1,7 @@
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
+            var gis = Drupal.settings.cartogratree.gis;
             var common_view = new ol.View({
                 center: ol.proj.fromLonLat([10, 20]),
                 zoom: 2
@@ -10,7 +11,7 @@
             });
             var trees_layer = new ol.layer.Tile({
                 source: new ol.source.TileWMS({
-                    url: "http://155.37.254.145:8080/geoserver/wms",
+                    url: gis,
                     params: {LAYERS: 'ct:sample'}
                 })
             })
@@ -22,7 +23,7 @@
                     // min temperature - raster
                     tmin_layer = new ol.layer.Tile({
                         source: new ol.source.TileWMS({
-                            url: "http://155.37.254.145:8080/geoserver/wms",
+                            url: gis,
                             attributions: "Minimum temperature (°C) for January averaged over 1970-2000, at 10' spatial resolution, &copy; <a href=\"http://worldclim.org/version2\">WorldClim_v2</a>.",
                             params: {LAYERS: 'ct:wc2.0_10m_tmin_01'},
                         }),
@@ -42,7 +43,7 @@
                     // precipitation - raster
                     treesLyr = new ol.layer.Tile({
                         source: new ol.source.TileWMS({
-                            url: "http://155.37.254.145:8080/geoserver/wms",
+                            url: gis,
                             attributions: "Water vapor pressure (kPa) for January averaged over 1970-2000, at 10' spatial resolution, &copy; <a href=\"http://worldclim.org/version2\">WorldClim_v2</a>.",
                             params: {LAYERS: 'ct:wc2.0_10m_prec_01'},
                         }),
@@ -62,7 +63,7 @@
                     // wind speed - raster
                     treesLyr = new ol.layer.Tile({
                         source: new ol.source.TileWMS({
-                            url: "http://155.37.254.145:8080/geoserver/wms",
+                            url: gis,
                             attributions: "Wind speed (m s-1) for January averaged over 1970-2000, at 10' spatial resolution, &copy; <a href=\"http://worldclim.org/version2\">WorldClim_v2</a>.",
                             params: {LAYERS: 'ct:wc2.0_10m_wind_01'},
                         }),
@@ -82,7 +83,7 @@
                     // soils - polygon
                     treesLyr = new ol.layer.Tile({
                         source: new ol.source.TileWMS({
-                            url: "http://155.37.254.145:8080/geoserver/wms",
+                            url: gis,
                             attributions: "Harmonized World Soil Dataset - Major Soil Groups (Data Basin Dataset), &copy; <a href=\"https://databasin.org\">Data Basin</a>.",
                             params: {LAYERS: 'ct:global_soils_merge_psql'},
                         }),
