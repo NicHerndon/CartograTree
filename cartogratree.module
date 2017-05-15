@@ -143,10 +143,11 @@ function cartogratree_app_page() {
     $options = '';
     $results = db_query('SELECT * FROM {cartogratree_layers}');
     foreach ($results as $r) {
-        $options .= '<option value="' . $r->title . '" label="' . $r->name . '">' . $r->url . '</option>' . PHP_EOL;
+        $options .= '<option value="' . $r->name . '" label="' . $r->title . '">' . $r->url . '</option>' . PHP_EOL;
     }
 
     $content = "
+    <input type=\"hidden\" name=\"cartogratree_shown_layers\">
     <span class=\"cartogratree_navbtn\" onclick=\"cartogratree_nav()\">&#9776;</span>
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
       <ul id=\"cartogratree_sidenav_ul\">
@@ -154,11 +155,11 @@ function cartogratree_app_page() {
           <span id=\"cartogratree_layers_arrow\" onclick=\"cartogratree_layers()\">&#9660;</span>
           <div id=\"cartogratree_layers_select\" style=\"display:none;\">
             <b>Select up to 4 layers to show:</b><br/>
-            <select name=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" multiple>
+            <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" onchange=\"cartogratree_layers_show_select_changed()\" multiple>
                 " . $options . "
             </select>
             <b>Select other layers to use:</b><br/>
-            <select name=\"cartogratree_layers_use_select\" class=\"cartogratree_layers_select\" multiple>
+            <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_layers_select\" multiple>
                 " . $options . "
             </select>
           </div>
