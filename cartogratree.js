@@ -186,7 +186,7 @@ function cartogratree_layers_show_select_changed () {
         document.getElementsByName('cartogratree_shown_layers')[0].value = selected.selectedOptions[0].index;
         // update the layer of the first map
         var value = selected.selectedOptions[0].value;
-        var attr = " &copy; <a href=\"".concat(selected.selectedOptions[i].text, "\">", selected.selectedOptions[i].label, "</a>.");
+        var attr = " &copy; <a href=\"".concat(selected.selectedOptions[0].text, "\">", selected.selectedOptions[0].label, "</a>.");
         cartogratree_mid_layer[0].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
     }
 }
