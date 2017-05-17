@@ -6,7 +6,8 @@
  */
 
 /**
- * Provide a landing page for this module by listing Layers.
+ * Provide a landing page for this module's admin settings by listing Layers.
+ * URL suffix: ?q=admin/cartogratree/settings
  */
 function cartogratree_admin_list() {
     $output = '';
@@ -22,7 +23,7 @@ function cartogratree_admin_list() {
         $output .= ' GIS and API servers.</p>';
     }
     else {
-        $output .= '<p>GIS server: ' . $gis . ', API server: ' . $api . '. ';
+        $output .= '<p><strong>GIS server:</strong> ' . $gis . ', <strong>API server:</strong> ' . $api . '. ';
         $output .= l('Update', 'admin/cartogratree/settings/servers/edit');
         $output .= ' GIS and API servers.</p>';
     }
@@ -48,7 +49,7 @@ function cartogratree_admin_list() {
           . l('access', 'admin/cartogratree/settings/layer/access/' . $r->layer_id)
         );
     }
-    // If there are no Layers yet, then tell the admin this.
+    // If there are no layers yet, display only the headers of the table.
     if (empty($table['rows'])) {
         $table['rows'][] = array(array('data' => 'None.', 'colspan' => 4));
     }
@@ -59,7 +60,8 @@ function cartogratree_admin_list() {
 }
 
 /**
- * Form API Definition for layer admin form.
+ * Layer admin form.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/[add|edit|delete][/<layer id>]
  */
 function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
@@ -104,77 +106,41 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
         return $form;
     }
+    else {
+        $form['name'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Human-readable name',
+          '#description' => 'This is the name shown to the CartograTree users. Make sure it is descriptive and uniquely identifies the layer.',
+          '#default_value' => (isset($obj->title)) ? $obj->title : '',
+        );
 
-    $form['name'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Human-readable name',
-      '#description' => 'This is the name shown to the CartograTree users. Make sure it is descriptive and uniquely identifies the layer.',
-      '#default_value' => (isset($obj->title)) ? $obj->title : '',
-    );
+        $form['machine_name'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Machine name',
+          '#description' => 'Name used with the GIS server.',
+          '#default_value' => (isset($obj->name)) ? $obj->name : '',
+        );
 
-    $form['machine_name'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Machine name',
-      '#description' => 'Name used with the GIS server.',
-      '#default_value' => (isset($obj->name)) ? $obj->name : '',
-    );
+        $form['url'] = array(
+          '#type' => 'textfield',
+          '#title' => 'URL',
+          '#description' => 'The URL for the provider of the layer.',
+          '#default_value' => (isset($obj->url)) ? $obj->url : '',
+        );
 
-    $form['url'] = array(
-      '#type' => 'textfield',
-      '#title' => 'URL',
-      '#description' => 'The URL for the provider of the layer.',
-      '#default_value' => (isset($obj->url)) ? $obj->url : '',
-    );
+        $op = ucwords($form_state['build_info']['args'][0]);
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
+        );
 
-    $op = ucwords($form_state['build_info']['args'][0]);
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
-    );
-
-    return $form;
-}
-
-/**
- * Form API Definition for servers admin form.
- */
-function cartogratree_admin_settings_servers_form($form, &$form_state) {
-    $form['gis'] = array(
-      '#type' => 'textfield',
-      '#title' => 'GIS server',
-      '#description' => 'This is the URL prefix used to request layers from the GIS server.',
-      '#default_value' => variable_get('cartogratree_gis'),
-    );
-
-    $form['api'] = array(
-      '#type' => 'textfield',
-      '#title' => 'API',
-      '#description' => 'This is the URL prefix used to request data from the API server.',
-      '#default_value' => variable_get('cartogratree_api'),
-    );
-
-    $op = ucwords($form_state['build_info']['args'][0]);
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
-    );
-
-    return $form;
-}
-
-/**
- * Servers admin form: Submission.
- */
-function cartogratree_admin_settings_servers_form_submit($form, &$form_state) {
-    $form_state['rebuild'] = FALSE;
-    $form_state['redirect'] = 'admin/cartogratree/settings';
-    
-    variable_set('cartogratree_gis', $form_state['values']['gis']);
-    variable_set('cartogratree_api', $form_state['values']['api']);
+        return $form;
+    }
 }
 
 /**
  * Layer admin form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/[add|edit|delete][/<layer id>]
  */
 function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
     $form_state['rebuild'] = FALSE;
@@ -203,7 +169,48 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
 }
 
 /**
- * Form API Definition for Layer Permissions form.
+ * Servers admin form.
+ * URL suffix: ?q=admin/cartogratree/settings/servers/[add|edit]
+ */
+function cartogratree_admin_settings_servers_form($form, &$form_state) {
+    $form['gis'] = array(
+      '#type' => 'textfield',
+      '#title' => 'GIS server',
+      '#description' => 'This is the URL prefix used to request layers from the GIS server.',
+      '#default_value' => variable_get('cartogratree_gis'),
+    );
+
+    $form['api'] = array(
+      '#type' => 'textfield',
+      '#title' => 'API',
+      '#description' => 'This is the URL prefix used to request data from the API server.',
+      '#default_value' => variable_get('cartogratree_api'),
+    );
+
+    $op = ucwords($form_state['build_info']['args'][0]);
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
+    );
+
+    return $form;
+}
+
+/**
+ * Servers admin form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/servers/[add|edit]
+ */
+function cartogratree_admin_settings_servers_form_submit($form, &$form_state) {
+    $form_state['rebuild'] = FALSE;
+    $form_state['redirect'] = 'admin/cartogratree/settings';
+    
+    variable_set('cartogratree_gis', $form_state['values']['gis']);
+    variable_set('cartogratree_api', $form_state['values']['api']);
+}
+
+/**
+ * Layer permissions form.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/access/<layer id>
  */
 function cartogratree_admin_layer_permissions_form($form, &$form_state) {
 
@@ -370,6 +377,7 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
 
 /**
  * Layer Permissions form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/access/<layer id>
  */
 function cartogratree_admin_layer_permissions_form_submit($form, &$form_state) {
 
@@ -395,6 +403,9 @@ function cartogratree_admin_layer_permissions_form_submit($form, &$form_state) {
 
 /**
  * Callback to remove permissions (both user or role).
+ * Invoked from ?q=admin/cartogratree/settings/layer/access/<layer id>.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/access/%/%/%
+ *      e.g., ?q=admin/cartogratree/settings/layer/access/2/remove-role/2
  *
  * NOTE: There is no display or confirmation for removing users/roles. This callback will
  * redirect to the access page when done.
@@ -435,7 +446,7 @@ function cartogratree_admin_layer_permission_remove_callback($layer_id, $action,
 }
 
 /**
- * Theme both permissions tables.
+ * Theme both permissions tables on ?q=admin/cartogratree/settings/layer/access/<layer id>.
  */
 function cartogratree_admin_form_permission_table($vars) {
     $element = $vars['element'];

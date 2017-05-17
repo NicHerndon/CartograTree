@@ -1,6 +1,14 @@
+/**
+ * @file
+ * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree/app).
+ */
+
 var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8})];
 var cartogratree_gis;
 
+/**
+ * Attach the maps to the four squares on the app page.
+ */
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
@@ -78,7 +86,9 @@ var cartogratree_gis;
     };
 }(jQuery));
 
-/* Show/hide the side navigation, and enable/disable page scrolling */
+/**
+ * Show/hide the side navigation, and enable/disable page scrolling.
+ */
 function cartogratree_nav() {
     if (document.getElementById("cartogratree_sidenav").style.width == "250px") {
         // close navigation
@@ -101,7 +111,9 @@ function cartogratree_nav() {
     }
 }
 
-/* Show/hide list of layers */
+/**
+ * Show/hide list of layers.
+ */
 function cartogratree_layers () {
     var list = document.getElementById('cartogratree_layers_select');
     if (list.style.display === 'none') {
@@ -114,7 +126,12 @@ function cartogratree_layers () {
     }
 }
 
-/* Update the layers shown based on user's selection */
+/**
+ * Update the layers shown based on user's selection. The layers are mapped to the
+ * squares/maps in the order they were selected. The first layer selected is mapped
+ * on the top-left square, the second one to the top-right square, the third one to
+ * the bottom-left square, and the last one to the bottom-right square.
+ */
 function cartogratree_layers_show_select_changed () {
     var selected = document.getElementById("cartogratree_layers_show_select");
     var shown_layers = document.getElementsByName('cartogratree_shown_layers')[0].value;

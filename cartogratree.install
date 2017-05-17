@@ -7,6 +7,7 @@
 
 /**
  * Implements hook_requirements().
+ * Check installation requirements (i.e., OpenLayers3 files are in 'sites/all/libraries/openlayers'.
  */
 function cartogratree_requirements($phase) {
     $requirements = array();
@@ -50,6 +51,7 @@ function cartogratree_requirements($phase) {
 
 /**
  * Implements hook_schema().
+ * Define the two tables used by CartograTree, cartogratree_layers and cartogratree_layer_permissions.
  */
 function cartogratree_schema() {
     $schema = array();

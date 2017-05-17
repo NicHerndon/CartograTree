@@ -4,12 +4,12 @@
  * @file
  * Custom functionality for the CartograTree application.
  */
+
 define("CARTOGRATREE_COMPATIBLE_MAJOR_VERSION", '3');
 
 /**
  * Implements hook_libraries_info().
- * 
- * For defining external libraries.
+ * Define OpenLayers3 as external library.
  */
 function cartogratree_libraries_info() {
     // Expected to be extracted into 'sites/all/libraries/openlayers'.
@@ -42,6 +42,7 @@ function cartogratree_libraries_info() {
 
 /**
  * Implements hook_menu().
+ * Register paths in order to define how URL requests are handled.
  */
 function cartogratree_menu() {
     $items = array();
@@ -139,6 +140,9 @@ function cartogratree_menu() {
     return $items;
 }
 
+/**
+ * The user interface for CartograTree
+ */
 function cartogratree_app_page() {
     $options = '';
     $results = db_query('SELECT * FROM {cartogratree_layers}');
@@ -199,6 +203,8 @@ function cartogratree_app_page() {
 
 /**
  * Implements hook_theme().
+ * Specify how to render the arrays for both permissions tables on
+ * ?q=admin/cartogratree/settings/layer/access/<layer id> as HTML.
  */
 function cartogratree_theme($existing, $type, $theme, $path) {
   $items = array();

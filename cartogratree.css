@@ -1,4 +1,4 @@
-/* Four squares */
+/* Four squares on app page */
 .cartogratree_row {
     width: 100%;
     overflow: hidden;
@@ -15,7 +15,7 @@
     margin-left: 50%;
 }
 
-/* Side navigation menu */
+/* Side navigation menu on app page */
 .cartogratree_navbtn {
     font-size: 30px;
     cursor: pointer;
