@@ -145,9 +145,9 @@ function cartogratree_menu() {
  */
 function cartogratree_app_page() {
     $options = '';
-    $results = db_query('SELECT * FROM {cartogratree_layers}');
-    foreach ($results as $r) {
-        $options .= '<option value="' . $r->name . '" label="' . $r->title . '">' . $r->url . '</option>' . PHP_EOL;
+    $layers = cartogratree_get_layers();
+    foreach ($layers as $l) {
+        $options .= '<option value="' . $l->name . '" label="' . $l->title . '">' . $l->url . '</option>' . PHP_EOL;
     }
 
     $content = "
@@ -216,4 +216,25 @@ function cartogratree_theme($existing, $type, $theme, $path) {
   );
 
   return $items;
+}
+
+/**
+ * Retrieve all layers the current user has permission to see.
+ *
+ * @return
+ *   A prepared statement object, already executed.
+ */
+function cartogratree_get_layers() {
+  global $user;
+  // Grab the roles and user id of the current user.
+  $uid = $user->uid;
+  $rids = is_array($user->roles) ? array_keys($user->roles) : array();
+  // Only grab layers that the current user has permission to see.
+  $layers = db_query('
+    SELECT l.layer_id, l.title, l.name, l.url
+    FROM {cartogratree_layer_permissions} p
+    JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
+    WHERE p.uid=:uid OR p.rid IN (:rids)',
+    array(':uid' => $uid, ':rids' => $rids));
+  return $layers;
 }
