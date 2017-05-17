@@ -481,3 +481,20 @@ function cartogratree_admin_form_permission_table($vars) {
 
     return theme('table', $table);
 }
+
+/**
+ * Implements hook_theme().
+ * Specify how to render the arrays for both permissions tables on
+ * ?q=admin/cartogratree/settings/layer/access/<layer id> as HTML.
+ */
+function cartogratree_theme($existing, $type, $theme, $path) {
+  $items = array();
+
+  $items['cartogratree_admin_form_permission_table'] = array(
+    'function' => 'cartogratree_admin_form_permission_table',
+    'render element' => 'element',
+    'file' => 'includes/cartogratree.admin.inc',
+  );
+
+  return $items;
+}
