@@ -376,7 +376,7 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
 }
 
 /**
- * Layer Permissions form: Submission.
+ * Layer permissions form: Submission.
  * URL suffix: ?q=admin/cartogratree/settings/layer/access/<layer id>
  */
 function cartogratree_admin_layer_permissions_form_submit($form, &$form_state) {
