@@ -129,8 +129,8 @@ function cartogratree_layers () {
 /**
  * Update the layers shown based on user's selection. The layers are mapped to the
  * squares/maps in the order they were selected. The first layer selected is mapped
- * on the top-left square, the second one to the top-right square, the third one to
- * the bottom-left square, and the last one to the bottom-right square.
+ * on the top-left square, the second one to the top-right square, the third one on
+ * the bottom-left square, and the last one on the bottom-right square.
  */
 function cartogratree_layers_show_select_changed () {
     var selected = document.getElementById("cartogratree_layers_show_select");
