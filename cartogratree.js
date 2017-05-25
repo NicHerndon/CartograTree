@@ -4,6 +4,8 @@
  */
 
 var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8})];
+var cartogratree_map = new Array(4);
+var target = ['cartogratree_top_left', 'cartogratree_top_right', 'cartogratree_bottom_left', 'cartogratree_bottom_right'];
 var cartogratree_gis;
 
 /**
@@ -27,61 +29,32 @@ var cartogratree_gis;
                 })
             })
 
-            new ol.Map({
-                view: cartogratree_common_view,
-                layers: [
-                    // 'background' map
-                    cartogratree_osm_layer,
-                    // middle layer
-                    cartogratree_mid_layer[0],
-                    // trees - vector
-                    cartogratree_trees_layer,
-                ],
-                controls: [new ol.control.ScaleLine(), new ol.control.Attribution()],
-                target: 'cartogratree_top_left'
-            });
+            for (var i = 0; i < cartogratree_map.length; i++) {
+                cartogratree_map[i] = new ol.Map({
+                    view: cartogratree_common_view,
+                    layers: [
+                        // 'background' map
+                        cartogratree_osm_layer,
+                        // middle layer
+                        cartogratree_mid_layer[i],
+                        // trees - vector
+                        cartogratree_trees_layer,
+                    ],
+                    controls: [new ol.control.Zoom(), new ol.control.ZoomSlider(), new ol.control.ScaleLine(), new ol.control.Attribution()],
+                    target: target[i],
+                });
+                
+                // change cursor to pointer when going over a tree location
+                cartogratree_map[i].on('pointermove', function (e) {
+                    if (e.dragging) return;
 
-            new ol.Map({
-                view: cartogratree_common_view,
-                layers: [
-                    // 'background' map
-                    cartogratree_osm_layer,
-                    // middle layer
-                    cartogratree_mid_layer[1],
-                    // trees - vector
-                    cartogratree_trees_layer,
-                ],
-                controls: [new ol.control.ScaleLine(), new ol.control.Attribution()],
-                target: 'cartogratree_top_right'
-            });
-
-            new ol.Map({
-                view: cartogratree_common_view,
-                layers: [
-                    // 'background' map
-                    cartogratree_osm_layer,
-                    // middle layer
-                    cartogratree_mid_layer[2],
-                    // trees - vector
-                    cartogratree_trees_layer,
-                ],
-                controls: [new ol.control.ScaleLine(), new ol.control.Attribution()],
-                target: 'cartogratree_bottom_left'
-            });
-
-            new ol.Map({
-                view: cartogratree_common_view,
-                layers: [
-                    // 'background' map
-                    cartogratree_osm_layer,
-                    // middle layer
-                    cartogratree_mid_layer[3],
-                    // trees - vector
-                    cartogratree_trees_layer,
-                ],
-                controls: [new ol.control.ScaleLine(), new ol.control.Attribution()],
-                target: 'cartogratree_bottom_right'
-            });
+                    var pixel = e.map.getEventPixel(e.originalEvent);
+                    var hit = e.map.forEachLayerAtPixel(pixel, function (layer) {
+                        return layer == cartogratree_trees_layer;
+                    });
+                    e.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+                });
+            }
         }
     };
 }(jQuery));
@@ -95,8 +68,7 @@ function cartogratree_nav() {
         document.getElementById("cartogratree_sidenav").style.width = "0px";
         // enable page scrolling
         document.body.style.overflow = "";
-    }
-    else {
+    } else {
         // set navigation position
         var top = document.getElementById('cartogratree_top_left').getBoundingClientRect().top;
         var left = document.getElementById('cartogratree_top_left').getBoundingClientRect().left;
@@ -114,13 +86,12 @@ function cartogratree_nav() {
 /**
  * Show/hide list of layers.
  */
-function cartogratree_layers () {
+function cartogratree_layers() {
     var list = document.getElementById('cartogratree_layers_select');
     if (list.style.display === 'none') {
         list.style.display = 'block';
         document.getElementById("cartogratree_layers_arrow").innerHTML = "&#9650;";
-    }
-    else {
+    } else {
         list.style.display = 'none';
         document.getElementById("cartogratree_layers_arrow").innerHTML = "&#9660;";
     }
@@ -132,11 +103,11 @@ function cartogratree_layers () {
  * on the top-left square, the second one to the top-right square, the third one on
  * the bottom-left square, and the last one on the bottom-right square.
  */
-function cartogratree_layers_show_select_changed () {
+function cartogratree_layers_show_select_changed() {
     var selected = document.getElementById("cartogratree_layers_show_select");
     var shown_layers = document.getElementsByName('cartogratree_shown_layers')[0].value;
     var prev_shown_layers = (shown_layers == "") ? [] : shown_layers.split(',');
-    
+
     if (prev_shown_layers.length < selected.selectedOptions.length) {
         // there are more entries than previously
         if (selected.selectedOptions.length < 5) {
@@ -146,13 +117,12 @@ function cartogratree_layers_show_select_changed () {
                     prev_shown_layers.push(selected.selectedOptions[i].index);
                     // add layer to map
                     var value = selected.selectedOptions[i].value;
-                    var attr = " &copy; <a href=\"".concat(selected.selectedOptions[i].text, "\">", selected.selectedOptions[i].label, "</a>.");
+                    var attr = " &copy; <a href=\"".concat(selected.selectedOptions[i].text, "\">", selected.selectedOptions[i].label, "</a>");
                     cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
                 }
             }
             document.getElementsByName('cartogratree_shown_layers')[0].value = prev_shown_layers.join();
-        }
-        else {
+        } else {
             // max is 4, unselect the last one
             alert("Only four layers can be shown! Unselect another shown layer and try again.");
             for (var i = 0; i < selected.selectedOptions.length; i++) {
@@ -161,8 +131,7 @@ function cartogratree_layers_show_select_changed () {
                 }
             }
         }
-    }
-    else if (prev_shown_layers.length > selected.selectedOptions.length) {
+    } else if (prev_shown_layers.length > selected.selectedOptions.length) {
         // there are less entries than previously
         // get the indexes of the selected layers
         var sel_indexes = [];
@@ -179,17 +148,16 @@ function cartogratree_layers_show_select_changed () {
         }
         // if needed, add currently selected indexes to previously selected indexes
         for (var i = 0; i < selected.selectedOptions.length; i++) {
-                if (prev_shown_layers.indexOf(selected.selectedOptions[i].index.toString()) == -1) {
-                    prev_shown_layers.push(selected.selectedOptions[i].index);
-                }
+            if (prev_shown_layers.indexOf(selected.selectedOptions[i].index.toString()) == -1) {
+                prev_shown_layers.push(selected.selectedOptions[i].index);
+            }
         }
         document.getElementsByName('cartogratree_shown_layers')[0].value = prev_shown_layers.join();
         // update the maps
         for (var i = 0; i < 4; i++) {
             if (prev_shown_layers[i] === undefined) {
-                cartogratree_mid_layer[i].setSource(null); 
-            }
-            else {
+                cartogratree_mid_layer[i].setSource(null);
+            } else {
                 if (cartogratree_mid_layer[i].getProperties().source.ec != "LAYERS-".concat(selected[prev_shown_layers[i]].value)) {
                     var value = selected[prev_shown_layers[i]].value;
                     var attr = " &copy; <a href=\"".concat(selected.selectedOptions[i].text, "\">", selected.selectedOptions[i].label, "</a>.");
@@ -197,8 +165,7 @@ function cartogratree_layers_show_select_changed () {
                 }
             }
         }
-    }
-    else {
+    } else {
         // there are the same number of entries as previously (i.e., one)
         document.getElementsByName('cartogratree_shown_layers')[0].value = selected.selectedOptions[0].index;
         // update the layer of the first map

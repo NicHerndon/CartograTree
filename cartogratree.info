@@ -2,6 +2,11 @@ name = CartograTree
 description = CartograTree is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.
 core = 7.x
 version = 7.x-0.1-dev
+files[] = cartogratree.module
+files[] = cartogratree.install
+files[] = cartogratree.js
+files[] = cartogratree.css
+files[] = includes/cartogratree.admin.inc
 configure = admin/cartogratree/settings
 
 dependencies[] = libraries:libraries

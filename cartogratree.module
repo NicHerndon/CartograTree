@@ -5,7 +5,7 @@
  * Custom functionality for the CartograTree application.
  */
 
-define("CARTOGRATREE_COMPATIBLE_MAJOR_VERSION", '3');
+define("CARTOGRATREE_COMPATIBLE_MAJOR_VERSION", '4');
 
 /**
  * Implements hook_libraries_info().
@@ -17,22 +17,22 @@ function cartogratree_libraries_info() {
     $libraries['openlayers'] = array(
       'name' => 'OpenLayers3',
       'vendor url' => 'http://openlayers.org',
-      'download url' => 'https://openlayers.org/en/v3.19.0',
-      'version' => '3.19.0',
+      'download url' => 'https://openlayers.org/en/v4.1.1',
+      'version' => '4.1.1',
       'version arguments' => array(
         // file where version can be found
         'file' => 'ol.js',
-        // Version: v3.19.0
+        // Version: v4.1.1
         'pattern' => '/Version: v([0-9\.]+)/',
         'lines' => 5,
       ),
       'files' => array(
         'js' => array(
-          // https://openlayers.org/en/v3.19.0/build/ol.js
+          // https://openlayers.org/en/v4.1.1/build/ol.js
           'ol.js',
         ),
         'css' => array(
-          // https://openlayers.org/en/v3.19.0/css/ol.css
+          // https://openlayers.org/en/v4.1.1/css/ol.css
           'ol.css',
         ),
       ),
