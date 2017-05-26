@@ -152,11 +152,11 @@ function cartogratree_app_page() {
 
     $content = "
     <input type=\"hidden\" name=\"cartogratree_shown_layers\">
-    <span class=\"cartogratree_navbtn\" onclick=\"cartogratree_nav()\">&#9776;</span>
+    <span class=\"cartogratree_navbtn\">&#9776;</span>
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
       <ul id=\"cartogratree_sidenav_ul\">
         <li class=\"cartogratree_sidenav_li\">1. Select environmental layers
-          <span id=\"cartogratree_layers_arrow\" onclick=\"cartogratree_layers()\">&#9660;</span>
+          <span id=\"cartogratree_layers_arrow\">&#9660;</span>
           <div id=\"cartogratree_layers_select\" style=\"display:none;\">
             <b>Select up to 4 layers to show:</b><br/>
             <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" onchange=\"cartogratree_layers_show_select_changed()\" multiple>
