@@ -151,7 +151,7 @@ function cartogratree_app_page() {
     }
 
     $content = "
-    <input type=\"hidden\" name=\"cartogratree_shown_layers\">
+    <input type=\"hidden\" id=\"cartogratree_shown_layers\">
     <span class=\"cartogratree_navbtn\">&#9776;</span>
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
       <ul id=\"cartogratree_sidenav_ul\">
@@ -159,7 +159,7 @@ function cartogratree_app_page() {
           <span id=\"cartogratree_layers_arrow\">&#9660;</span>
           <div id=\"cartogratree_layers_select\" style=\"display:none;\">
             <b>Select up to 4 layers to show:</b><br/>
-            <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" onchange=\"cartogratree_layers_show_select_changed()\" multiple>
+            <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" multiple>
                 " . $options . "
             </select>
             <b>Select other layers to use:</b><br/>
