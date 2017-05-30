@@ -3,18 +3,16 @@
  * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree/app).
  */
 
-/**
- * Attach the maps to the four squares on the app page.
- */
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
             'use strict';
             
+            // Attach the maps to the four squares on the app page.
+            var cartogratree_gis = Drupal.settings.cartogratree.gis;
             var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8})];
             var cartogratree_map = new Array(4);
             var target = ['cartogratree_top_left', 'cartogratree_top_right', 'cartogratree_bottom_left', 'cartogratree_bottom_right'];
-            var cartogratree_gis = Drupal.settings.cartogratree.gis;
             var cartogratree_common_view = new ol.View({
                 center: ol.proj.fromLonLat([10, 20]),
                 zoom: 2
