@@ -47,9 +47,15 @@
                     if (e.dragging) return;
 
                     var pixel = e.map.getEventPixel(e.originalEvent);
-                    var hit = e.map.forEachLayerAtPixel(pixel, function (layer) {
-                        return layer == cartogratree_trees_layer;
-                    });
+                    /** if the source of the middle layer is set to null
+                     * then set hit to false
+                     * otherwise use ol to determine if the tree layer
+                     * has a color value at a pixel on the viewport
+                     */
+                    var hit = e.map.getLayers().a[1].getSource() ?
+                            e.map.forEachLayerAtPixel(pixel, function (layer) {
+                                return layer == cartogratree_trees_layer;
+                            }) : false;
                     e.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
                 });
             }
