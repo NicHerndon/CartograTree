@@ -152,6 +152,10 @@ function cartogratree_app_page() {
 
     $content = "
     <input type=\"hidden\" id=\"cartogratree_shown_layers\">
+    <div id=\"cartogratree_popup\">
+      <span>Only four layers can be shown!<br/>Unselect another shown layer and try again.</span><br/>
+      <button id=\"cartogratree_popup_close\">OK</button>
+    </div>
     <span class=\"cartogratree_navbtn\">&#9776;</span>
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
       <ul id=\"cartogratree_sidenav_ul\">

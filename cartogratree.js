@@ -62,7 +62,7 @@
 
             // Show/hide the side navigation, and enable/disable page scrolling.
             $(".cartogratree_navbtn").click(function() {
-                if ($("#cartogratree_sidenav").width() == 250) {
+                if ($("#cartogratree_sidenav").width() == 500) {
                     // close navigation
                     $("#cartogratree_sidenav").width("0px");
                     // enable page scrolling
@@ -71,10 +71,10 @@
                     // set navigation position
                     var top = $('#cartogratree_top_left')[0].getBoundingClientRect().top;
                     var left = $('#cartogratree_top_left')[0].getBoundingClientRect().left;
-                    var height = $('#cartogratree_top_left')[0].getBoundingClientRect().bottom - top;
+                    var height = $('#cartogratree_bottom_left')[0].getBoundingClientRect().bottom - top;
                     $("#cartogratree_sidenav").css({ top: top + 'px', left: left + 'px', height: height + 'px'});
                     // open navigation
-                    $("#cartogratree_sidenav").width("250px");
+                    $("#cartogratree_sidenav").width("500px");
                     // disable page scrolling
                     $('html, body').css({overflow: 'hidden'});
                 }
@@ -121,7 +121,7 @@
                     }
                     else {
                         // max is 4, unselect the last one
-                        alert("Only four layers can be shown! Unselect another shown layer and try again.");
+                        $("#cartogratree_popup").show();
                         var fifth;
                         for (var i = 0; i < selected; i++) {
                             if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index.toString()) == -1) {
@@ -175,6 +175,11 @@
                     var attr = " &copy; <a href=\"".concat($select.find('option:selected')[0].text, "\">", $select.find('option:selected')[0].label, "</a>");
                     cartogratree_mid_layer[0].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
                 }
+            });
+            
+            // hide the message box when the user clicks the OK button
+            $("#cartogratree_popup_close").click(function() {
+                $("#cartogratree_popup").hide();
             });
         },
     };

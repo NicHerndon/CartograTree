@@ -56,3 +56,19 @@
     float: right;
     cursor: pointer;
 }
+
+/* pop-up */
+#cartogratree_popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    right: 500px;
+    z-index: 2; /* Stay on top */
+    background-color: #FFFFFF;
+    margin: auto;
+    padding: 5px;
+    border: 1px solid #888;
+    border-radius: 6px;
+    width: 300px;
+    text-align:center;
+}
