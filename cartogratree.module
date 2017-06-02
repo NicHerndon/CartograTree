@@ -150,13 +150,20 @@ function cartogratree_app_page() {
         $options .= '<option value="' . $l->name . '" label="' . $l->title . '">' . $l->url . '</option>' . PHP_EOL;
     }
 
-    $content = "
-    <input type=\"hidden\" id=\"cartogratree_shown_layers\">
-    <div id=\"cartogratree_popup\">
+    // keep track of up to four layers selected to be shown
+    $content = "<input type=\"hidden\" id=\"cartogratree_shown_layers\">";
+    // pop-up window shown when the user tries to select more than four layers to show
+    $content .= "<div id=\"cartogratree_popup\">
       <span>Only four layers can be shown!<br/>Unselect another shown layer and try again.</span><br/>
       <button id=\"cartogratree_popup_close\">OK</button>
-    </div>
-    <span class=\"cartogratree_navbtn\">&#9776;</span>
+    </div>";
+    // pop-up window shown when the user clicks on one of the four maps
+    $content .= "<div id=\"cartogratree_ol_popup\" class=\"cartogratree_ol_popup\">
+      <a href=\"#\" id=\"cartogratree_ol_popup_closer\" class=\"cartogratree_ol_popup_closer\"></a>
+      <div id=\"cartogratree_ol_popup_content\"></div>
+    </div>";
+    // side navigation panel: menu button, unordered list with the steps, and drop-down lists with layers
+    $content .= "<span class=\"cartogratree_navbtn\">&#9776;</span>
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
       <ul id=\"cartogratree_sidenav_ul\">
         <li class=\"cartogratree_sidenav_li\">1. Select environmental layers
@@ -177,9 +184,9 @@ function cartogratree_app_page() {
         </li>
         <li class=\"cartogratree_sidenav_li\">3. List filtered data</li>
       </ul>
-    </div>
-    
-    <div class=\"cartogratree_row\">
+    </div>";
+    // four maps
+    $content .= "<div class=\"cartogratree_row\">
       <div class=\"cartogratree_left\" id=\"cartogratree_top_left\"></div>
       <div class=\"cartogratree_right\" id=\"cartogratree_top_right\"></div>
     </div>

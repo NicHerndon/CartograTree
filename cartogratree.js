@@ -8,6 +8,7 @@
         attach: function (context, settings) {
             'use strict';
             
+            var trees;
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
             var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8})];
@@ -27,7 +28,20 @@
                 })
             })
 
+            /**
+             * Create an overlay to anchor the popup to the map.
+             */
+            var overlay = new ol.Overlay(({
+                element: $('#cartogratree_ol_popup')[0],
+                autoPan: true,
+                autoPanAnimation: {
+                    duration: 250
+                }
+            }));
+      
+            // create the maps and add the event handlers
             for (var i = 0; i < cartogratree_map.length; i++) {
+                // create the maps
                 cartogratree_map[i] = new ol.Map({
                     view: cartogratree_common_view,
                     layers: [
@@ -57,6 +71,43 @@
                                 return layer == cartogratree_trees_layer;
                             }) : false;
                     e.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+                });
+                
+                // Add a click handler to the map to render the popup.
+                cartogratree_map[i].on('singleclick', function(e) {
+                    if (e.map.getOverlays().a.length == 0) e.map.addOverlay(overlay);
+                    var coordinate = e.coordinate;
+                    var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
+                    $('#cartogratree_ol_popup_content').html('Coordinates: <code>' + hdms + '</code>');
+                    trees = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
+                            e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
+                            {'INFO_FORMAT': 'text/javascript'});
+                    // get tree(s) info
+                    $.ajax({
+                      url : trees,
+                      dataType : 'jsonp',
+                      jsonpCallback : 'parseResponse',
+                      success : function (response) {
+                        for (var i = 0; i < response.features.length; i++) {
+                          tree = 'ID: ' + response.features[i].id + '<br>';
+                          for (col in response.features[i].properties) {
+                            tree += col + ': ' + response.features[i].properties[col] + '<br>';
+                          }
+                        }
+                        if (response.features.length > 0) {
+                          content.innerHTML += '<p>Tree details:<br><code>' + tree + '</code></p>';
+                        }
+                      }
+                    });
+                    overlay.setPosition(coordinate);
+                    
+                    // hide the ol message box when the user clicks the x button
+                    $('#cartogratree_ol_popup_closer').click(function() {
+                        e.map.removeOverlay(overlay);
+                        overlay.setPosition(undefined);
+                        $('#cartogratree_ol_popup_closer').blur();
+                        return false;
+                    });
                 });
             }
 
@@ -181,6 +232,7 @@
             $("#cartogratree_popup_close").click(function() {
                 $("#cartogratree_popup").hide();
             });
+            
         },
     };
 }(jQuery));
