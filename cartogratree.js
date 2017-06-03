@@ -76,7 +76,7 @@
                 // Add a click handler to the map to render the popup.
                 cartogratree_map[i].on('singleclick', function(e) {
                     if (e.map.getOverlays().a.length == 0) e.map.addOverlay(overlay);
-                    var coordinate = e.coordinate;
+                    var coordinate = e.coordinate, tree = '';
                     var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
                     $('#cartogratree_ol_popup_content').html('Coordinates: <code>' + hdms + '</code>');
                     trees = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
@@ -95,7 +95,7 @@
                           }
                         }
                         if (response.features.length > 0) {
-                          content.innerHTML += '<p>Tree details:<br><code>' + tree + '</code></p>';
+                          $('#cartogratree_ol_popup_content').append('<p>Tree details:<br><code>' + tree + '</code></p>');
                         }
                       }
                     });
