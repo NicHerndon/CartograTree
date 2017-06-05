@@ -186,14 +186,15 @@ function cartogratree_app_page() {
       </ul>
     </div>";
     // four maps
-    $content .= "<div class=\"cartogratree_row\">
+    $content .= "<div id=\"cartogratree_squares\">
+    <div class=\"cartogratree_row\">
       <div class=\"cartogratree_left\" id=\"cartogratree_top_left\"></div>
       <div class=\"cartogratree_right\" id=\"cartogratree_top_right\"></div>
     </div>
     <div class=\"cartogratree_row\">
       <div class=\"cartogratree_left\" id=\"cartogratree_bottom_left\"></div>
       <div class=\"cartogratree_right\" id=\"cartogratree_bottom_right\"></div>
-    </div>";
+    </div></div>";
 
     libraries_load('openlayers');
     drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
