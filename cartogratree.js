@@ -26,7 +26,8 @@
                     url: cartogratree_gis,
                     params: {LAYERS: 'ct:sample'}
                 })
-            })
+            });
+            cartogratree_trees_layer.setZIndex(2);
 
             /**
              * Create an overlay to anchor the popup to the map.
@@ -47,8 +48,6 @@
                     layers: [
                         // 'background' map
                         cartogratree_osm_layer,
-                        // middle layer
-                        cartogratree_mid_layer[i],
                         // trees - vector
                         cartogratree_trees_layer,
                     ],
@@ -61,15 +60,12 @@
                     if (e.dragging) return;
 
                     var pixel = e.map.getEventPixel(e.originalEvent);
-                    /** if the source of the middle layer is set to null
-                     * then set hit to false
-                     * otherwise use ol to determine if the tree layer
+                    /** use ol to determine if the tree layer
                      * has a color value at a pixel on the viewport
                      */
-                    var hit = e.map.getLayers().a[1].getSource() ?
-                            e.map.forEachLayerAtPixel(pixel, function (layer) {
+                    var hit = e.map.forEachLayerAtPixel(pixel, function (layer) {
                                 return layer == cartogratree_trees_layer;
-                            }) : false;
+                            });
                     e.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
                 });
                 
@@ -166,6 +162,8 @@
                                 var value = $select.val()[i];
                                 var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
                                 cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
+                                cartogratree_mid_layer[prev_shown_layers.length - 1].setZIndex(1);
+                                cartogratree_map[prev_shown_layers.length - 1].addLayer(cartogratree_mid_layer[prev_shown_layers.length - 1]);
                             }
                         }
                         $('#cartogratree_shown_layers').attr('value', prev_shown_layers.join());
@@ -208,12 +206,15 @@
                     for (var i = 0; i < 4; i++) {
                         if (prev_shown_layers[i] === undefined) {
                             cartogratree_mid_layer[i].setSource(null);
+                            cartogratree_map[i].removeLayer(cartogratree_mid_layer[i]);
                         }
                         else {
                             if (cartogratree_mid_layer[i].getProperties().source.ec != "LAYERS-".concat($select[0][parseInt(prev_shown_layers[i])].value)) {
                                 var value = $select.val()[i];
                                 var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
                                 cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
+                                cartogratree_mid_layer[prev_shown_layers.length - 1].setZIndex(1);
+                                cartogratree_map[prev_shown_layers.length - 1].addLayer(cartogratree_mid_layer[prev_shown_layers.length - 1]);
                             }
                         }
                     }
@@ -225,6 +226,8 @@
                     var value = $select.val()[0];
                     var attr = " &copy; <a href=\"".concat($select.find('option:selected')[0].text, "\">", $select.find('option:selected')[0].label, "</a>");
                     cartogratree_mid_layer[0].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
+                    cartogratree_mid_layer[0].setZIndex(1);
+                    cartogratree_map[0].addLayer(cartogratree_mid_layer[0]);
                 }
             });
             
