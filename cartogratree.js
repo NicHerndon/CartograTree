@@ -11,7 +11,7 @@
             var trees;
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
-            var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8}), new ol.layer.Tile({opacity: 0.8})];
+            var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false})];
             var cartogratree_map = new Array(4);
             var target = ['cartogratree_top_left', 'cartogratree_top_right', 'cartogratree_bottom_left', 'cartogratree_bottom_right'];
             var cartogratree_common_view = new ol.View({
@@ -27,7 +27,6 @@
                     params: {LAYERS: 'ct:sample'}
                 })
             });
-            cartogratree_trees_layer.setZIndex(2);
 
             /**
              * Create an overlay to anchor the popup to the map.
@@ -48,6 +47,8 @@
                     layers: [
                         // 'background' map
                         cartogratree_osm_layer,
+                        // middle layer
+                        cartogratree_mid_layer[i],
                         // trees - vector
                         cartogratree_trees_layer,
                     ],
@@ -162,8 +163,7 @@
                                 var value = $select.val()[i];
                                 var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
                                 cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
-                                cartogratree_mid_layer[prev_shown_layers.length - 1].setZIndex(1);
-                                cartogratree_map[prev_shown_layers.length - 1].addLayer(cartogratree_mid_layer[prev_shown_layers.length - 1]);
+                                cartogratree_mid_layer[prev_shown_layers.length - 1].setVisible(true);
                             }
                         }
                         $('#cartogratree_shown_layers').attr('value', prev_shown_layers.join());
@@ -206,15 +206,14 @@
                     for (var i = 0; i < 4; i++) {
                         if (prev_shown_layers[i] === undefined) {
                             cartogratree_mid_layer[i].setSource(null);
-                            cartogratree_map[i].removeLayer(cartogratree_mid_layer[i]);
+                            cartogratree_mid_layer[i].setVisible(false);
                         }
                         else {
                             if (cartogratree_mid_layer[i].getProperties().source.ec != "LAYERS-".concat($select[0][parseInt(prev_shown_layers[i])].value)) {
                                 var value = $select.val()[i];
                                 var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
                                 cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
-                                cartogratree_mid_layer[prev_shown_layers.length - 1].setZIndex(1);
-                                cartogratree_map[prev_shown_layers.length - 1].addLayer(cartogratree_mid_layer[prev_shown_layers.length - 1]);
+                                cartogratree_mid_layer[prev_shown_layers.length - 1].setVisible(true);
                             }
                         }
                     }
@@ -226,8 +225,7 @@
                     var value = $select.val()[0];
                     var attr = " &copy; <a href=\"".concat($select.find('option:selected')[0].text, "\">", $select.find('option:selected')[0].label, "</a>");
                     cartogratree_mid_layer[0].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
-                    cartogratree_mid_layer[0].setZIndex(1);
-                    cartogratree_map[0].addLayer(cartogratree_mid_layer[0]);
+                    cartogratree_mid_layer[0].setVisible(true);
                 }
             });
             
