@@ -138,8 +138,8 @@
                     $("#cartogratree_sidenav").css({ top: top + 'px', left: left + 'px', height: height + 'px'});
                     // open navigation
                     $("#cartogratree_sidenav").width("500px");
-                    // disable page scrolling*
-                    $('html, body').css({overflow: 'hidden'});
+                    // disable page scrolling
+                    $('html, body').css({overflow: hidden, position: fixed});
                 }
             });
             
