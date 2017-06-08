@@ -139,7 +139,7 @@
                     // open navigation
                     $("#cartogratree_sidenav").width("500px");
                     // disable page scrolling
-                    $('html, body').css({overflow: hidden, position: fixed});
+                    $('html, body').css({overflow: 'hidden', position: 'fixed'});
                 }
             });
             
