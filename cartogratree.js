@@ -7,8 +7,7 @@
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
             'use strict';
-            
-            var trees;
+
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
             var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false})];
@@ -76,25 +75,41 @@
                     var coordinate = e.coordinate, tree = '';
                     var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
                     $('#cartogratree_ol_popup_content').html('Coordinates: <code>' + hdms + '</code>');
-                    trees = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
+                    var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
                             {'INFO_FORMAT': 'text/javascript'});
-                    // get tree(s) info
+                    if (e.map.getLayers().a[1].getVisible()) {
+                        var mid_url = e.map.getLayers().a[1].getSource().getGetFeatureInfoUrl(
+                                e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
+                                {'INFO_FORMAT': 'text/javascript'});
+                        // get mid-layer info - update this section to display details about the layer (instead of "Mid layer:")
+                        $.ajax({
+                            url : mid_url,
+                            dataType : 'text',
+                            success: function(data, textStatus, jqXHR){
+                                var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
+                                var mid = '';
+                                Object.keys(response.properties).forEach(function(key) {
+                                    mid += key + ': ' + response.properties[key] + '<br>';
+                                });
+                                $('#cartogratree_ol_popup_content').append('<p>Mid layer:<br><code>' + mid + '</code></p>');
+                            }
+                        });
+                    }
+                    // get tree(s) info - update this section to display only some info, not all of it
                     $.ajax({
-                      url : trees,
-                      dataType : 'jsonp',
-                      jsonpCallback : 'parseResponse',
-                      success : function (response) {
-                        for (var i = 0; i < response.features.length; i++) {
-                          tree = 'ID: ' + response.features[i].id + '<br>';
-                          for (col in response.features[i].properties) {
-                            tree += col + ': ' + response.features[i].properties[col] + '<br>';
-                          }
+                        url : trees_url,
+                        dataType : 'text',
+                        success: function(data, textStatus, jqXHR){
+                            var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
+                            if (response) {
+                                tree = 'ID: ' + response.id + '<br>';
+                                Object.keys(response.properties).forEach(function(key) {
+                                  tree += key + ': ' + response.properties[key] + '<br>';
+                                });
+                                $('#cartogratree_ol_popup_content').append('<p>Tree details:<br><code>' + tree + '</code></p>');
+                            }
                         }
-                        if (response.features.length > 0) {
-                          $('#cartogratree_ol_popup_content').append('<p>Tree details:<br><code>' + tree + '</code></p>');
-                        }
-                      }
                     });
                     overlay.setPosition(coordinate);
                     
@@ -123,7 +138,7 @@
                     $("#cartogratree_sidenav").css({ top: top + 'px', left: left + 'px', height: height + 'px'});
                     // open navigation
                     $("#cartogratree_sidenav").width("500px");
-                    // disable page scrolling
+                    // disable page scrolling*
                     $('html, body').css({overflow: 'hidden'});
                 }
             });
