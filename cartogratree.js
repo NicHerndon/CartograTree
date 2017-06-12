@@ -74,7 +74,7 @@
                     if (e.map.getOverlays().a.length == 0) e.map.addOverlay(overlay);
                     var coordinate = e.coordinate, tree = '';
                     var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
-                    $('#cartogratree_ol_popup_content').html('Coordinates: <code>' + hdms + '</code>');
+                    $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + hdms + '</code>');
                     var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
                             {'INFO_FORMAT': 'text/javascript'});
@@ -103,10 +103,11 @@
                         success: function(data, textStatus, jqXHR){
                             var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
                             if (response) {
-                                tree = 'ID: ' + response.id + '<br>';
-                                Object.keys(response.properties).forEach(function(key) {
-                                  tree += key + ': ' + response.properties[key] + '<br>';
-                                });
+                                tree =  response.properties.species + ' (' + response.id + ')<br>';
+//                                tree = 'ID: ' + response.id + '<br>';
+//                                Object.keys(response.properties).forEach(function(key) {
+//                                    tree += key + ': ' + response.properties[key] + '<br>';
+//                                });
                                 $('#cartogratree_ol_popup_content').append('<p>Tree details:<br><code>' + tree + '</code></p>');
                             }
                         }
@@ -143,6 +144,16 @@
                 }
             });
             
+            // Set side navigation height when resizing the window.
+            $(window).resize(function() {
+                if ($("#cartogratree_sidenav").width() == 500) {
+                    // set navigation height
+                    var top = $('#cartogratree_top_left')[0].getBoundingClientRect().top;
+                    var height = $('#cartogratree_bottom_left')[0].getBoundingClientRect().bottom - top;
+                    $("#cartogratree_sidenav").height(height + 'px');
+                }
+            });
+            
             // Show/hide list of layers.
             $("#cartogratree_layers_arrow").click(function() {
                 var $list = $('#cartogratree_layers_select');
@@ -152,6 +163,18 @@
                 } else {
                     $list.hide();
                     $("#cartogratree_layers_arrow").html("&#9660;");
+                }
+            });
+            
+            // Show/hide filters
+            $("#cartogratree_filter_arrow").click(function() {
+                var $list = $('#cartogratree_filter');
+                if ($list.css("display") == "none") {
+                    $list.show();
+                    $("#cartogratree_filter_arrow").html("&#9650;");
+                } else {
+                    $list.hide();
+                    $("#cartogratree_filter_arrow").html("&#9660;");
                 }
             });
             
@@ -242,6 +265,13 @@
                     cartogratree_mid_layer[0].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
                     cartogratree_mid_layer[0].setVisible(true);
                 }
+            });
+            
+            $("#cartogratree_trees_select").change(function() {
+                var filter = $("#cartogratree_trees_select").val() ?
+                    "species in ('" + $("#cartogratree_trees_select").val().join("','") + "')" :
+                    "species in ('empty')";
+                cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": filter});
             });
             
             // hide the message box when the user clicks the OK button

@@ -30,39 +30,33 @@
     font-size: 30px;
     cursor: pointer;
 }
-
 .cartogratree_sidenav {
     width: 0; /* Changed with JavaScript */
     position: fixed; /* Stay in place */
     z-index: 1; /* Stay on top */
-    background-color: #CCCCCC;
+    background-color: #ADBACA;  /* Same color as the OL controls. */
     overflow-x: hidden; /* Disable horizontal scroll */
-    transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    /*transition: 0.5s;  0.5 second transition effect to slide in the sidenav */
 }
-
 .cartogratree_sidenav_li {
     padding-left: 5px;
     border-bottom-style: solid;
     border-bottom-color: #FFFFFF;
 }
-
 #cartogratree_sidenav_ul {
     list-style: none;
     margin: 2px;
     padding: 0px;
 }
-
 #cartogratree_layers_select {
     background-color: #FFFFFF;
 }
-
-.cartogratree_layers_select {
+.cartogratree_select {
     width: 100%;
     border: 0px;
     outline: none;
 }
-
-#cartogratree_layers_arrow {
+.cartogratree_arrow {
     float: right;
     cursor: pointer;
 }

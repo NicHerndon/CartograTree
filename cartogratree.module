@@ -167,20 +167,28 @@ function cartogratree_app_page() {
     <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
       <ul id=\"cartogratree_sidenav_ul\">
         <li class=\"cartogratree_sidenav_li\">1. Select environmental layers
-          <span id=\"cartogratree_layers_arrow\">&#9660;</span>
+          <span id=\"cartogratree_layers_arrow\" class=\"cartogratree_arrow\">&#9660;</span>
           <div id=\"cartogratree_layers_select\" style=\"display:none;\">
             <b>Select up to 4 layers to show:</b><br/>
-            <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_layers_select\" multiple>
+            <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_select\" multiple>
                 " . $options . "
             </select>
             <b>Select other layers to use:</b><br/>
-            <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_layers_select\" multiple>
+            <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_select\" multiple>
                 " . $options . "
             </select>
           </div>
         </li>
         <li class=\"cartogratree_sidenav_li\">2. Filter data
-          <span style=\"float:right\"></span>
+          <span id=\"cartogratree_filter_arrow\" class=\"cartogratree_arrow\">&#9660;</span>
+          <div id=\"cartogratree_filter\" style=\"display:none;\">
+            <b>Species:</b><br/>
+            <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
+                <option selected=\"yes\">Abies alba</option>
+                <option selected=\"yes\">Cedrus deodara</option>
+                <option selected=\"yes\">Fagus grandifolia</option>
+            </select>
+          </div>
         </li>
         <li class=\"cartogratree_sidenav_li\">3. List filtered data</li>
       </ul>
