@@ -150,10 +150,8 @@ function cartogratree_app_page() {
         $options .= '<option value="' . $l->name . '" label="' . $l->title . '">' . $l->url . '</option>' . PHP_EOL;
     }
 
-    // keep track of up to four layers selected to be shown
-    $content = "<input type=\"hidden\" id=\"cartogratree_shown_layers\">";
     // pop-up window shown when the user tries to select more than four layers to show
-    $content .= "<div id=\"cartogratree_popup\" title=\"Layers\">
+    $content = "<div id=\"cartogratree_popup\" title=\"Layers\">
       Only four layers can be shown!<br/>Unselect another shown layer and try again.
     </div>";
     // pop-up window shown when the user clicks on one of the four maps
@@ -163,34 +161,35 @@ function cartogratree_app_page() {
     </div>";
     // side navigation panel: menu button, unordered list with the steps, and drop-down lists with layers
     $content .= "<span class=\"cartogratree_navbtn\">&#9776;</span>
-    <div id=\"cartogratree_sidenav\" class=\"cartogratree_sidenav\">
-      <ul id=\"cartogratree_sidenav_ul\">
-        <li class=\"cartogratree_sidenav_li\">1. Select environmental layers
-          <span id=\"cartogratree_layers_arrow\" class=\"cartogratree_arrow\">&#9660;</span>
-          <div id=\"cartogratree_layers_select\" style=\"display:none;\">
-            <b>Select up to 4 layers to show:</b><br/>
-            <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_select\" multiple>
-                " . $options . "
-            </select>
-            <b>Select other layers to use:</b><br/>
-            <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_select\" multiple>
-                " . $options . "
-            </select>
-          </div>
-        </li>
-        <li class=\"cartogratree_sidenav_li\">2. Filter data
-          <span id=\"cartogratree_filter_arrow\" class=\"cartogratree_arrow\">&#9660;</span>
-          <div id=\"cartogratree_filter\" style=\"display:none;\">
-            <b>Species:</b><br/>
-            <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
-                <option selected=\"yes\">Abies alba</option>
-                <option selected=\"yes\">Cedrus deodara</option>
-                <option selected=\"yes\">Fagus grandifolia</option>
-            </select>
-          </div>
-        </li>
-        <li class=\"cartogratree_sidenav_li\">3. List filtered data</li>
-      </ul>
+    <div id=\"cartogratree_sidenav\">
+      <div id=\"cartogratree_steps\">
+        <ul>
+          <li><a href=\"#cartogratree_step_1\">Layers</a></li>
+          <li><a href=\"#cartogratree_step_2\">Filters</a></li>
+          <li><a href=\"#cartogratree_step_3\">Data</a></li>
+        </ul>
+        <div id=\"cartogratree_step_1\">
+          <b>Select up to 4 layers to show:</b><br/>
+          <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_select\" multiple>
+              " . $options . "
+          </select>
+          <b>Select other layers to use:</b><br/>
+          <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_select\" multiple>
+              " . $options . "
+          </select>
+        </div>
+        
+        <div id=\"cartogratree_step_2\">
+          <b>Species:</b><br/>
+          <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
+            <option selected=\"yes\">Abies alba</option>
+            <option selected=\"yes\">Cedrus deodara</option>
+            <option selected=\"yes\">Fagus grandifolia</option>
+          </select>
+        </div>
+        
+        <div id=\"cartogratree_step_3\">data</div>
+      </div>
     </div>";
     // four maps
     $content .= "<div id=\"cartogratree_squares\">
@@ -206,7 +205,9 @@ function cartogratree_app_page() {
     libraries_load('openlayers');
     drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
     drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css');
-    drupal_add_library('system', 'ui.dialog');
+    foreach (['dialog', 'tabs', 'accordion'] as $ui) {
+        drupal_add_library('system', 'ui.' . $ui);
+    }
     $settings = array(
       'cartogratree' => array(
         'gis' => variable_get('cartogratree_gis'),

@@ -7,6 +7,7 @@
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
             'use strict';
+            var prev_shown_layers = [];
 
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
@@ -158,30 +159,6 @@
                 }
             });
             
-            // Show/hide list of layers.
-            $("#cartogratree_layers_arrow").click(function() {
-                var $list = $('#cartogratree_layers_select');
-                if ($list.css("display") == "none") {
-                    $list.show();
-                    $("#cartogratree_layers_arrow").html("&#9650;");
-                } else {
-                    $list.hide();
-                    $("#cartogratree_layers_arrow").html("&#9660;");
-                }
-            });
-            
-            // Show/hide filters
-            $("#cartogratree_filter_arrow").click(function() {
-                var $list = $('#cartogratree_filter');
-                if ($list.css("display") == "none") {
-                    $list.show();
-                    $("#cartogratree_filter_arrow").html("&#9650;");
-                } else {
-                    $list.hide();
-                    $("#cartogratree_filter_arrow").html("&#9660;");
-                }
-            });
-            
             /**
              * Update the layers shown based on user's selection. The layers are mapped to the
              * squares/maps in the order they were selected. The first layer selected is mapped
@@ -191,16 +168,14 @@
             $("#cartogratree_layers_show_select").change(function() {
                 var $select = $("#cartogratree_layers_show_select");
                 var selected = ($select.val()) ? $select.val().length : 0;
-                var shown_layers = $('#cartogratree_shown_layers').attr('value');
-                var prev_shown_layers = (shown_layers == "") ? [] : shown_layers.split(',');
 
                 if (prev_shown_layers.length < selected) {
                     // there are more entries than previously
                     if (selected < 5) {
                         // add layer to shown layers
                         for (var i = 0; i < selected; i++) {
-                            if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index.toString()) == -1) {
-                                prev_shown_layers.push($select[0].selectedOptions[i].index.toString());
+                            if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index) == -1) {
+                                prev_shown_layers.push($select[0].selectedOptions[i].index);
                                 // add layer to map
                                 var value = $select.val()[i];
                                 var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
@@ -208,19 +183,14 @@
                                 cartogratree_mid_layer[prev_shown_layers.length - 1].setVisible(true);
                             }
                         }
-                        $('#cartogratree_shown_layers').attr('value', prev_shown_layers.join());
                     }
                     else {
                         // max is 4, unselect the last one
                         $("#cartogratree_popup").dialog({modal: true});
-                        var fifth = [];
-                        for (var i = 0; i < selected; i++) {
-                            if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index.toString()) == -1) {
-                                fifth.push($select[0].selectedOptions[i].index);
+                        for (var i = 0; i < $select[0].options.length; i++) {
+                            if ($select[0].options[i].selected && prev_shown_layers.indexOf(i) == -1) {
+                                $select[0].options[i].selected = false;
                             }
-                        }
-                        for (var i = 0; i < fifth.length; i++) {
-                            $select[0].options[fifth[i]].selected = false;
                         }
                     }
                 }
@@ -241,11 +211,10 @@
                     }
                     // if needed, add currently selected indexes to previously selected indexes
                     for (var i = 0; i < selected; i++) {
-                        if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index.toString()) == -1) {
-                            prev_shown_layers.push($select[0].selectedOptions[i].index.toString());
+                        if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index) == -1) {
+                            prev_shown_layers.push($select[0].selectedOptions[i].index);
                         }
                     }
-                    $('#cartogratree_shown_layers').attr('value', prev_shown_layers.join());
                     // update the maps
                     for (var i = 0; i < 4; i++) {
                         if (prev_shown_layers[i] === undefined) {
@@ -264,7 +233,7 @@
                 }
                 else {
                     // there are the same number of entries as previously (i.e., one)
-                    $('#cartogratree_shown_layers').attr('value', $select[0].selectedOptions[0].index.toString());
+                    prev_shown_layers = [$select[0].selectedOptions[0].index];
                     // update the layer of the first map
                     var value = $select.val()[0];
                     var attr = " &copy; <a href=\"".concat($select.find('option:selected')[0].text, "\">", $select.find('option:selected')[0].label, "</a>");
@@ -279,6 +248,8 @@
                     "species in ('empty')";
                 cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": filter});
             });
+            
+            $("#cartogratree_steps").tabs();
         },
     };
 }(jQuery));
