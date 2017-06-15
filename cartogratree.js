@@ -71,10 +71,14 @@
                 
                 // Add a click handler to the map to render the popup.
                 cartogratree_map[i].on('singleclick', function(e) {
-                    if (e.map.getOverlays().a.length == 0) e.map.addOverlay(overlay);
+                    for (var i = 0; i < cartogratree_map.length; i++) {
+                        cartogratree_map[i].removeOverlay(overlay);
+                    }
+                    e.map.addOverlay(overlay);
                     var coordinate = e.coordinate, tree = '';
+                    var latlon = 'lat/lon: ' + ol.proj.toLonLat(coordinate)[1].toFixed(3) + '/' + ol.proj.toLonLat(coordinate)[0].toFixed(3) + '<br/>';
                     var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
-                    $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + hdms + '</code>');
+                    $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + latlon + hdms + '</code>');
                     var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
                             {'INFO_FORMAT': 'text/javascript'});
@@ -208,14 +212,16 @@
                     }
                     else {
                         // max is 4, unselect the last one
-                        $("#cartogratree_popup").show();
-                        var fifth;
+                        $("#cartogratree_popup").dialog({modal: true});
+                        var fifth = [];
                         for (var i = 0; i < selected; i++) {
                             if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index.toString()) == -1) {
-                                fifth = $select[0].selectedOptions[i].index;
+                                fifth.push($select[0].selectedOptions[i].index);
                             }
                         }
-                        $select.find('option:selected')[fifth].selected = false;
+                        for (var i = 0; i < fifth.length; i++) {
+                            $select[0].options[fifth[i]].selected = false;
+                        }
                     }
                 }
                 else if (prev_shown_layers.length > selected) {
@@ -273,12 +279,6 @@
                     "species in ('empty')";
                 cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": filter});
             });
-            
-            // hide the message box when the user clicks the OK button
-            $("#cartogratree_popup_close").click(function() {
-                $("#cartogratree_popup").hide();
-            });
-            
         },
     };
 }(jQuery));

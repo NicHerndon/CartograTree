@@ -153,9 +153,8 @@ function cartogratree_app_page() {
     // keep track of up to four layers selected to be shown
     $content = "<input type=\"hidden\" id=\"cartogratree_shown_layers\">";
     // pop-up window shown when the user tries to select more than four layers to show
-    $content .= "<div id=\"cartogratree_popup\">
-      <span>Only four layers can be shown!<br/>Unselect another shown layer and try again.</span><br/>
-      <button id=\"cartogratree_popup_close\">OK</button>
+    $content .= "<div id=\"cartogratree_popup\" title=\"Layers\">
+      Only four layers can be shown!<br/>Unselect another shown layer and try again.
     </div>";
     // pop-up window shown when the user clicks on one of the four maps
     $content .= "<div id=\"cartogratree_ol_popup\" class=\"cartogratree_ol_popup\">
@@ -207,6 +206,7 @@ function cartogratree_app_page() {
     libraries_load('openlayers');
     drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
     drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css');
+    drupal_add_library('system', 'ui.dialog');
     $settings = array(
       'cartogratree' => array(
         'gis' => variable_get('cartogratree_gis'),
