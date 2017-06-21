@@ -144,12 +144,6 @@ function cartogratree_menu() {
  * The user interface for CartograTree
  */
 function cartogratree_app_page() {
-    $options = '';
-    $layers = cartogratree_get_layers();
-    foreach ($layers as $l) {
-        $options .= '<option value="' . $l->name . '" label="' . $l->title . '">' . $l->url . '</option>' . PHP_EOL;
-    }
-
     // pop-up window shown when the user tries to select more than four layers to show
     $content = "<div id=\"cartogratree_popup\" title=\"Layers\">
       Only four layers can be shown!<br/>Unselect another shown layer and try again.
@@ -159,38 +153,99 @@ function cartogratree_app_page() {
       <a href=\"#\" id=\"cartogratree_ol_popup_closer\" class=\"cartogratree_ol_popup_closer\"></a>
       <div id=\"cartogratree_ol_popup_content\"></div>
     </div>";
-    // side navigation panel: menu button, unordered list with the steps, and drop-down lists with layers
+    // side navigation panel
     $content .= "<span class=\"cartogratree_navbtn\">&#9776;</span>
-    <div id=\"cartogratree_sidenav\">
-      <div id=\"cartogratree_steps\">
+    <div id=\"cartogratree_sidenav\">";
+    // navigation tabs
+    $content .= "<div id=\"cartogratree_steps\">
         <ul>
           <li><a href=\"#cartogratree_step_1\">Layers</a></li>
           <li><a href=\"#cartogratree_step_2\">Filters</a></li>
           <li><a href=\"#cartogratree_step_3\">Data</a></li>
-        </ul>
-        <div id=\"cartogratree_step_1\">
-          <b>Select up to 4 layers to show:</b><br/>
-          <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_select\" multiple>
-              " . $options . "
-          </select>
-          <b>Select other layers to use:</b><br/>
-          <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_select\" multiple>
-              " . $options . "
-          </select>
-        </div>
-        
-        <div id=\"cartogratree_step_2\">
-          <b>Species:</b><br/>
-          <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
-            <option selected=\"yes\">Abies alba</option>
-            <option selected=\"yes\">Cedrus deodara</option>
-            <option selected=\"yes\">Fagus grandifolia</option>
-          </select>
-        </div>
-        
-        <div id=\"cartogratree_step_3\">data</div>
-      </div>
-    </div>";
+        </ul>";
+    // 'Layers' tab content
+    $content .= "<div id=\"cartogratree_step_1\">
+          <div id=\"cartogratree_accordion_groups\">
+          Shown: 0/4 Used: 0";
+    // pass info to JS about this accordion
+    $accordions = array('#cartogratree_accordion_groups');
+    // accordion entries
+    $groups = array(); $layers_js = array();
+    $layers = cartogratree_get_layers();
+    foreach ($layers as $l) {
+        $groups[$l->group_rank]['group_name'] = $l->group_name;
+        $groups[$l->group_rank]['group_rank'] = $l->group_rank;
+        if ($l->subgroup_name != '') {
+            $groups[$l->group_rank]['has_subgroups'] = TRUE;
+        }
+        else {
+            $groups[$l->group_rank]['has_subgroups'] = FALSE;
+        }
+        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['subgroup_name'] = $l->subgroup_name;
+        // add radio button for layer
+        $layer = "cartogratree_sidenav_layer_" . $l->layer_id;
+        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id] = "<div id=\"".$layer."\">
+            <input type=\"radio\" id=\"".$layer."_radio1\" name=\"".$layer."_radio\"><label for=\"".$layer."_radio1\">show</label>
+            <input type=\"radio\" id=\"".$layer."_radio2\" name=\"".$layer."_radio\"><label for=\"".$layer."_radio2\">use</label>
+            <input type=\"radio\" id=\"".$layer."_radio3\" name=\"".$layer."_radio\" checked=\"checked\"><label for=\"".$layer."_radio3\">skip</label> ".$l->title."</div>";
+        // pass info to JS about this layer
+        array_push($layers_js, array('id' => $layer, 'name' => $l->name, 'title' => $l->title, 'url' => $l->url,));
+    }
+    foreach ($groups as $g) {
+        $content .= "<h3>". $g['group_name'] . "</h3><div>";
+        if ($g['has_subgroups']) {
+            $content .= "<div id=\"cartogratree_accordion_group_" . $g['group_rank'] . "\">";
+            // pass info to JS about this accordion
+            array_push($accordions, "#cartogratree_accordion_group_" . $g['group_rank']);
+        }
+        foreach ($g['subgroups'] as $s) {
+            if ($s['subgroup_name'] != '') $content .= "<h4>". $s['subgroup_name'] . "</h4><div>";
+            $content .= join (PHP_EOL, $s['layers']);
+            if ($s['subgroup_name'] != '') $content .= "</div>";
+        }
+        $content .= "</div>";
+        if ($g['has_subgroups']) $content .= "</div>";
+    }
+    // End of accordion entries and 'Layers' tab content
+    $content .= "</div></div>";
+
+//    // 'Old-style' content
+//    $content .= "<b>Select up to 4 layers to show:</b><br/>
+//          <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_select\" multiple>
+//              " . $options . "
+//          </select>
+//          <b>Select other layers to use:</b><br/>
+//          <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_select\" multiple>
+//              " . $options . "
+//          </select>";
+    // 'Filters' tab content
+    $content .= "<div id=\"cartogratree_step_2\">";
+//    // Checkboxes
+//    $content .= "<div id=\"cartogratree_trees_species\">
+//            <fieldset>
+//              <legend>Tree species</legend>
+//              <input type=\"checkbox\" id=\"checkbox1\" name=\"checkbox\"><label for=\"checkbox1\">Choice 1</label>
+//              <input type=\"checkbox\" id=\"checkbox2\" name=\"checkbox\"><label for=\"checkbox2\">Choice 2</label>
+//              <input type=\"checkbox\" id=\"checkbox3\" name=\"checkbox\"><label for=\"checkbox3\">Choice 3</label>
+//            </fieldset>
+//          </div>";
+//    // Slider
+//    $content .= "<div id=\"slider\"></div>";
+//    // 'Old-style' content
+//    $content .= "<b>Species:</b><br/>
+//          <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
+//            <option selected=\"yes\">Abies alba</option>
+//            <option selected=\"yes\">Cedrus deodara</option>
+//            <option selected=\"yes\">Fagus grandifolia</option>
+//          </select>";
+    // End of 'Filters' tab content
+    $content .= "</div>";
+    // 'Data' tab content
+    $content .= "<div id=\"cartogratree_step_3\"></div>";
+    // End of navigation tabs
+    $content .= "</div>";
+    // End of side navigation panel
+    $content .= "</div>";
     // four maps
     $content .= "<div id=\"cartogratree_squares\">
     <div class=\"cartogratree_row\">
@@ -203,16 +258,20 @@ function cartogratree_app_page() {
     </div></div>";
 
     libraries_load('openlayers');
-    drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
-    drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css');
-    foreach (['dialog', 'tabs', 'accordion'] as $ui) {
+    foreach (['dialog', 'tabs', 'accordion', 'button', 'slider'] as $ui) {
         drupal_add_library('system', 'ui.' . $ui);
     }
+    drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
+    drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css'
+//        , array('group' => CSS_THEME, 'weight' => 9999,)
+        );
     $settings = array(
       'cartogratree' => array(
         'gis' => variable_get('cartogratree_gis'),
         'api' => variable_get('cartogratree_api'),
       ),
+      'layers' => $layers_js,
+      'accordions' => $accordions,
     );
     drupal_add_js($settings, 'setting');
 
@@ -235,10 +294,13 @@ function cartogratree_get_layers() {
   $rids = is_array($user->roles) ? array_keys($user->roles) : array();
   // Only grab layers that the current user has permission to see.
   $layers = db_query('
-    SELECT l.layer_id, l.title, l.name, l.url
+    SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, l.group_rank, l.subgroup_rank, l.layer_rank
     FROM {cartogratree_layer_permissions} p
     JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
-    WHERE p.uid=:uid OR p.rid IN (:rids)',
+    JOIN {cartogratree_groups} g ON g.group_rank = l.group_rank
+    JOIN {cartogratree_subgroups} s on s.subgroup_rank = l.subgroup_rank
+    WHERE p.uid=:uid OR p.rid IN (:rids)
+    ORDER BY l.group_rank, l.subgroup_rank, l.layer_rank',
     array(':uid' => $uid, ':rids' => $rids));
   return $layers;
 }

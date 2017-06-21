@@ -92,3 +92,27 @@
 .cartogratree_ol_popup_closer:after {
     content: "✖";
 }
+
+/*jQuery UI*/
+#cartogratree_sidenav .ui-widget, .ui-buttonset, fieldset legend {
+    font-size: 0.929em;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+#cartogratree_sidenav .ui-state-active, .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
+    color: #ffffff;
+    background: #007fff;
+}
+#cartogratree_sidenav .ui-accordion-header {
+    text-indent: 24px;
+}
+#cartogratree_sidenav fieldset {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    padding-bottom: 0px;
+}
+#cartogratree_sidenav legend {
+    top: -22px;
+}
+#cartogratree_sidenav .ui-buttonset {
+    margin: 0px;
+}

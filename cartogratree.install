@@ -79,6 +79,18 @@ function cartogratree_schema() {
           'type' => 'varchar',
           'length' => 256,
         ),
+        'group_rank' => array(
+          'description' => 'Accordion group rank for side navigation menu.',
+          'type' => 'int',
+        ),
+        'subgroup_rank' => array(
+          'description' => 'Accordion subgroup rank for side navigation menu.',
+          'type' => 'int',
+        ),
+        'layer_rank' => array(
+          'description' => 'Layer rank for side navigation menu.',
+          'type' => 'int',
+        ),
       ),
       'primary key' => array('layer_id'),
     );
@@ -106,6 +118,40 @@ function cartogratree_schema() {
         ),
       ),
       'primary key' => array('layer_permissions_id'),
+    );
+
+    $schema['cartogratree_groups'] = array(
+      'description' => 'Keeps track of accordion groups for side navigation menu.',
+      'fields' => array(
+        'group_rank' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'group_name' => array(
+          'description' => 'Accordion group name for side navigation menu.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+      ),
+      'primary key' => array('group_rank'),
+    );
+
+    $schema['cartogratree_subgroups'] = array(
+      'description' => 'Keeps track of accordion subgroups for side navigation menu.',
+      'fields' => array(
+        'subgroup_rank' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'subgroup_name' => array(
+          'description' => 'Accordion subgroup name for side navigation menu.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+      ),
+      'primary key' => array('subgroup_rank'),
     );
 
     return $schema;

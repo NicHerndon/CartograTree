@@ -84,6 +84,9 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
             array(array('data' => 'Human-readable name', 'header' => TRUE), $obj->title),
             array(array('data' => 'Name used with the GIS server', 'header' => TRUE), $obj->name),
             array(array('data' => 'URL for the layer provider', 'header' => TRUE), $obj->url),
+            array(array('data' => 'Group rank', 'header' => TRUE), $obj->group_rank),
+            array(array('data' => 'Subgroup rank', 'header' => TRUE), $obj->subgroup_rank),
+            array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
           ),
         );
         $form['info'] = array(
@@ -128,6 +131,27 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#default_value' => (isset($obj->url)) ? $obj->url : '',
         );
 
+        $form['group_rank'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Group rank',
+          '#description' => 'Accordion group rank for side navigation menu.',
+          '#default_value' => (isset($obj->group_rank)) ? $obj->group_rank : '',
+        );
+
+        $form['subgroup_rank'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Subgroup rank',
+          '#description' => 'Accordion subgroup rank for side navigation menu.',
+          '#default_value' => (isset($obj->subgroup_rank)) ? $obj->subgroup_rank : '',
+        );
+
+        $form['layer_rank'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Layer rank',
+          '#description' => 'Layer rank for side navigation menu.',
+          '#default_value' => (isset($obj->layer_rank)) ? $obj->layer_rank : '',
+        );
+
         $op = ucwords($form_state['build_info']['args'][0]);
         $form['submit'] = array(
           '#type' => 'submit',
@@ -156,6 +180,9 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
           'title' => $form_state['values']['name'],
           'name' => $form_state['values']['machine_name'],
           'url' => $form_state['values']['url'],
+          'group_rank' => $form_state['values']['group_rank'],
+          'subgroup_rank' => $form_state['values']['subgroup_rank'],
+          'layer_rank' => $form_state['values']['layer_rank'],
         );
 
         if ($form_state['values']['op'] == 'Add') {
@@ -259,6 +286,9 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
             array(array('data' => 'Human-readable name', 'header' => TRUE), $obj->title),
             array(array('data' => 'Name used with the GIS server', 'header' => TRUE), $obj->name),
             array(array('data' => 'URL for the layer provider', 'header' => TRUE), $obj->url),
+            array(array('data' => 'Group rank', 'header' => TRUE), $obj->group_rank),
+            array(array('data' => 'Subgroup rank', 'header' => TRUE), $obj->subgroup_rank),
+            array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
       ),
     );
 

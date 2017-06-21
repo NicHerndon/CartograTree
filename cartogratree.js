@@ -9,6 +9,18 @@
             'use strict';
             var prev_shown_layers = [];
 
+            // 'Finish' jQuery UI Buttonsets for sidenav
+            for (var i in Drupal.settings.layers) {
+                $("#" + Drupal.settings.layers[i].id).buttonset();
+                // store layer details in an array
+            }
+            // 'Finish' jQuery UI Accordions for sidenav
+            $(Drupal.settings.accordions.join()).accordion({
+                collapsible: true,
+                autoHeight: false,
+                icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
+            });
+            
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
             var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false})];
@@ -138,14 +150,17 @@
                     $('html, body').css({overflow: 'auto'});
                 } else {
                     // set navigation position
+                    $('body').scrollTop($("#main-menu").offset().top);
                     var top = $('#cartogratree_top_left')[0].getBoundingClientRect().top;
                     var left = $('#cartogratree_top_left')[0].getBoundingClientRect().left;
                     var height = $('#cartogratree_bottom_left')[0].getBoundingClientRect().bottom - top;
-                    $("#cartogratree_sidenav").css({ top: top + 'px', left: left + 'px', height: height + 'px'});
-                    // open navigation
-                    $("#cartogratree_sidenav").width("500px");
-                    // disable page scrolling
-                    $('html, body').css({overflow: 'hidden', position: 'fixed'});
+                    // position and open navigation
+                    $("#cartogratree_sidenav").css({ top: top + 'px', left: left + 'px', height: height + 'px', width: '500px'});
+//                    // disable page scrolling
+//                    $('html, body').css({
+//                        position: 'fixed',
+//                        overflow: 'hidden',
+//                    });
                 }
             });
             
@@ -250,6 +265,15 @@
             });
             
             $("#cartogratree_steps").tabs();
+                        
+            $("#cartogratree_wc_min_temp,#cartogratree_wc_max_temp,#cartogratree_trees_species").buttonset();
+            
+            $("#slider").slider({
+                range: true,
+                min: 0,
+                max: 500,
+                values: [75,300],
+            });
         },
     };
 }(jQuery));
