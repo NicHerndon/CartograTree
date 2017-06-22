@@ -165,8 +165,8 @@ function cartogratree_app_page() {
         </ul>";
     // 'Layers' tab content
     $content .= "<div id=\"cartogratree_step_1\">
-          <div id=\"cartogratree_accordion_groups\">
-          Shown: 0/4 Used: 0";
+          Shown: <span id=\"cartogratree_layers_shown\">0</span>/4 Used: <span id=\"cartogratree_layers_used\">0</span>
+          <div id=\"cartogratree_accordion_groups\">";
     // pass info to JS about this accordion
     $accordions = array('#cartogratree_accordion_groups');
     // accordion entries
@@ -209,15 +209,6 @@ function cartogratree_app_page() {
     // End of accordion entries and 'Layers' tab content
     $content .= "</div></div>";
 
-//    // 'Old-style' content
-//    $content .= "<b>Select up to 4 layers to show:</b><br/>
-//          <select id=\"cartogratree_layers_show_select\" class=\"cartogratree_select\" multiple>
-//              " . $options . "
-//          </select>
-//          <b>Select other layers to use:</b><br/>
-//          <select id=\"cartogratree_layers_use_select\" class=\"cartogratree_select\" multiple>
-//              " . $options . "
-//          </select>";
     // 'Filters' tab content
     $content .= "<div id=\"cartogratree_step_2\">";
 //    // Checkboxes

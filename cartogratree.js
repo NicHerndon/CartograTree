@@ -2,24 +2,13 @@
  * @file
  * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree/app).
  */
+'use strict';
+var layers = {}; // Uncaught ReferenceError: layers is not defined
 
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
-            'use strict';
-            var prev_shown_layers = [];
-
-            // 'Finish' jQuery UI Buttonsets for sidenav
-            for (var i in Drupal.settings.layers) {
-                $("#" + Drupal.settings.layers[i].id).buttonset();
-                // store layer details in an array
-            }
-            // 'Finish' jQuery UI Accordions for sidenav
-            $(Drupal.settings.accordions.join()).accordion({
-                collapsible: true,
-                autoHeight: false,
-                icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
-            });
+            var shown_layers = [], used_layers = [];
             
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
@@ -40,9 +29,7 @@
                 })
             });
 
-            /**
-             * Create an overlay to anchor the popup to the map.
-             */
+            // Create an overlay to anchor the popup to the map.
             var overlay = new ol.Overlay(({
                 element: $('#cartogratree_ol_popup')[0],
                 autoPan: true,
@@ -174,100 +161,123 @@
                 }
             });
             
-            /**
-             * Update the layers shown based on user's selection. The layers are mapped to the
-             * squares/maps in the order they were selected. The first layer selected is mapped
-             * on the top-left square, the second one to the top-right square, the third one on
-             * the bottom-left square, and the last one on the bottom-right square.
-             */
-            $("#cartogratree_layers_show_select").change(function() {
-                var $select = $("#cartogratree_layers_show_select");
-                var selected = ($select.val()) ? $select.val().length : 0;
+//            $("#cartogratree_trees_select").change(function() {
+//                var filter = $("#cartogratree_trees_select").val() ?
+//                    "species in ('" + $("#cartogratree_trees_select").val().join("','") + "')" :
+//                    "species in ('empty')";
+//                cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": filter});
+//            });
 
-                if (prev_shown_layers.length < selected) {
-                    // there are more entries than previously
-                    if (selected < 5) {
-                        // add layer to shown layers
-                        for (var i = 0; i < selected; i++) {
-                            if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index) == -1) {
-                                prev_shown_layers.push($select[0].selectedOptions[i].index);
-                                // add layer to map
-                                var value = $select.val()[i];
-                                var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
-                                cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
-                                cartogratree_mid_layer[prev_shown_layers.length - 1].setVisible(true);
-                            }
-                        }
-                    }
-                    else {
-                        // max is 4, unselect the last one
-                        $("#cartogratree_popup").dialog({modal: true});
-                        for (var i = 0; i < $select[0].options.length; i++) {
-                            if ($select[0].options[i].selected && prev_shown_layers.indexOf(i) == -1) {
-                                $select[0].options[i].selected = false;
-                            }
-                        }
-                    }
-                }
-                else if (prev_shown_layers.length > selected) {
-                    // there are less entries than previously
-                    // get the indexes of the selected layers
-                    var sel_indexes = [];
-                    for (var i = 0; i < selected; i++) {
-                        sel_indexes.push($select[0].selectedOptions[i].index.toString());
-                    }
-                    // make a copy of prev_shown_layers
-                    var cp_prev_shown_layers = prev_shown_layers.slice();
-                    // remove previously selected indexes, not currently selected
-                    for (i in cp_prev_shown_layers) {
-                        if (sel_indexes.indexOf(cp_prev_shown_layers[i]) == -1) {
-                            prev_shown_layers.splice(prev_shown_layers.indexOf(cp_prev_shown_layers[i]), 1);
-                        }
-                    }
-                    // if needed, add currently selected indexes to previously selected indexes
-                    for (var i = 0; i < selected; i++) {
-                        if (prev_shown_layers.indexOf($select[0].selectedOptions[i].index) == -1) {
-                            prev_shown_layers.push($select[0].selectedOptions[i].index);
-                        }
-                    }
-                    // update the maps
-                    for (var i = 0; i < 4; i++) {
-                        if (prev_shown_layers[i] === undefined) {
-                            cartogratree_mid_layer[i].setSource(null);
-                            cartogratree_mid_layer[i].setVisible(false);
-                        }
-                        else {
-                            if (cartogratree_mid_layer[i].getProperties().source.ec != "LAYERS-".concat($select[0][parseInt(prev_shown_layers[i])].value)) {
-                                var value = $select.val()[i];
-                                var attr = " &copy; <a href=\"".concat($select.find('option:selected')[i].text, "\">", $select.find('option:selected')[i].label, "</a>");
-                                cartogratree_mid_layer[prev_shown_layers.length - 1].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
-                                cartogratree_mid_layer[prev_shown_layers.length - 1].setVisible(true);
-                            }
-                        }
-                    }
-                }
-                else {
-                    // there are the same number of entries as previously (i.e., one)
-                    prev_shown_layers = [$select[0].selectedOptions[0].index];
-                    // update the layer of the first map
-                    var value = $select.val()[0];
-                    var attr = " &copy; <a href=\"".concat($select.find('option:selected')[0].text, "\">", $select.find('option:selected')[0].label, "</a>");
-                    cartogratree_mid_layer[0].setSource(new ol.source.TileWMS({url: cartogratree_gis, attributions: attr, params: {LAYERS: value}}));
-                    cartogratree_mid_layer[0].setVisible(true);
-                }
-            });
-            
-            $("#cartogratree_trees_select").change(function() {
-                var filter = $("#cartogratree_trees_select").val() ?
-                    "species in ('" + $("#cartogratree_trees_select").val().join("','") + "')" :
-                    "species in ('empty')";
-                cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": filter});
-            });
-            
+            // jQuery UI tabs for sidenav
             $("#cartogratree_steps").tabs();
-                        
+            // jQuery UI accordions for sidenav
+            $(Drupal.settings.accordions.join()).accordion({
+                collapsible: true,
+                autoHeight: false,
+                icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
+            });
+            // jQuery UI radio-buttons for sidenav
+            for (var i in Drupal.settings.layers) {
+                // jQuery UI radio-buttons for sidenav
+                $("#" + Drupal.settings.layers[i].id).buttonset();
+                // store layer details
+                layers[Drupal.settings.layers[i].id] = {
+                    name: Drupal.settings.layers[i].name,
+                    title: Drupal.settings.layers[i].title,
+                    url: Drupal.settings.layers[i].url
+                };
+                $("#" + Drupal.settings.layers[i].id).change(function(e) {
+                    // this.id is the layer key in layers
+                    switch (e.target.id.substr(e.target.name.length)) {
+                        case '1':   // show
+                            if (shown_layers.length < 4) {
+                                // add layer to map
+                                cartogratree_mid_layer[shown_layers.length].setSource(new ol.source.TileWMS({
+                                            url: cartogratree_gis,
+                                            attributions: " &copy; <a href=\"" + layers[this.id].url + "\">" + layers[this.id].title + "</a>",
+                                            params: {LAYERS: layers[this.id].name}
+                                        }));
+                                cartogratree_mid_layer[shown_layers.length].setVisible(true);
+                                // add layer to shown array
+                                shown_layers.push(this.id);
+                                // update shown layers count
+                                // $('#cartogratree_layers_shown') returns "Uncaught TypeError: $ is not a function" in this code block
+                                jQuery('#cartogratree_layers_shown').text(parseInt(jQuery('#cartogratree_layers_shown').text()) + 1);
+                                // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
+                                var j = used_layers.indexOf(this.id);
+                                if (j != -1) {
+                                    used_layers.splice(j, 1);
+                                    jQuery('#cartogratree_layers_used').text(parseInt(jQuery('#cartogratree_layers_used').text()) - 1);
+                                }
+                            }
+                            else {
+                                jQuery("#cartogratree_popup").dialog({modal: true});
+                                // uncheck the 'show' radio-button
+                                jQuery('#' + e.target.id).attr('checked', false).toggleClass('ui-state-active', false).button('refresh')
+                                // if radio-button was previously set to 'use' then set it again to 'use'
+                                if (used_layers.indexOf(this.id) != -1) {
+                                    jQuery('#' + e.target.name + '2').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
+                                }
+                                // if radio-button was previously set to 'skip' then set it again to 'skip'
+                                else {
+                                    jQuery('#' + e.target.name + '3').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
+                                }
+                            }
+                            break;
+                        case '2':   // use
+                            // add layer to used array
+                            used_layers.push(this.id);
+                            // update used layers count
+                            jQuery('#cartogratree_layers_used').text(parseInt(jQuery('#cartogratree_layers_used').text()) + 1);
+                            // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
+                            var j = shown_layers.indexOf(this.id);
+                            if (j != -1) {
+                                // remove layer from map
+                                for (var k = j; k < shown_layers.length; k++) {
+                                    if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
+                                        cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
+                                    }
+                                    else {
+                                        cartogratree_mid_layer[k].setSource(null);
+                                        cartogratree_mid_layer[k].setVisible(false);
+                                    }
+                                }
+                                shown_layers.splice(j, 1);
+                                jQuery('#cartogratree_layers_shown').text(parseInt(jQuery('#cartogratree_layers_shown').text()) - 1);
+                            }
+                            break;
+                        case '3':   // skip
+                            // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
+                            var j = shown_layers.indexOf(this.id);
+                            if (j != -1) {
+                                // remove layer from map
+                                for (var k = j; k < shown_layers.length; k++) {
+                                    if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
+                                        cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
+                                    }
+                                    else {
+                                        cartogratree_mid_layer[k].setSource(null);
+                                        cartogratree_mid_layer[k].setVisible(false);
+                                    }
+                                }
+                                shown_layers.splice(j, 1);
+                                jQuery('#cartogratree_layers_shown').text(parseInt(jQuery('#cartogratree_layers_shown').text()) - 1);
+                            }
+                            else {
+                                // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
+                                j = used_layers.indexOf(this.id);
+                                if (j != -1) {
+                                    used_layers.splice(j, 1);
+                                    jQuery('#cartogratree_layers_used').text(parseInt(jQuery('#cartogratree_layers_used').text()) - 1);
+                                }
+                            }
+                            break;
+                    }
+                });
+            }
+            // jQuery UI checkboxes for sidenav
             $("#cartogratree_wc_min_temp,#cartogratree_wc_max_temp,#cartogratree_trees_species").buttonset();
-            
+            // jQuery UI slider for sidenav
             $("#slider").slider({
                 range: true,
                 min: 0,
