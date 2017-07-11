@@ -13,8 +13,10 @@ function cartogratree_admin_list() {
     $output = '';
 
     $output .= '<p>This module provides a form so users can manage GIS server settings, and layers.</p>';
-    
+
+    // ==============================================================================================================
     // servers
+    $output .= '<h1>Servers</h1>';
     $gis = variable_get('cartogratree_gis', FALSE);
     $api = variable_get('cartogratree_api', FALSE);
     if ($gis == FALSE || $api == FALSE) {
@@ -28,16 +30,61 @@ function cartogratree_admin_list() {
         $output .= ' GIS and API servers.</p>';
     }
 
+    // ==============================================================================================================
+    // groups
+    $output .= '<h1>Groups</h1>';
+    $output .= '<p>In order to make a layer available to users, it must first be included below. Layers are organized in the side navigation menu into groups and optionally subgroups.</p>';
+    $output .= l('Add group', 'admin/cartogratree/settings/group/add');
+    $table = array(
+      'header' => array('Group Name', 'Group Rank', 'Operations'),
+      'rows' => array(),
+    );
+    $results = db_query('SELECT * FROM {cartogratree_groups} order by group_rank');
+    foreach ($results as $r) {
+        $table['rows'][] = array(
+          'group_name' => $r->group_name,
+          'group_rank' => $r->group_rank,
+          l('edit', 'admin/cartogratree/settings/group/edit/' . $r->group_id) . ' | '
+          . l('delete', 'admin/cartogratree/settings/group/delete/' . $r->group_id) . ' | '
+          . l('subgroups', 'admin/cartogratree/settings/group/' . $r->group_id . '/subgroups')
+        );
+    }
+    // If there are no groups yet, display only the headers of the table.
+    if (empty($table['rows'])) {
+        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 3));
+    }
+    $output .= theme('table', $table);
+
+    // ==============================================================================================================
+    //subgroups
+    $output .= '<h2>Subgroups</h2>';
+    $output .= l('Add subgroup', 'admin/cartogratree/settings/subgroup/add');
+    $table = array(
+      'header' => array('Subgroup Name', 'Operations'),
+      'rows' => array(),
+    );
+    $results = db_query('SELECT * FROM {cartogratree_subgroups}');
+    foreach ($results as $r) {
+        $table['rows'][] = array(
+          'subgroup_name' => $r->subgroup_name,
+          l('edit', 'admin/cartogratree/settings/subgroup/edit/' . $r->subgroup_id) . ' | '
+          . l('delete', 'admin/cartogratree/settings/subgroup/delete/' . $r->subgroup_id)
+        );
+    }
+    // If there are no subgroups yet, display only the headers of the table.
+    if (empty($table['rows'])) {
+        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
+    }
+    $output .= theme('table', $table);
+
+    // ==============================================================================================================
     // layers
-    $output .= '<p>In order to make a layer available to users, it must first be included below.</p>';
-
-    $output .= l('Add', 'admin/cartogratree/settings/layer/add');
-
+    $output .= '<h3>Layers</h3>';
+    $output .= l('Add layer', 'admin/cartogratree/settings/layer/add');
     $table = array(
       'header' => array('Human-readable Name', 'Name used with the GIS server', 'URL for the layer provider', 'Operations'),
       'rows' => array(),
     );
-
     $results = db_query('SELECT * FROM {cartogratree_layers}');
     foreach ($results as $r) {
         $table['rows'][] = array(
@@ -53,10 +100,344 @@ function cartogratree_admin_list() {
     if (empty($table['rows'])) {
         $table['rows'][] = array(array('data' => 'None.', 'colspan' => 4));
     }
-
     $output .= theme('table', $table);
 
     return $output;
+}
+
+/**
+ * Group admin form.
+ * URL suffix: ?q=admin/cartogratree/settings/group/[add|edit|delete][/<group id>]
+ */
+function cartogratree_admin_settings_group_form($form, &$form_state) {
+
+    $obj = NULL;
+    if (isset($form_state['build_info']['args'][1])) {
+        $obj = db_query('
+            SELECT * FROM {cartogratree_groups}
+            WHERE group_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+    }
+
+    $form['group_id'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($obj->group_id)) ? $obj->group_id : NULL,
+    );
+
+    if ($form_state['build_info']['args'][0] == 'delete') {
+
+        $table = array(
+          'header' => NULL,
+          'rows' => array(
+            array(array('data' => 'Group name', 'header' => TRUE), $obj->group_name),
+            array(array('data' => 'Group rank', 'header' => TRUE), $obj->group_rank),
+          ),
+        );
+        $form['info'] = array(
+          '#type' => 'markup',
+          '#markup' => '<p>Would you like to delete the following group?</p>'
+          . theme('table', $table)
+        );
+
+        $form['group_name'] = array(
+          '#type' => 'hidden',
+          '#value' => $obj->group_name,
+        );
+
+        $form['delete'] = array(
+          '#type' => 'submit',
+          '#value' => 'Delete',
+          '#suffix' => '<span> ' . l('or Cancel', '/admin/cartogratree/settings') . '</span>',
+        );
+
+        return $form;
+    }
+    else {
+        $form['group_name'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Group name',
+          '#description' => 'Accordion group name for side navigation menu.',
+          '#default_value' => (isset($obj->group_name)) ? $obj->group_name : '',
+        );
+
+        $form['group_rank'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Group rank',
+          '#description' => 'Rank of the group (the lower the rank the higher is displayed in the accordion.',
+          '#default_value' => (isset($obj->group_rank)) ? $obj->group_rank : '',
+        );
+
+        $op = ucwords($form_state['build_info']['args'][0]);
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
+        );
+
+        return $form;
+    }
+}
+
+/**
+ * Group admin form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/group/[add|edit|delete][/<group id>]
+ */
+function cartogratree_admin_settings_group_form_submit($form, &$form_state) {
+    $form_state['rebuild'] = FALSE;
+    $form_state['redirect'] = 'admin/cartogratree/settings';
+
+    if ($form_state['values']['op'] == 'Delete') {
+        db_query('DELETE FROM {cartogratree_groups} WHERE group_id=:id', array(':id' => $form_state['values']['group_id']));
+        db_query('DELETE FROM {cartogratree_groups_subgroups} WHERE group_id=:id', array(':id' => $form_state['values']['group_id']));
+        drupal_set_message('Successfully deleted <em>' . $form_state['values']['group_name'] . '</em>.');
+    }
+    else {
+        $record = array(
+          'group_name' => $form_state['values']['group_name'],
+          'group_rank' => $form_state['values']['group_rank'],
+        );
+
+        if ($form_state['values']['op'] == 'Add') {
+            drupal_write_record('cartogratree_groups', $record);
+        }
+        else {
+            $record['group_id'] = $form_state['values']['group_id'];
+            drupal_write_record('cartogratree_groups', $record, 'group_id');
+        }
+    }
+}
+
+/**
+ * Group management form.
+ * URL suffix: ?q=admin/cartogratree/settings/group/subgroups/<group id>
+ */
+function cartogratree_admin_group_management_form($form, &$form_state) {
+//    drupal_set_message($form_state['build_info']['args'][0]);
+    
+    $obj = NULL;
+    if (isset($form_state['build_info']['args'][0])) {
+        $obj = db_query('
+            SELECT * FROM {cartogratree_groups}
+            WHERE group_id=:id', array(':id' => $form_state['build_info']['args'][0]))->fetchObject();
+    }
+
+    $form['#attached']['css'][] = array(
+      'data' => '
+      table caption {
+        margin-top: 50px;
+        font-weight: bold;
+        font-size: 1.2em;
+        text-align: left;
+      }
+      th.name, td.name {
+        width: 300px;
+      }
+      input[type=text] {
+        width: 250px;
+      }
+      td.add {
+        background-color: #e1e2dc;
+        border-top: 1px solid #bebfb9;
+      }
+      td.add input[type=submit] {
+        margin-top: 10px;
+        margin-bottom: 0px;
+      }
+    ',
+      'type' => 'inline',
+    );
+
+    $form['group_id'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($obj->group_id)) ? $obj->group_id : NULL,
+    );
+
+    $form['info'] = array(
+      '#type' => 'markup',
+      '#theme' => 'table',
+      '#header' => NULL,
+      '#rows' => array(
+        array(array('data' => 'Group name', 'header' => TRUE), $obj->group_name),
+        array(array('data' => 'Group rank', 'header' => TRUE), $obj->group_rank),
+      ),
+    );
+
+    // SUBGROUPS:
+    //---------------
+    $form['subgroup'] = array(
+      '#type' => 'markup',
+      '#tree' => TRUE,
+      '#title' => 'Subgroups',
+      '#caption' => 'The following subgroups are children of <em>' . $obj->group_name . '</em>.',
+      '#theme' => 'cartogratree_admin_form_group_mgmt_table',
+    );
+
+    $count = 0; $subgroup_ids = array();
+    $resource = db_query('
+        SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
+        FROM {cartogratree_subgroups} s
+        JOIN {cartogratree_groups_subgroups} gs ON gs.subgroup_id = s.subgroup_id
+        WHERE gs.group_id=:id
+        ORDER BY gs.subgroup_rank', array(':id' => $obj->group_id));
+    foreach ($resource as $r) {
+        $count++;
+        array_push($subgroup_ids, $r->subgroup_id);
+
+        $form['subgroup'][$r->subgroup_id]['id'] = array(
+          '#type' => 'item',
+          '#value' => $r->subgroup_id,
+        );
+
+        $form['subgroup'][$r->subgroup_id]['name'] = array(
+          '#type' => 'item',
+          '#value' => $r->subgroup_name,
+        );
+
+        $form['subgroup'][$r->subgroup_id]['rank'] = array(
+          '#type' => 'item',
+          '#value' => $r->subgroup_rank,
+        );
+
+        $form['subgroup'][$r->subgroup_id]['remove_url'] = array(
+          '#type' => 'item',
+          '#value' => 'admin/cartogratree/settings/group/' . $obj->group_id . '/remove-subgroup/' . $r->subgroup_id,
+        );
+    }
+    if (!$count) {
+        $form['subgroup']['none']['name'] = array(
+          '#type' => 'item',
+          '#value' => 'None.',
+        );
+    }
+
+    $options = array();
+    $exclude_list = count($subgroup_ids) ?  'WHERE subgroup_id NOT IN (' . implode(',', $subgroup_ids) . ')' : '';
+    $resource = db_query('SELECT * FROM {cartogratree_subgroups} ' . $exclude_list);
+    foreach ($resource as $r) {
+        $options[$r->subgroup_id] = $r->subgroup_name;
+    }
+    $form['subgroup']['add']['select'] = array(
+      '#type' => 'select',
+      '#title' => 'Subgroup to add',
+      '#options' => $options,
+      '#empty_value' => 'None',
+    );
+
+    $form['subgroup']['add']['text'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Subgroup rank',
+    );
+
+    $form['subgroup']['add']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Add subgroup',
+    );
+
+    return $form;
+}
+
+/**
+ * Group management form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/group/subgroups/<group id>
+ */
+function cartogratree_admin_group_management_form_submit($form, &$form_state) {
+    if ($form_state['values']['subgroup']['add']['select'] == 'None') return;
+    
+    $record = array(
+      'group_id' => $form_state['values']['group_id'],
+      'subgroup_id' => form_get_options($form['subgroup']['add']['select'], $form_state['values']['subgroup']['add']['select'])[0],
+      'subgroup_rank' => $form_state['values']['subgroup']['add']['text'],
+    );
+    drupal_write_record('cartogratree_groups_subgroups', $record);
+}
+
+/**
+ * Subgroup admin form.
+ * URL suffix: ?q=admin/cartogratree/settings/subgroup/[add|edit|delete][/<subgroup id>]
+ */
+function cartogratree_admin_settings_subgroup_form($form, &$form_state) {
+
+    $obj = NULL;
+    if (isset($form_state['build_info']['args'][1])) {
+        $obj = db_query('
+            SELECT * FROM {cartogratree_subgroups}
+            WHERE subgroup_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+    }
+
+    $form['subgroup_id'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($obj->subgroup_id)) ? $obj->subgroup_id : NULL,
+    );
+
+    if ($form_state['build_info']['args'][0] == 'delete') {
+
+        $table = array(
+          'header' => NULL,
+          'rows' => array(
+            array(array('data' => 'Subgroup name', 'header' => TRUE), $obj->subgroup_name),
+          ),
+        );
+        $form['info'] = array(
+          '#type' => 'markup',
+          '#markup' => '<p>Would you like to delete the following subgroup?</p>'
+          . theme('table', $table)
+        );
+
+        $form['subgroup_name'] = array(
+          '#type' => 'hidden',
+          '#value' => $obj->subgroup_name,
+        );
+
+        $form['delete'] = array(
+          '#type' => 'submit',
+          '#value' => 'Delete',
+          '#suffix' => '<span> ' . l('or Cancel', '/admin/cartogratree/settings') . '</span>',
+        );
+
+        return $form;
+    }
+    else {
+        $form['subgroup_name'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Subgroup name',
+          '#description' => 'Accordion subgroup name for side navigation menu.',
+          '#default_value' => (isset($obj->subgroup_name)) ? $obj->subgroup_name : '',
+        );
+
+        $op = ucwords($form_state['build_info']['args'][0]);
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
+        );
+
+        return $form;
+    }
+}
+
+/**
+ * Subgroup admin form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/subgroup/[add|edit|delete][/<subgroup id>]
+ */
+function cartogratree_admin_settings_subgroup_form_submit($form, &$form_state) {
+    $form_state['rebuild'] = FALSE;
+    $form_state['redirect'] = 'admin/cartogratree/settings';
+
+    if ($form_state['values']['op'] == 'Delete') {
+        db_query('DELETE FROM {cartogratree_subgroups} WHERE subgroup_id=:id', array(':id' => $form_state['values']['subgroup_id']));
+        drupal_set_message('Successfully deleted <em>' . $form_state['values']['subgroup_name'] . '</em>.');
+    }
+    else {
+        $record = array(
+          'subgroup_name' => $form_state['values']['subgroup_name'],
+          'subgroup_rank' => $form_state['values']['subgroup_rank'],
+        );
+
+        if ($form_state['values']['op'] == 'Add') {
+            drupal_write_record('cartogratree_subgroups', $record);
+        }
+        else {
+            $record['subgroup_id'] = $form_state['values']['subgroup_id'];
+            drupal_write_record('cartogratree_subgroups', $record, 'subgroup_id');
+        }
+    }
 }
 
 /**
@@ -67,8 +448,11 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
     $obj = NULL;
     if (isset($form_state['build_info']['args'][1])) {
-        $obj = db_query('SELECT * FROM {cartogratree_layers} WHERE layer_id=:id',
-            array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+        $obj = db_query('
+            SELECT * FROM {cartogratree_layers} l
+            LEFT JOIN {cartogratree_groups} g ON g.group_id = l.group_id
+            LEFT JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
+            WHERE layer_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
     }
 
     $form['layer_id'] = array(
@@ -84,8 +468,8 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
             array(array('data' => 'Human-readable name', 'header' => TRUE), $obj->title),
             array(array('data' => 'Name used with the GIS server', 'header' => TRUE), $obj->name),
             array(array('data' => 'URL for the layer provider', 'header' => TRUE), $obj->url),
-            array(array('data' => 'Group rank', 'header' => TRUE), $obj->group_rank),
-            array(array('data' => 'Subgroup rank', 'header' => TRUE), $obj->subgroup_rank),
+            array(array('data' => 'Group name', 'header' => TRUE), $obj->group_name),
+            array(array('data' => 'Subgroup name', 'header' => TRUE), $obj->subgroup_name),
             array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
           ),
         );
@@ -131,18 +515,57 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#default_value' => (isset($obj->url)) ? $obj->url : '',
         );
 
-        $form['group_rank'] = array(
-          '#type' => 'textfield',
-          '#title' => 'Group rank',
-          '#description' => 'Accordion group rank for side navigation menu.',
-          '#default_value' => (isset($obj->group_rank)) ? $obj->group_rank : '',
+        $options = array();
+        $resource = db_query('SELECT * FROM {cartogratree_groups} ORDER BY group_rank');
+        foreach ($resource as $r) {
+            $options[$r->group_id] = $r->group_name;
+        }
+        $form['group_name'] = array(
+          '#type' => 'select',
+          '#title' => 'Group name',
+          '#description' => 'Accordion group name for side navigation menu.',
+          '#id' => 'cartogratree_group_name',
+          '#options' => $options,
+          '#default_value' => (isset($obj->group_id)) ? $obj->group_id : 0,
+          '#empty_value' => 'None',
+        );
+        // Attach the JS to the form to update options in cartogratree_subgroup_name based on cartogratree_group_name selection
+        $form['#attached']['js'] = array(
+          drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.admin.js',
+        );
+        // Attach the relationship between subgroups and groups
+        $settings = array();
+        $resource = db_query('SELECT g.group_id, g.group_name, s.subgroup_id, s.subgroup_name
+            FROM {cartogratree_groups} g
+            JOIN {cartogratree_groups_subgroups} gs ON g.group_id = gs.group_id
+            JOIN {cartogratree_subgroups} s ON gs.subgroup_id = s.subgroup_id
+            ORDER BY g.group_rank, gs.subgroup_rank');
+        foreach ($resource as $r) {
+            $settings[$r->group_name][$r->subgroup_id] = $r->subgroup_name;
+        }
+        $form['#attached']['js'][] = array(
+          'data' => array('cartogratree' => $settings),
+          'type' => 'setting',
         );
 
-        $form['subgroup_rank'] = array(
-          '#type' => 'textfield',
-          '#title' => 'Subgroup rank',
-          '#description' => 'Accordion subgroup rank for side navigation menu.',
-          '#default_value' => (isset($obj->subgroup_rank)) ? $obj->subgroup_rank : '',
+        $options = array();
+        if (isset($obj->group_id)) {
+            $resource = db_query('SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
+                FROM {cartogratree_groups_subgroups} gs
+                JOIN {cartogratree_subgroups} s on gs.subgroup_id = s.subgroup_id
+                WHERE gs.group_id=' . $obj->group_id . ' ORDER BY gs.subgroup_rank');
+            foreach ($resource as $r) {
+                $options[$r->subgroup_id] = $r->subgroup_name;
+            }
+        }
+        $form['subgroup_name'] = array(
+          '#type' => 'select',
+          '#title' => 'Subgroup name',
+          '#description' => 'Accordion subgroup name for side navigation menu.',
+          '#id' => 'cartogratree_subgroup_name',
+          '#options' => $options,
+          '#default_value' => (isset($obj->subgroup_id)) ? $obj->subgroup_id : 0,
+          '#empty_value' => 'None',
         );
 
         $form['layer_rank'] = array(
@@ -173,15 +596,15 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
     if ($form_state['values']['op'] == 'Delete') {
         db_query('DELETE FROM {cartogratree_layers} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
         db_query('DELETE FROM {cartogratree_layer_permissions} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
-        drupal_set_message('Successfully deleted <em>' . $form_state['values']['name'] . '</em>');
+        drupal_set_message('Successfully deleted <em>' . $form_state['values']['name'] . '</em>.');
     }
     else {
         $record = array(
           'title' => $form_state['values']['name'],
           'name' => $form_state['values']['machine_name'],
           'url' => $form_state['values']['url'],
-          'group_rank' => $form_state['values']['group_rank'],
-          'subgroup_rank' => $form_state['values']['subgroup_rank'],
+          'group_id' => form_get_options($form['group_name'], $form_state['values']['group_name'])[0],
+          'subgroup_id' => form_get_options($form['subgroup_name'], $form_state['values']['subgroup_name'])[0],
           'layer_rank' => $form_state['values']['layer_rank'],
         );
 
@@ -230,7 +653,7 @@ function cartogratree_admin_settings_servers_form($form, &$form_state) {
 function cartogratree_admin_settings_servers_form_submit($form, &$form_state) {
     $form_state['rebuild'] = FALSE;
     $form_state['redirect'] = 'admin/cartogratree/settings';
-    
+
     variable_set('cartogratree_gis', $form_state['values']['gis']);
     variable_set('cartogratree_api', $form_state['values']['api']);
 }
@@ -243,8 +666,11 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
 
     $obj = NULL;
     if (isset($form_state['build_info']['args'][1])) {
-        $obj = db_query('SELECT * FROM {cartogratree_layers} WHERE layer_id=:id',
-            array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+        $obj = db_query('
+            SELECT * FROM {cartogratree_layers} l
+            JOIN {cartogratree_groups} g ON g.group_id = l.group_id
+            JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
+            WHERE layer_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
     }
 
     $form['#attached']['css'][] = array(
@@ -283,12 +709,12 @@ function cartogratree_admin_layer_permissions_form($form, &$form_state) {
       '#theme' => 'table',
       '#header' => NULL,
       '#rows' => array(
-            array(array('data' => 'Human-readable name', 'header' => TRUE), $obj->title),
-            array(array('data' => 'Name used with the GIS server', 'header' => TRUE), $obj->name),
-            array(array('data' => 'URL for the layer provider', 'header' => TRUE), $obj->url),
-            array(array('data' => 'Group rank', 'header' => TRUE), $obj->group_rank),
-            array(array('data' => 'Subgroup rank', 'header' => TRUE), $obj->subgroup_rank),
-            array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
+        array(array('data' => 'Human-readable name', 'header' => TRUE), $obj->title),
+        array(array('data' => 'Name used with the GIS server', 'header' => TRUE), $obj->name),
+        array(array('data' => 'URL for the layer provider', 'header' => TRUE), $obj->url),
+        array(array('data' => 'Group name', 'header' => TRUE), $obj->group_name),
+        array(array('data' => 'Subgroup name', 'header' => TRUE), $obj->subgroup_name),
+        array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
       ),
     );
 
@@ -419,8 +845,7 @@ function cartogratree_admin_layer_permissions_form_submit($form, &$form_state) {
         drupal_write_record('cartogratree_layer_permissions', $record);
     }
     elseif ($form_state['clicked_button']['#value'] == 'Add User') {
-        $uid = db_query('SELECT uid FROM {users} WHERE name=:name',
-            array(':name' => $form_state['values']['user']['add']['form_element']))->fetchField();
+        $uid = db_query('SELECT uid FROM {users} WHERE name=:name', array(':name' => $form_state['values']['user']['add']['form_element']))->fetchField();
         if ($uid) {
             $record = array(
               'layer_id' => $form_state['values']['layer_id'],
@@ -476,6 +901,33 @@ function cartogratree_admin_layer_permission_remove_callback($layer_id, $action,
 }
 
 /**
+ * Callback to remove subgroup from group.
+ * Invoked from ?q=admin/cartogratree/settings/group/<group id>/subgroups.
+ * URL suffix: ?q=admin/cartogratree/settings/group/%/remove-subgroup/%
+ *      e.g., ?q=admin/cartogratree/settings/group/1/remove-subgroup/3
+ *
+ * NOTE: There is no display or confirmation for removing subgroups. This callback will
+ * redirect to the group management page when done.
+ *
+ * @param $group_id
+ *   The pkey of the group we are removing the subgroup from.
+\ * @param $subgroup_id
+ *   The pkey of the subgroup to be removed from group.
+ */
+function cartogratree_admin_group_remove_subgroup($group_id, $subgroup_id) {
+    $num_deleted = db_delete('cartogratree_groups_subgroups')
+        ->condition('group_id', $group_id)
+        ->condition('subgroup_id', $subgroup_id)
+        ->execute();
+    if ($num_deleted) {
+        drupal_set_message('Successfully removed subgroup from group.');
+    }
+
+    // Redirect to group management page.
+    drupal_goto('admin/cartogratree/settings/group/' . $group_id . '/subgroups');
+}
+
+/**
  * Theme both permissions tables on ?q=admin/cartogratree/settings/layer/access/<layer id>.
  */
 function cartogratree_admin_form_permission_table($vars) {
@@ -506,6 +958,47 @@ function cartogratree_admin_form_permission_table($vars) {
               array('data' => $element[$key]['name']['#value'], 'class' => array('name')),
               array('data' => $remove_link, 'class' => array('op')),
             );
+        }
+    }
+
+    return theme('table', $table);
+}
+
+/**
+ * Theme group management table on ?q=admin/cartogratree/settings/group/subgroups/<group id>,
+ */
+function cartogratree_admin_form_group_mgmt_table($vars) {
+    $element = $vars['element'];
+    $output = '';
+
+    $table = array(
+      'caption' => $element['#title'] . ': ' . $element['#caption'],
+      'header' => array('Name', 'Subgroup Rank', 'Operations'),
+      'rows' => array(),
+    );
+
+    foreach (element_children($element) as $key) {
+
+        if ($key == 'add') {
+            $table['rows'][] = array(
+              array('data' => render($element[$key]['select']), 'class' => array('name', 'add')),
+              array('data' => render($element[$key]['text']), 'class' => array('rank', 'add')),
+              array('data' => render($element[$key]['submit']), 'class' => array('op', 'add')),
+            );
+        }
+        else {
+            $remove_link = '';
+            if (isset($element[$key]['remove_url'])) {
+                $remove_link = l('remove', $element[$key]['remove_url']['#value']);
+            }
+
+            if (isset($element[$key]['rank']['#value'])) {
+                $table['rows'][] = array(
+                  array('data' => $element[$key]['name']['#value'], 'class' => array('name')),
+                  array('data' => $element[$key]['rank']['#value'], 'class' => array('rank')),
+                  array('data' => $remove_link, 'class' => array('op')),
+                );
+            }
         }
     }
 

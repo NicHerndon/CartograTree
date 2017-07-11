@@ -66,6 +66,7 @@ function cartogratree_menu() {
       'file' => 'includes/cartogratree.admin.inc',
     );
 
+    // ==============================================================================================================
     // -- Add servers.
     $items['admin/cartogratree/settings/servers/add'] = array(
       'title' => 'Add CartograTree Servers',
@@ -86,9 +87,92 @@ function cartogratree_menu() {
       'file' => 'includes/cartogratree.admin.inc',
     );
 
+    // ==============================================================================================================
+    // -- Add group.
+    $items['admin/cartogratree/settings/group/add'] = array(
+      'title' => 'Add CartograTree groups for layers',
+      'description' => 'Make a group available to the CartograTree application.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_group_form', 'add'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit group.
+    $items['admin/cartogratree/settings/group/edit'] = array(
+      'title' => 'Edit CartograTree group',
+      'description' => 'Edit an existing CartograTree group.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_group_form', 'edit'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete group.
+    $items['admin/cartogratree/settings/group/delete'] = array(
+      'title' => 'Delete CartograTree group',
+      'description' => 'Delete an existing CartograTree group.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_group_form', 'delete'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Add subgroups
+    $items['admin/cartogratree/settings/group/%/subgroups'] = array(
+      'title' => 'Group management',
+      'description' => 'Add or remove sublayers to a group.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_group_management_form', 4),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Remove subgroup (no confirm)
+    $items['admin/cartogratree/settings/group/%/remove-subgroup/%'] = array(
+      'title' => 'Remove subgroup from group',
+      'description' => 'Handle subgroup membership for a group.',
+      'page callback' => 'cartogratree_admin_group_remove_subgroup',
+      'page arguments' => array(4, 6),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
+    // -- Add subgroup.
+    $items['admin/cartogratree/settings/subgroup/add'] = array(
+      'title' => 'Add CartograTree subgroup for layers',
+      'description' => 'Make a subgroup available to the CartograTree application.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_subgroup_form', 'add'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit subgroup.
+    $items['admin/cartogratree/settings/subgroup/edit'] = array(
+      'title' => 'Edit CartograTree subgroup',
+      'description' => 'Edit an existing CartograTree subgroup.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_subgroup_form', 'edit'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete subgroup.
+    $items['admin/cartogratree/settings/subgroup/delete'] = array(
+      'title' => 'Delete CartograTree subgroup',
+      'description' => 'Delete an existing CartograTree subgroup.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_subgroup_form', 'delete'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
     // -- Add layer.
     $items['admin/cartogratree/settings/layer/add'] = array(
-      'title' => 'Add CartograTree Layer',
+      'title' => 'Add CartograTree layer',
       'description' => 'Make a layer available to the CartograTree application.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('cartogratree_admin_settings_layer_form', 'add'),
@@ -98,8 +182,8 @@ function cartogratree_menu() {
 
     // -- Edit layer.
     $items['admin/cartogratree/settings/layer/edit'] = array(
-      'title' => 'Edit CartograTree Layer',
-      'description' => 'Edit an existing CartograTree Layer.',
+      'title' => 'Edit CartograTree layer',
+      'description' => 'Edit an existing CartograTree layer.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('cartogratree_admin_settings_layer_form', 'edit'),
       'access arguments' => array('administer cartogratree'),
@@ -108,14 +192,15 @@ function cartogratree_menu() {
 
     // -- Delete layer.
     $items['admin/cartogratree/settings/layer/delete'] = array(
-      'title' => 'Delete CartograTree Layer',
-      'description' => 'Delete an existing CartograTree Layer.',
+      'title' => 'Delete CartograTree layer',
+      'description' => 'Delete an existing CartograTree layer.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('cartogratree_admin_settings_layer_form', 'delete'),
       'access arguments' => array('administer cartogratree'),
       'file' => 'includes/cartogratree.admin.inc',
     );
 
+    // ==============================================================================================================
     // Management of layers' access.
     // -- Add permissions
     $items['admin/cartogratree/settings/layer/access'] = array(
@@ -146,7 +231,7 @@ function cartogratree_menu() {
 function cartogratree_app_page() {
     // pop-up window shown when the user tries to select more than four layers to show
     $content = "<div id=\"cartogratree_popup\" title=\"Layers\">
-      Only four layers can be shown!<br/>Unselect another shown layer and try again.
+      Only four layers can be shown!<br/>Unselect one of the shown layers and try again.
     </div>";
     // pop-up window shown when the user clicks on one of the four maps
     $content .= "<div id=\"cartogratree_ol_popup\" class=\"cartogratree_ol_popup\">
@@ -211,17 +296,30 @@ function cartogratree_app_page() {
 
     // 'Filters' tab content
     $content .= "<div id=\"cartogratree_step_2\">";
-//    // Checkboxes
-//    $content .= "<div id=\"cartogratree_trees_species\">
-//            <fieldset>
-//              <legend>Tree species</legend>
-//              <input type=\"checkbox\" id=\"checkbox1\" name=\"checkbox\"><label for=\"checkbox1\">Choice 1</label>
-//              <input type=\"checkbox\" id=\"checkbox2\" name=\"checkbox\"><label for=\"checkbox2\">Choice 2</label>
-//              <input type=\"checkbox\" id=\"checkbox3\" name=\"checkbox\"><label for=\"checkbox3\">Choice 3</label>
-//            </fieldset>
-//          </div>";
-//    // Slider
-//    $content .= "<div id=\"slider\"></div>";
+    // ========================================================================================
+    // demo content
+    $content .= "Layers:
+        <div id=\"cartogratree_accordion_filters\">
+          <h3><a herf=\"#\">Trees filter</a></h3>
+          <div id=\"cartogratree_demo_checkbox\">
+            <fieldset>
+              <legend>Tree species</legend>
+              <input type=\"checkbox\" id=\"checkbox1\" name=\"checkbox\"><label for=\"checkbox1\">Abies alba</label>
+              <input type=\"checkbox\" id=\"checkbox2\" name=\"checkbox\"><label for=\"checkbox2\">Cedrus deodara</label>
+              <input type=\"checkbox\" id=\"checkbox3\" name=\"checkbox\"><label for=\"checkbox3\">Fagus grandifolia</label>
+            </fieldset>
+          </div>
+          <h3><a herf=\"#\">Temperature filter</a></h3>
+          <div>
+            <div id=\"cartogratree_demo_slider_caption\">Minimum temperature: -20..20 °C</div>
+            <div id=\"cartogratree_demo_slider\"></div>
+          </div>
+        </div>";
+    // pass info to JS about this accordion
+    array_push($accordions, "#cartogratree_accordion_filters");
+    // end of demo content
+    // ========================================================================================
+
 //    // 'Old-style' content
 //    $content .= "<b>Species:</b><br/>
 //          <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
@@ -285,13 +383,14 @@ function cartogratree_get_layers() {
   $rids = is_array($user->roles) ? array_keys($user->roles) : array();
   // Only grab layers that the current user has permission to see.
   $layers = db_query('
-    SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, l.group_rank, l.subgroup_rank, l.layer_rank
+    SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank, l.layer_rank
     FROM {cartogratree_layer_permissions} p
     JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
-    JOIN {cartogratree_groups} g ON g.group_rank = l.group_rank
-    JOIN {cartogratree_subgroups} s on s.subgroup_rank = l.subgroup_rank
+    JOIN {cartogratree_groups} g ON g.group_id = l.group_id
+    JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
+    JOIN {cartogratree_groups_subgroups} gs ON g.group_id = gs.group_id AND s.subgroup_id = gs.subgroup_id
     WHERE p.uid=:uid OR p.rid IN (:rids)
-    ORDER BY l.group_rank, l.subgroup_rank, l.layer_rank',
+    ORDER BY g.group_rank, gs.subgroup_rank, l.layer_rank',
     array(':uid' => $uid, ':rids' => $rids));
   return $layers;
 }
@@ -299,13 +398,22 @@ function cartogratree_get_layers() {
 /**
  * Implements hook_theme().
  * Specify how to render the arrays for both permissions tables on
- * ?q=admin/cartogratree/settings/layer/access/<layer id> as HTML.
+ * ?q=admin/cartogratree/settings/layer/access/<layer id> as HTML;
+ * and sub/group management tables on
+ * ?q=admin/cartogratree/settings/group/subgroups/<group id>, and
+ * ?q=admin/cartogratree/settings/subgroups/group/<subgroup id>
  */
 function cartogratree_theme($existing, $type, $theme, $path) {
   $items = array();
 
   $items['cartogratree_admin_form_permission_table'] = array(
     'function' => 'cartogratree_admin_form_permission_table',
+    'render element' => 'element',
+    'file' => 'includes/cartogratree.admin.inc',
+  );
+
+  $items['cartogratree_admin_form_group_mgmt_table'] = array(
+    'function' => 'cartogratree_admin_form_group_mgmt_table',
     'render element' => 'element',
     'file' => 'includes/cartogratree.admin.inc',
   );

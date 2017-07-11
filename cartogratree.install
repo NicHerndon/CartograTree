@@ -79,12 +79,12 @@ function cartogratree_schema() {
           'type' => 'varchar',
           'length' => 256,
         ),
-        'group_rank' => array(
-          'description' => 'Accordion group rank for side navigation menu.',
+        'group_id' => array(
+          'description' => 'Accordion group ID for side navigation menu.',
           'type' => 'int',
         ),
-        'subgroup_rank' => array(
-          'description' => 'Accordion subgroup rank for side navigation menu.',
+        'subgroup_id' => array(
+          'description' => 'Accordion subgroup ID for side navigation menu.',
           'type' => 'int',
         ),
         'layer_rank' => array(
@@ -123,7 +123,7 @@ function cartogratree_schema() {
     $schema['cartogratree_groups'] = array(
       'description' => 'Keeps track of accordion groups for side navigation menu.',
       'fields' => array(
-        'group_rank' => array(
+        'group_id' => array(
           'description' => 'Primary Key',
           'type' => 'serial',
           'not null' => TRUE,
@@ -133,14 +133,18 @@ function cartogratree_schema() {
           'type' => 'varchar',
           'length' => 256,
         ),
+        'group_rank' => array(
+          'description' => 'Group rank for side navigation menu.',
+          'type' => 'int',
+        ),
       ),
-      'primary key' => array('group_rank'),
+      'primary key' => array('group_id'),
     );
 
     $schema['cartogratree_subgroups'] = array(
       'description' => 'Keeps track of accordion subgroups for side navigation menu.',
       'fields' => array(
-        'subgroup_rank' => array(
+        'subgroup_id' => array(
           'description' => 'Primary Key',
           'type' => 'serial',
           'not null' => TRUE,
@@ -151,7 +155,97 @@ function cartogratree_schema() {
           'length' => 256,
         ),
       ),
-      'primary key' => array('subgroup_rank'),
+      'primary key' => array('subgroup_id'),
+    );
+
+    $schema['cartogratree_groups_subgroups'] = array(
+      'description' => 'Keeps track of accordion hierarchy for side navigation menu.',
+      'fields' => array(
+        'group_id' => array(
+          'description' => 'FK from cartogratree_groups',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'subgroup_id' => array(
+          'description' => 'FK from cartogratree_subgroups',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'subgroup_rank' => array(
+          'description' => 'Subgroup rank for side navigation menu.',
+          'type' => 'int',
+        ),
+      ),
+      'primary key' => array('group_id', 'subgroup_id', 'subgroup_rank'),
+    );
+
+    $schema['cartogratree_fields'] = array(
+      'description' => 'Keeps track of fields to filter by, display in pop-up, and display in table for each layer.',
+      'fields' => array(
+        'field_id' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'layer_id' => array(
+          'description' => 'Parent layer of this field.', // FK from cartogratree_layers
+          'type' => 'int',
+        ),
+        'field_name' => array(
+          'description' => 'Name returned by layer.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+        'display_name' => array(
+          'description' => 'Name shown to user.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+        'filter' => array(
+          'description' => 'Allow users to filter data by this field (1), or not (0).',
+          'type' => 'int',
+          'default' => 0,
+        ),
+        'filter_type' => array(
+          'description' => 'Type of filter to use with this field: radio-button, checkbox, slider, or elastic search (radio, check, slider, or elastic, respectively).',
+          'type' => 'varchar',
+          'length' => 10,
+        ),
+        'values' => array(
+          'description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
+          'type' => 'text',
+        ),
+        'precision' => array(
+          'description' => 'Precision used with range values.',
+          'type' => 'int',
+          'default' => 2,
+        ),
+        'mask_value' => array(
+          'description' => 'Value returned by layer that should be masked.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+        'mask_display' => array(
+          'description' => 'Text shown to user for masked values.',
+          'type' => 'varchar',
+          'length' => 256,
+        ),
+        'pop_up' => array(
+          'description' => 'Show this field in maps pop-up (1), or not (0).',
+          'type' => 'int',
+          'default' => 0,
+        ),
+        'data_table' => array(
+          'description' => 'Show this field in data table (1), or not (0).',
+          'type' => 'int',
+          'default' => 0,
+        ),
+        'field_rank' => array(
+          'description' => 'Order in which this field is shown.',
+          'type' => 'int',
+        ),
+      ),
+      'primary key' => array('field_id'),
     );
 
     return $schema;

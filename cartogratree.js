@@ -186,6 +186,7 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                     title: Drupal.settings.layers[i].title,
                     url: Drupal.settings.layers[i].url
                 };
+//                $('input[name="' + Drupal.settings.layers[i].id + '"]:radio').on('change', function(e) {// Uncaught TypeError: $(...).on is not a function
                 $("#" + Drupal.settings.layers[i].id).change(function(e) {
                     // this.id is the layer key in layers
                     switch (e.target.id.substr(e.target.name.length)) {
@@ -275,14 +276,19 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                     }
                 });
             }
+
             // jQuery UI checkboxes for sidenav
-            $("#cartogratree_wc_min_temp,#cartogratree_wc_max_temp,#cartogratree_trees_species").buttonset();
+            $("#cartogratree_demo_checkbox").buttonset();
+            
             // jQuery UI slider for sidenav
-            $("#slider").slider({
+            $("#cartogratree_demo_slider").slider({
                 range: true,
-                min: 0,
-                max: 500,
-                values: [75,300],
+                min: -80,
+                max: 80,
+                values: [-20,20],
+                change: function(event, ui) {
+                    jQuery('#cartogratree_demo_slider_caption').text('Minimum temperature: ' + ui.values[0] + '..' + ui.values[1] + '°C');
+                },
             });
         },
     };
