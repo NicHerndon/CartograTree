@@ -260,7 +260,7 @@ function cartogratree_app_page() {
     foreach ($layers as $l) {
         $groups[$l->group_rank]['group_name'] = $l->group_name;
         $groups[$l->group_rank]['group_rank'] = $l->group_rank;
-        if ($l->subgroup_name != '') {
+        if ($l->subgroup_name != '[No subgroup]') {
             $groups[$l->group_rank]['has_subgroups'] = TRUE;
         }
         else {
@@ -284,9 +284,9 @@ function cartogratree_app_page() {
             array_push($accordions, "#cartogratree_accordion_group_" . $g['group_rank']);
         }
         foreach ($g['subgroups'] as $s) {
-            if ($s['subgroup_name'] != '') $content .= "<h4>". $s['subgroup_name'] . "</h4><div>";
+            if ($s['subgroup_name'] != '[No subgroup]') $content .= "<h4>". $s['subgroup_name'] . "</h4><div>";
             $content .= join (PHP_EOL, $s['layers']);
-            if ($s['subgroup_name'] != '') $content .= "</div>";
+            if ($s['subgroup_name'] != '[No subgroup]') $content .= "</div>";
         }
         $content .= "</div>";
         if ($g['has_subgroups']) $content .= "</div>";
