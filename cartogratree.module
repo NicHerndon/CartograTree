@@ -222,6 +222,37 @@ function cartogratree_menu() {
       'file' => 'includes/cartogratree.admin.inc',
     );
 
+    // ==============================================================================================================
+    // -- Add field.
+    $items['admin/cartogratree/settings/layer/%/field/add'] = array(
+      'title' => 'Add CartograTree field',
+      'description' => 'Make a field available to the CartograTree application.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_field_form', 'add'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit field.
+    $items['admin/cartogratree/settings/layer/%/field/edit'] = array(
+      'title' => 'Edit CartograTree field',
+      'description' => 'Edit an existing CartograTree field.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_field_form', 'edit'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete field.
+    $items['admin/cartogratree/settings/layer/%/field/delete'] = array(
+      'title' => 'Delete CartograTree field',
+      'description' => 'Delete an existing CartograTree field.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_settings_field_form', 'delete'),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
     return $items;
 }
 

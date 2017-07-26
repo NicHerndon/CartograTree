@@ -566,6 +566,31 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#default_value' => (isset($obj->layer_rank)) ? $obj->layer_rank : '',
         );
 
+        // Fields
+        $table = array(
+          'header' => array('Field Name', 'Operations'),
+          'rows' => array(),
+        );
+        $results = db_query('SELECT * FROM {cartogratree_fields} WHERE layer_id=:id', array(':id' => $obj->layer_id));
+        foreach ($results as $r) {
+            $table['rows'][] = array(
+              'field' => $r->display_name,
+              l('edit', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/edit/' . $r->field_id) . ' | '
+              . l('delete', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/delete/' . $r->field_id)
+            );
+        }
+        // If there are no fields yet, display only the headers of the table.
+        if (empty($table['rows'])) {
+            $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
+        }
+        $form['fields'] = array(
+          '#type' => 'markup',
+          '#markup' => '<h1>Fields</h1>'
+            . '<p>In order to make a field within a layer available to users, it must first be included below.</p>'
+            . l('Add field', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/add')
+            . theme('table', $table),
+        );
+
         $op = ucwords($form_state['build_info']['args'][0]);
         $form['submit'] = array(
           '#type' => 'submit',
@@ -1024,4 +1049,159 @@ function cartogratree_admin_form_group_mgmt_table($vars) {
     }
 
     return theme('table', $table);
+}
+
+/**
+ * Field admin form.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/<layer id>/field/[add|edit|delete][/<field id>]
+ */
+function cartogratree_admin_settings_field_form($form, &$form_state) {
+    $obj = NULL;
+    if (isset($form_state['build_info']['args'][1])) {
+        $obj = db_query('SELECT * FROM {cartogratree_fields} WHERE field_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+    }
+
+    $form['field_id'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($obj->field_id)) ? $obj->field_id : NULL,
+    );
+
+    if ($form_state['build_info']['args'][0] == 'delete') {
+
+        $table = array(
+          'header' => NULL,
+          'rows' => array(
+            array(array('data' => 'Field name', 'header' => TRUE), $obj->field_name),
+            array(array('data' => 'Display name', 'header' => TRUE), $obj->display_name),
+            array(array('data' => 'Filter', 'header' => TRUE), $obj->filter),
+            array(array('data' => 'Filter type', 'header' => TRUE), $obj->filter_type),
+            array(array('data' => 'Values', 'header' => TRUE), $obj->values),
+            array(array('data' => 'Precision', 'header' => TRUE), $obj->precision),
+            array(array('data' => 'Mask value', 'header' => TRUE), $obj->mask_value),
+            array(array('data' => 'Mask display', 'header' => TRUE), $obj->mask_display),
+            array(array('data' => 'Pop-up', 'header' => TRUE), $obj->pop_up),
+            array(array('data' => 'Show in data table', 'header' => TRUE), $obj->data_table),
+            array(array('data' => 'Field rank', 'header' => TRUE), $obj->field_rank),
+          ),
+        );
+        $form['info'] = array(
+          '#type' => 'markup',
+          '#markup' => '<p>Would you like to delete the following field?</p>'
+          . theme('table', $table),
+        );
+
+//        $form['name'] = array(
+//          '#type' => 'hidden',
+//          '#value' => $obj->name,
+//        );
+
+        $form['delete'] = array(
+          '#type' => 'submit',
+          '#value' => 'Delete',
+          '#suffix' => '<span> ' . l('or Cancel', 'admin/cartogratree/settings/layer/edit/' . $obj->layer_id) . '</span>',
+        );
+
+        return $form;
+    }
+    else {
+        $form['field_name'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Field name',
+          '#description' => 'This is the name returned by the GIS server.',
+          '#default_value' => (isset($obj->field_name)) ? $obj->field_name : '',
+          '#required' => TRUE,
+        );
+
+        $form['display_name'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Display name',
+          '#description' => 'This is the name shown to the users.',
+          '#default_value' => (isset($obj->display_name)) ? $obj->display_name : '',
+          '#required' => TRUE,
+        );
+
+        $form['filter'] = array(
+          '#type' => 'select',
+          '#title' => 'Filter',
+          '#description' => 'Allow users to filter data using this field.',
+          '#options' => array(0 => 'No', 1 => 'Yes'),
+          '#default_value' => (isset($obj->filter)) ? $obj->filter : 0,
+          '#required' => TRUE,
+        );
+
+        $form['filter_type'] = array(
+          '#type' => 'select',
+          '#title' => 'Filter type',
+//          '#description' => 'Allow users to filter data using this field.',
+          '#options' => array('radio' => 'radio-button', 'check' => 'checkbox', 'slider' => 'slider', 'elastic' => 'elastic search'),
+          '#default_value' => (isset($obj->filter_type)) ? $obj->filter_type : 'None',
+          '#required' => TRUE,
+        );
+
+        $form['field_values'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Field values',
+          '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
+          '#default_value' => (isset($obj->values)) ? $obj->values : '',
+          '#required' => TRUE,
+        );
+
+        $form['precision'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Precision used with range values',
+//          '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
+          '#default_value' => (isset($obj->precision)) ? $obj->precision : '',
+          '#required' => TRUE,
+        );
+
+        $form['mask_value'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Mask value',
+          '#description' => 'Value returned by layer that should be masked.',
+          '#default_value' => (isset($obj->mask_value)) ? $obj->mask_value : '',
+          '#required' => TRUE,
+        );
+
+        $form['mask_display'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Mask display',
+          '#description' => 'Text shown to user for masked values.',
+          '#default_value' => (isset($obj->mask_display)) ? $obj->mask_display : '',
+          '#required' => TRUE,
+        );
+
+        $form['pop_up'] = array(
+          '#type' => 'select',
+          '#title' => 'Pop-up',
+          '#description' => 'Show this field in maps?',
+          '#options' => array(0 => 'No', 1 => 'Yes'),
+          '#default_value' => (isset($obj->pop_up)) ? $obj->pop_up : 0,
+          '#required' => TRUE,
+        );
+
+        $form['data_table'] = array(
+          '#type' => 'select',
+          '#title' => 'Show in data table',
+          '#description' => 'Show this field in data table?',
+          '#options' => array(0 => 'No', 1 => 'Yes'),
+          '#default_value' => (isset($obj->data_table)) ? $obj->data_table : 0,
+          '#required' => TRUE,
+        );
+
+        $form['field_rank'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Field rank',
+          '#description' => 'Order in which this field is shown.',
+          '#default_value' => (isset($obj->field_rank)) ? $obj->field_rank : '',
+          '#required' => TRUE,
+        );
+
+        $op = ucwords($form_state['build_info']['args'][0]);
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
+        );
+
+        return $form;
+    }
 }
