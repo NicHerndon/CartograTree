@@ -499,6 +499,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#title' => 'Human-readable name',
           '#description' => 'This is the name shown to the CartograTree users. Make sure it is descriptive and uniquely identifies the layer.',
           '#default_value' => (isset($obj->title)) ? $obj->title : '',
+          '#required' => TRUE,
         );
 
         $form['machine_name'] = array(
@@ -506,6 +507,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#title' => 'Machine name',
           '#description' => 'Name used with the GIS server.',
           '#default_value' => (isset($obj->name)) ? $obj->name : '',
+          '#required' => TRUE,
         );
 
         $form['url'] = array(
@@ -513,6 +515,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#title' => 'URL',
           '#description' => 'The URL for the provider of the layer.',
           '#default_value' => (isset($obj->url)) ? $obj->url : '',
+          '#required' => TRUE,
         );
 
         $options = array();
@@ -528,24 +531,10 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#options' => $options,
           '#default_value' => (isset($obj->group_id)) ? $obj->group_id : 0,
           '#empty_value' => 'None',
-        );
-        // Attach the JS to the form to update options in cartogratree_subgroup_name based on cartogratree_group_name selection
-        $form['#attached']['js'] = array(
-          drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.admin.js',
-        );
-        // Attach the relationship between subgroups and groups
-        $settings = array();
-        $resource = db_query('SELECT g.group_id, g.group_name, s.subgroup_id, s.subgroup_name
-            FROM {cartogratree_groups} g
-            JOIN {cartogratree_groups_subgroups} gs ON g.group_id = gs.group_id
-            JOIN {cartogratree_subgroups} s ON gs.subgroup_id = s.subgroup_id
-            ORDER BY g.group_rank, gs.subgroup_rank');
-        foreach ($resource as $r) {
-            $settings[$r->group_name][$r->subgroup_id] = $r->subgroup_name;
-        }
-        $form['#attached']['js'][] = array(
-          'data' => array('cartogratree' => $settings),
-          'type' => 'setting',
+          '#ajax' => array(
+            'callback' => 'cartogratree_admin_settings_layer_form_update_subgroup_name',
+            'wrapper' => 'cartogratree_subgroup_name_div',
+          ),
         );
 
         $options = array();
@@ -566,6 +555,8 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#options' => $options,
           '#default_value' => (isset($obj->subgroup_id)) ? $obj->subgroup_id : 0,
           '#empty_value' => 'None',
+          '#prefix' => '<div id="cartogratree_subgroup_name_div">',
+          '#suffix' => '</div>',
         );
 
         $form['layer_rank'] = array(
@@ -616,6 +607,36 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
             drupal_write_record('cartogratree_layers', $record, 'layer_id');
         }
     }
+}
+
+/**
+ * Layer admin form: Update subgroup_name select when group_name changes.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/[add|edit|delete][/<layer id>]
+ */
+function cartogratree_admin_settings_layer_form_update_subgroup_name($form, $form_state) {
+    $options = array();
+    $group_id = $form_state['values']['group_name'];
+    if ($group_id != 'None') {
+        $resource = db_query('SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
+            FROM {cartogratree_groups_subgroups} gs
+            JOIN {cartogratree_subgroups} s on gs.subgroup_id = s.subgroup_id
+            WHERE gs.group_id=' . $group_id . ' ORDER BY gs.subgroup_rank');
+    }
+    foreach ($resource as $r) {
+        $options[$r->subgroup_id] = $r->subgroup_name;
+    }
+    $form['subgroup_name'] = array(
+      '#type' => 'select',
+      '#title' => 'Subgroup name',
+      '#description' => 'Accordion subgroup name for side navigation menu.',
+      '#id' => 'cartogratree_subgroup_name',
+      '#options' => $options,
+      '#default_value' => 0,
+      '#empty_value' => 'None',
+      '#prefix' => '<div id="cartogratree_subgroup_name_div">',
+      '#suffix' => '</div>',
+    );
+    return $form['subgroup_name'];
 }
 
 /**
