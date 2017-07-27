@@ -36,14 +36,13 @@ function cartogratree_admin_list() {
     $output .= '<p>In order to make a layer available to users, it must first be included below. Layers are organized in the side navigation menu into groups and optionally subgroups.</p>';
     $output .= l('Add group', 'admin/cartogratree/settings/group/add');
     $table = array(
-      'header' => array('Group Name', 'Group Rank', 'Operations'),
+      'header' => array('Group Name', 'Operations'),
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_groups} order by group_rank');
     foreach ($results as $r) {
         $table['rows'][] = array(
           'group_name' => $r->group_name,
-          'group_rank' => $r->group_rank,
           l('edit', 'admin/cartogratree/settings/group/edit/' . $r->group_id) . ' | '
           . l('delete', 'admin/cartogratree/settings/group/delete/' . $r->group_id) . ' | '
           . l('subgroups', 'admin/cartogratree/settings/group/' . $r->group_id . '/subgroups')
@@ -82,15 +81,13 @@ function cartogratree_admin_list() {
     $output .= '<h3>Layers</h3>';
     $output .= l('Add layer', 'admin/cartogratree/settings/layer/add');
     $table = array(
-      'header' => array('Human-readable Name', 'Name used with the GIS server', 'URL for the layer provider', 'Operations'),
+      'header' => array('Human-readable Name', 'Operations'),
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_layers}');
     foreach ($results as $r) {
         $table['rows'][] = array(
           'name' => $r->title,
-          'machine_name' => $r->name,
-          'url' => $r->url,
           l('edit', 'admin/cartogratree/settings/layer/edit/' . $r->layer_id) . ' | '
           . l('delete', 'admin/cartogratree/settings/layer/delete/' . $r->layer_id) . ' | '
           . l('access', 'admin/cartogratree/settings/layer/access/' . $r->layer_id)
@@ -427,7 +424,7 @@ function cartogratree_admin_settings_subgroup_form_submit($form, &$form_state) {
     else {
         $record = array(
           'subgroup_name' => $form_state['values']['subgroup_name'],
-          'subgroup_rank' => $form_state['values']['subgroup_rank'],
+//          'subgroup_rank' => $form_state['values']['subgroup_rank'],
         );
 
         if ($form_state['values']['op'] == 'Add') {
