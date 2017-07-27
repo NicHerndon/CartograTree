@@ -36,7 +36,10 @@ function cartogratree_admin_list() {
     $output .= '<p>In order to make a layer available to users, it must first be included below. Layers are organized in the side navigation menu into groups and optionally subgroups.</p>';
     $output .= l('Add group', 'admin/cartogratree/settings/group/add');
     $table = array(
-      'header' => array('Group Name', 'Operations'),
+      'header' => array(
+        array('data' => 'Group Name', 'width' => '50%'),
+        array('data' => 'Operations', 'width' => '50%'),
+      ),
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_groups} order by group_rank');
@@ -50,7 +53,7 @@ function cartogratree_admin_list() {
     }
     // If there are no groups yet, display only the headers of the table.
     if (empty($table['rows'])) {
-        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 3));
+        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
     }
     $output .= theme('table', $table);
 
@@ -59,7 +62,10 @@ function cartogratree_admin_list() {
     $output .= '<h2>Subgroups</h2>';
     $output .= l('Add subgroup', 'admin/cartogratree/settings/subgroup/add');
     $table = array(
-      'header' => array('Subgroup Name', 'Operations'),
+      'header' => array(
+        array('data' => 'Subgroup Name', 'width' => '50%'),
+        array('data' => 'Operations', 'width' => '50%'),
+      ),
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_subgroups}');
@@ -81,7 +87,10 @@ function cartogratree_admin_list() {
     $output .= '<h3>Layers</h3>';
     $output .= l('Add layer', 'admin/cartogratree/settings/layer/add');
     $table = array(
-      'header' => array('Human-readable Name', 'Operations'),
+      'header' => array(
+        array('data' => 'Layer Name', 'width' => '50%'),
+        array('data' => 'Operations', 'width' => '50%'),
+      ),
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_layers}');
@@ -95,7 +104,7 @@ function cartogratree_admin_list() {
     }
     // If there are no layers yet, display only the headers of the table.
     if (empty($table['rows'])) {
-        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 4));
+        $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
     }
     $output .= theme('table', $table);
 
