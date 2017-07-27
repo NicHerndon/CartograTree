@@ -574,7 +574,10 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
         // Fields
         $table = array(
-          'header' => array('Field Name', 'Operations'),
+      'header' => array(
+        array('data' => 'Field Name', 'width' => '50%'),
+        array('data' => 'Operations', 'width' => '50%'),
+      ),
           'rows' => array(),
         );
         if (isset($obj->layer_id)) {    // edit layer
@@ -1074,6 +1077,11 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
       '#value' => (isset($obj->field_id)) ? $obj->field_id : NULL,
     );
 
+    $form['layer_id'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($obj->layer_id)) ? $obj->layer_id : NULL,
+    );
+
     if ($form_state['build_info']['args'][0] == 'delete') {
 
         $table = array(
@@ -1150,7 +1158,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#type' => 'textfield',
           '#title' => 'Field values',
           '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
-          '#default_value' => (isset($obj->values)) ? $obj->values : '',
+          '#default_value' => (isset($obj->field_values)) ? $obj->field_values : '',
           '#required' => TRUE,
         );
 
@@ -1159,7 +1167,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#title' => 'Precision used with range values',
 //          '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
           '#default_value' => (isset($obj->precision)) ? $obj->precision : '',
-          '#required' => TRUE,
+//          '#required' => TRUE,
         );
 
         $form['mask_value'] = array(
@@ -1167,7 +1175,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#title' => 'Mask value',
           '#description' => 'Value returned by layer that should be masked.',
           '#default_value' => (isset($obj->mask_value)) ? $obj->mask_value : '',
-          '#required' => TRUE,
+//          '#required' => TRUE,
         );
 
         $form['mask_display'] = array(
@@ -1175,7 +1183,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#title' => 'Mask display',
           '#description' => 'Text shown to user for masked values.',
           '#default_value' => (isset($obj->mask_display)) ? $obj->mask_display : '',
-          '#required' => TRUE,
+//          '#required' => TRUE,
         );
 
         $form['pop_up'] = array(
@@ -1211,5 +1219,38 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
         );
 
         return $form;
+    }
+}
+
+function cartogratree_admin_settings_field_form_submit ($form, &$form_state) {
+    $form_state['rebuild'] = FALSE;
+    $form_state['redirect'] = 'admin/cartogratree/settings/layer/edit/' . $form_state['values']['layer_id'];
+
+    if ($form_state['values']['op'] == 'Delete') {
+        db_query('DELETE FROM {cartogratree_fields} WHERE group_id=:id', array(':id' => $form_state['values']['field_id']));
+        drupal_set_message('Successfully deleted <em>' . $form_state['values']['display_name'] . '</em>.');
+    }
+    else {
+        $record = array(
+          'field_name' => $form_state['values']['field_name'],
+          'display_name' => $form_state['values']['display_name'],
+          'filter' => $form_state['values']['filter'],
+          'filter_type' => $form_state['values']['filter_type'],
+          'field_values' => $form_state['values']['field_values'],
+          'precision' => $form_state['values']['precision'],
+          'mask_value' => $form_state['values']['mask_value'],
+          'mask_display' => $form_state['values']['mask_display'],
+          'pop_up' => $form_state['values']['pop_up'],
+          'data_table' => $form_state['values']['data_table'],
+          'field_rank' => $form_state['values']['field_rank'],
+        );
+
+        if ($form_state['values']['op'] == 'Add') {
+            drupal_write_record('cartogratree_fields', $record);
+        }
+        else {
+            $record['field_id'] = $form_state['values']['field_id'];
+            drupal_write_record('cartogratree_fields', $record, 'field_id');
+        }
     }
 }

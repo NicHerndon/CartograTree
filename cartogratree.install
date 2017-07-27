@@ -211,7 +211,7 @@ function cartogratree_schema() {
           'type' => 'varchar',
           'length' => 10,
         ),
-        'values' => array(
+        'field_values' => array(
           'description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
           'type' => 'text',
         ),
