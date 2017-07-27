@@ -571,25 +571,27 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           'header' => array('Field Name', 'Operations'),
           'rows' => array(),
         );
-        $results = db_query('SELECT * FROM {cartogratree_fields} WHERE layer_id=:id', array(':id' => $obj->layer_id));
-        foreach ($results as $r) {
-            $table['rows'][] = array(
-              'field' => $r->display_name,
-              l('edit', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/edit/' . $r->field_id) . ' | '
-              . l('delete', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/delete/' . $r->field_id)
+        if (isset($obj->layer_id)) {    // edit layer
+            $results = db_query('SELECT * FROM {cartogratree_fields} WHERE layer_id=:id', array(':id' => $obj->layer_id));
+            foreach ($results as $r) {
+                $table['rows'][] = array(
+                  'field' => $r->display_name,
+                  l('edit', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/edit/' . $r->field_id) . ' | '
+                  . l('delete', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/delete/' . $r->field_id)
+                );
+            }
+            // If there are no fields yet, display only the headers of the table.
+            if (empty($table['rows'])) {
+                $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
+            }
+            $form['fields'] = array(
+              '#type' => 'markup',
+              '#markup' => '<h1>Fields</h1>'
+                . '<p>In order to make a field within a layer available to users, it must first be included below.</p>'
+                . l('Add field', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/add')
+                . theme('table', $table),
             );
         }
-        // If there are no fields yet, display only the headers of the table.
-        if (empty($table['rows'])) {
-            $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
-        }
-        $form['fields'] = array(
-          '#type' => 'markup',
-          '#markup' => '<h1>Fields</h1>'
-            . '<p>In order to make a field within a layer available to users, it must first be included below.</p>'
-            . l('Add field', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/add')
-            . theme('table', $table),
-        );
 
         $op = ucwords($form_state['build_info']['args'][0]);
         $form['submit'] = array(
