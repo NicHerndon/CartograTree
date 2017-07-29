@@ -217,7 +217,7 @@ function cartogratree_admin_settings_group_form_submit($form, &$form_state) {
  */
 function cartogratree_admin_group_management_form($form, &$form_state) {
 //    drupal_set_message($form_state['build_info']['args'][0]);
-    
+
     $obj = NULL;
     if (isset($form_state['build_info']['args'][0])) {
         $obj = db_query('
@@ -276,7 +276,8 @@ function cartogratree_admin_group_management_form($form, &$form_state) {
       '#theme' => 'cartogratree_admin_form_group_mgmt_table',
     );
 
-    $count = 0; $subgroup_ids = array();
+    $count = 0;
+    $subgroup_ids = array();
     $resource = db_query('
         SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
         FROM {cartogratree_subgroups} s
@@ -315,7 +316,7 @@ function cartogratree_admin_group_management_form($form, &$form_state) {
     }
 
     $options = array();
-    $exclude_list = count($subgroup_ids) ?  'WHERE subgroup_id NOT IN (' . implode(',', $subgroup_ids) . ')' : '';
+    $exclude_list = count($subgroup_ids) ? 'WHERE subgroup_id NOT IN (' . implode(',', $subgroup_ids) . ')' : '';
     $resource = db_query('SELECT * FROM {cartogratree_subgroups} ' . $exclude_list);
     foreach ($resource as $r) {
         $options[$r->subgroup_id] = $r->subgroup_name;
@@ -345,8 +346,9 @@ function cartogratree_admin_group_management_form($form, &$form_state) {
  * URL suffix: ?q=admin/cartogratree/settings/group/subgroups/<group id>
  */
 function cartogratree_admin_group_management_form_submit($form, &$form_state) {
-    if ($form_state['values']['subgroup']['add']['select'] == 'None') return;
-    
+    if ($form_state['values']['subgroup']['add']['select'] == 'None')
+        return;
+
     $record = array(
       'group_id' => $form_state['values']['group_id'],
       'subgroup_id' => form_get_options($form['subgroup']['add']['select'], $form_state['values']['subgroup']['add']['select'])[0],
@@ -574,14 +576,14 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
         // Fields
         $table = array(
-      'header' => array(
-        array('data' => 'Field Name', 'width' => '50%'),
-        array('data' => 'Operations', 'width' => '50%'),
-      ),
+          'header' => array(
+            array('data' => 'Field Name', 'width' => '50%'),
+            array('data' => 'Operations', 'width' => '50%'),
+          ),
           'rows' => array(),
         );
         if (isset($obj->layer_id)) {    // edit layer
-            $results = db_query('SELECT * FROM {cartogratree_fields} WHERE layer_id=:id', array(':id' => $obj->layer_id));
+            $results = db_query('SELECT * FROM {cartogratree_fields} WHERE layer_id=:id ORDER BY field_rank', array(':id' => $obj->layer_id));
             foreach ($results as $r) {
                 $table['rows'][] = array(
                   'field' => $r->display_name,
@@ -596,9 +598,9 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
             $form['fields'] = array(
               '#type' => 'markup',
               '#markup' => '<h1>Fields</h1>'
-                . '<p>In order to make a field within a layer available to users, it must first be included below.</p>'
-                . l('Add field', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/add')
-                . theme('table', $table),
+              . '<p>In order to make a field within a layer available to users, it must first be included below.</p>'
+              . l('Add field', 'admin/cartogratree/settings/layer/' . $obj->layer_id . '/field/add')
+              . theme('table', $table),
             );
         }
 
@@ -623,6 +625,7 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
     if ($form_state['values']['op'] == 'Delete') {
         db_query('DELETE FROM {cartogratree_layers} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
         db_query('DELETE FROM {cartogratree_layer_permissions} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
+        db_query('DELETE FROM {cartogratree_fields} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
         drupal_set_message('Successfully deleted <em>' . $form_state['values']['name'] . '</em>.');
     }
     else {
@@ -968,7 +971,7 @@ function cartogratree_admin_layer_permission_remove_callback($layer_id, $action,
  *
  * @param $group_id
  *   The pkey of the group we are removing the subgroup from.
-\ * @param $subgroup_id
+  \ * @param $subgroup_id
  *   The pkey of the subgroup to be removed from group.
  */
 function cartogratree_admin_group_remove_subgroup($group_id, $subgroup_id) {
@@ -1068,8 +1071,8 @@ function cartogratree_admin_form_group_mgmt_table($vars) {
  */
 function cartogratree_admin_settings_field_form($form, &$form_state) {
     $obj = NULL;
-    if (isset($form_state['build_info']['args'][1])) {
-        $obj = db_query('SELECT * FROM {cartogratree_fields} WHERE field_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+    if (isset($form_state['build_info']['args'][2])) {
+        $obj = db_query('SELECT * FROM {cartogratree_fields} WHERE field_id=:id', array(':id' => $form_state['build_info']['args'][2]))->fetchObject();
     }
 
     $form['field_id'] = array(
@@ -1079,10 +1082,10 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
 
     $form['layer_id'] = array(
       '#type' => 'hidden',
-      '#value' => (isset($obj->layer_id)) ? $obj->layer_id : NULL,
+      '#value' => (isset($obj->layer_id)) ? $obj->layer_id : $form_state['build_info']['args'][0],
     );
 
-    if ($form_state['build_info']['args'][0] == 'delete') {
+    if ($form_state['build_info']['args'][1] == 'delete') {
 
         $table = array(
           'header' => NULL,
@@ -1091,7 +1094,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
             array(array('data' => 'Display name', 'header' => TRUE), $obj->display_name),
             array(array('data' => 'Filter', 'header' => TRUE), $obj->filter),
             array(array('data' => 'Filter type', 'header' => TRUE), $obj->filter_type),
-            array(array('data' => 'Values', 'header' => TRUE), $obj->values),
+            array(array('data' => 'Values', 'header' => TRUE), $obj->field_values),
             array(array('data' => 'Precision', 'header' => TRUE), $obj->precision),
             array(array('data' => 'Mask value', 'header' => TRUE), $obj->mask_value),
             array(array('data' => 'Mask display', 'header' => TRUE), $obj->mask_display),
@@ -1212,7 +1215,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#required' => TRUE,
         );
 
-        $op = ucwords($form_state['build_info']['args'][0]);
+        $op = ucwords($form_state['build_info']['args'][1]);
         $form['submit'] = array(
           '#type' => 'submit',
           '#value' => ($op == 'Edit') ? 'Save Changes' : $op,
@@ -1222,16 +1225,20 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
     }
 }
 
-function cartogratree_admin_settings_field_form_submit ($form, &$form_state) {
+/**
+ * Field admin form: Submission.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/<layer id>/field/[add|edit|delete][/<field id>]
+ */
+function cartogratree_admin_settings_field_form_submit($form, &$form_state) {
     $form_state['rebuild'] = FALSE;
     $form_state['redirect'] = 'admin/cartogratree/settings/layer/edit/' . $form_state['values']['layer_id'];
 
     if ($form_state['values']['op'] == 'Delete') {
-        db_query('DELETE FROM {cartogratree_fields} WHERE group_id=:id', array(':id' => $form_state['values']['field_id']));
-        drupal_set_message('Successfully deleted <em>' . $form_state['values']['display_name'] . '</em>.');
+        db_query('DELETE FROM {cartogratree_fields} WHERE field_id=:id', array(':id' => $form_state['values']['field_id']));
     }
     else {
         $record = array(
+          'layer_id' => $form_state['values']['layer_id'],
           'field_name' => $form_state['values']['field_name'],
           'display_name' => $form_state['values']['display_name'],
           'filter' => $form_state['values']['filter'],
