@@ -553,24 +553,10 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#id' => 'cartogratree_group_name',
           '#options' => $options,
           '#default_value' => (isset($obj->group_id)) ? $obj->group_id : 0,
-//          '#ajax' => array(
-//            'callback' => 'cartogratree_admin_settings_layer_form_update_subgroup_name',
-//            'wrapper' => 'cartogratree_subgroup_name_div',
-//          ),
         );
 
         $options = array();
         $options['None'] = '- None -';
-//        if (isset($obj->group_id)) {
-//            $resource = db_query('SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
-//                FROM {cartogratree_groups_subgroups} gs
-//                JOIN {cartogratree_subgroups} s on gs.subgroup_id = s.subgroup_id
-//                WHERE gs.group_id=' . $obj->group_id . ' ORDER BY gs.subgroup_rank');
-//            foreach ($resource as $r) {
-//                $options[$r->subgroup_id] = $r->subgroup_name;
-//            }
-//        }
-
         $resource = db_query('SELECT g.group_name, s.subgroup_id, s.subgroup_name
             FROM {cartogratree_groups_subgroups} gs
             JOIN {cartogratree_groups} as g on gs.group_id = g.group_id
@@ -638,16 +624,22 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
     }
 }
 
+/**
+ * Layer admin form: Validation.
+ * URL suffix: ?q=admin/cartogratree/settings/layer/[add|edit|delete][/<layer id>]
+ */
 function cartogratree_admin_settings_layer_form_validate($form, &$form_state) {
-    if ($form_state['values']['group_name'] == 'None' || $form_state['values']['subgroup_name'] == 'None') {
-        $form_state['values']['group_name'] = $form_state['values']['subgroup_name'] = 'None';
-    }
-    else {
-        $count = db_query('SELECT count(*) FROM {cartogratree_groups_subgroups} WHERE group_id=:group_id AND subgroup_id=:subgroup_id',
-            array(':group_id' => $form_state['values']['group_name'], ':subgroup_id' => $form_state['values']['subgroup_name']))->fetchField();
-        if ($count == 0) {
-            form_set_error ('subgroup_name', 'Subgroup selected must be a subgroup of the group selected.');
-            form_set_error ('group_name');
+    if (isset($form_state['values']['group_name'])) {   // the delete form doesn't have this control
+        if ($form_state['values']['group_name'] == 'None' || $form_state['values']['subgroup_name'] == 'None') {
+            $form_state['values']['group_name'] = $form_state['values']['subgroup_name'] = 'None';
+        }
+        else {
+            $count = db_query('SELECT count(*) FROM {cartogratree_groups_subgroups} WHERE group_id=:group_id AND subgroup_id=:subgroup_id',
+                array(':group_id' => $form_state['values']['group_name'], ':subgroup_id' => $form_state['values']['subgroup_name']))->fetchField();
+            if ($count == 0) {
+                form_set_error ('subgroup_name', 'Subgroup selected must be a subgroup of the group selected.');
+                form_set_error ('group_name');
+            }
         }
     }
 }
@@ -685,35 +677,6 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
         }
     }
 }
-
-/**
- * Layer admin form: Update subgroup_name select when group_name changes.
- * URL suffix: ?q=admin/cartogratree/settings/layer/[add|edit|delete][/<layer id>]
- */
-//function cartogratree_admin_settings_layer_form_update_subgroup_name($form, $form_state) {
-//    $options = array();
-//    $group_id = $form_state['values']['group_name'];
-//    if ($group_id != 'None') {
-//        $resource = db_query('SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
-//            FROM {cartogratree_groups_subgroups} gs
-//            JOIN {cartogratree_subgroups} s on gs.subgroup_id = s.subgroup_id
-//            WHERE gs.group_id=' . $group_id . ' ORDER BY gs.subgroup_rank');
-//    }
-//    $options['None'] = '- None -';
-//    foreach ($resource as $r) {
-//        $options[$r->subgroup_id] = $r->subgroup_name;
-//    }
-//    $form['subgroup_name'] = array(
-//      '#type' => 'select',
-//      '#title' => 'Subgroup name',
-//      '#description' => 'Accordion subgroup name for side navigation menu.',
-//      '#options' => $options,
-//      '#default_value' => 'None',
-//      '#prefix' => '<div id="cartogratree_subgroup_name_div">',
-//      '#suffix' => '</div>',
-//    );
-//    return $form['subgroup_name'];
-//}
 
 /**
  * Servers admin form.
