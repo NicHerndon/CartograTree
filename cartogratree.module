@@ -267,7 +267,7 @@ function cartogratree_app_page() {
       Only four layers can be shown!<br/>Unselect one of the shown layers and try again.
     </div>";
     // pop-up window shown when the user clicks on one of the four maps
-    $content .= "<div id=\"cartogratree_ol_popup\" class=\"cartogratree_ol_popup\">
+    $content .= "<div id=\"cartogratree_ol_popup\" class=\"cartogratree_ol_popup\" style=\"display:none\">
       <a href=\"#\" id=\"cartogratree_ol_popup_closer\" class=\"cartogratree_ol_popup_closer\"></a>
       <div id=\"cartogratree_ol_popup_content\"></div>
     </div>";
