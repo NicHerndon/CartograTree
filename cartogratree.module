@@ -53,12 +53,13 @@ function cartogratree_menu() {
       'page callback' => 'cartogratree_app_page',
       'page arguments' => array(),
       'access arguments' => array('access content'),
+//      'type' => NORMAL_MENU_ITEM,
     );
 
     // ADMINISTRATION.
     // List servers and layers.
     $items['admin/cartogratree/settings'] = array(
-      'title' => 'CartograTree Settings',
+      'title' => 'CartograTree',
       'description' => 'Provides a form so users can manage GIS server settings, and layers.',
       'page callback' => 'cartogratree_admin_list',
       'page arguments' => array(),
@@ -75,6 +76,7 @@ function cartogratree_menu() {
       'page arguments' => array('cartogratree_admin_settings_servers_form', 'add'),
       'access arguments' => array('administer cartogratree'),
       'file' => 'includes/cartogratree.admin.inc',
+      'type' => MENU_CALLBACK,
     );
 
     // -- Edit servers.
@@ -277,7 +279,7 @@ function cartogratree_app_page() {
         <ul>
           <li><a href=\"#cartogratree_step_1\">Layers</a></li>
           <li><a href=\"#cartogratree_step_2\">Filters</a></li>
-          <li><a href=\"#cartogratree_step_3\">Data</a></li>
+          <li><a href=\"#cartogratree_step_3\">View</a></li>
         </ul>";
     // 'Layers' tab content
     $content .= "<div id=\"cartogratree_step_1\">
@@ -351,17 +353,22 @@ function cartogratree_app_page() {
     // end of demo content
     // ========================================================================================
 
-//    // 'Old-style' content
-//    $content .= "<b>Species:</b><br/>
-//          <select id=\"cartogratree_trees_select\" class=\"cartogratree_select\" multiple>
-//            <option selected=\"yes\">Abies alba</option>
-//            <option selected=\"yes\">Cedrus deodara</option>
-//            <option selected=\"yes\">Fagus grandifolia</option>
-//          </select>";
     // End of 'Filters' tab content
     $content .= "</div>";
-    // 'Data' tab content
-    $content .= "<div id=\"cartogratree_step_3\"></div>";
+    // 'View' tab content
+    $content .= "<div id=\"cartogratree_step_3\">";
+    // ========================================================================================
+    // demo content
+    $content .= "<div id=\"cartogratree_demo_radio_view\">
+  <input type=\"radio\" id=\"cartogratree_demo_radio_view_radio1\" name=\"cartogratree_demo_radio_view_radio\" checked=\"checked\"><label for=\"cartogratree_demo_radio_view_radio1\">Maps</label>
+  <input type=\"radio\" id=\"cartogratree_demo_radio_view_radio2\" name=\"cartogratree_demo_radio_view_radio\"><label for=\"cartogratree_demo_radio_view_radio2\">Table</label> 
+  <input type=\"radio\" id=\"cartogratree_demo_radio_view_radio3\" name=\"cartogratree_demo_radio_view_radio\"><label for=\"cartogratree_demo_radio_view_radio3\">Results</label>
+</div>
+          </div>";
+//    // pass info to JS about this accordion
+//    array_push($accordions, "#cartogratree_accordion_filters");
+    // end of demo content
+    // ========================================================================================
     // End of navigation tabs
     $content .= "</div>";
     // End of side navigation panel

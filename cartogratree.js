@@ -277,8 +277,8 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                 });
             }
 
-            // jQuery UI checkboxes for sidenav
-            $("#cartogratree_demo_checkbox").buttonset();
+            // jQuery UI checkboxes and radios for sidenav
+            $('#cartogratree_demo_checkbox, #cartogratree_demo_radio_view').buttonset();
             
             // jQuery UI slider for sidenav
             $("#cartogratree_demo_slider").slider({

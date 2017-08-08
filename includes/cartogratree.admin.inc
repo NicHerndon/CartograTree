@@ -69,6 +69,11 @@ function cartogratree_admin_list() {
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_subgroups}');
+//    $results = db_select('cartogratree_subgroups', 's')
+//        ->extend('PagerDefault')
+//        ->fields('s')
+//        ->limit(10)
+//        ->execute();
     foreach ($results as $r) {
         $table['rows'][] = array(
           'subgroup_name' => $r->subgroup_name,
@@ -81,6 +86,7 @@ function cartogratree_admin_list() {
         $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
     }
     $output .= theme('table', $table);
+//    $output .= theme('pager');
 
     // ==============================================================================================================
     // layers
@@ -94,6 +100,11 @@ function cartogratree_admin_list() {
       'rows' => array(),
     );
     $results = db_query('SELECT * FROM {cartogratree_layers}');
+//    $results = db_select('cartogratree_layers', 'l')
+//        ->extend('PagerDefault')
+//        ->fields('l')
+//        ->limit(10)
+//        ->execute();
     foreach ($results as $r) {
         $table['rows'][] = array(
           'name' => $r->title,
@@ -107,6 +118,7 @@ function cartogratree_admin_list() {
         $table['rows'][] = array(array('data' => 'None.', 'colspan' => 2));
     }
     $output .= theme('table', $table);
+//    $output .= theme('pager');
 
     return $output;
 }
@@ -170,6 +182,7 @@ function cartogratree_admin_settings_group_form($form, &$form_state) {
           '#title' => 'Group rank',
           '#description' => 'Rank of the group (the lower the rank the higher is displayed in the accordion.',
           '#default_value' => (isset($obj->group_rank)) ? $obj->group_rank : '',
+          '#size' => 3,
         );
 
         $op = ucwords($form_state['build_info']['args'][0]);
@@ -331,6 +344,7 @@ function cartogratree_admin_group_management_form($form, &$form_state) {
     $form['subgroup']['add']['text'] = array(
       '#type' => 'textfield',
       '#title' => 'Subgroup rank',
+//      '#size' => 3,     // seems ineffective here
     );
 
     $form['subgroup']['add']['submit'] = array(
@@ -528,6 +542,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
         $options = array();
         $resource = db_query('SELECT * FROM {cartogratree_groups} ORDER BY group_rank');
+        $options['None'] = '- None -';
         foreach ($resource as $r) {
             $options[$r->group_id] = $r->group_name;
         }
@@ -538,7 +553,6 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#id' => 'cartogratree_group_name',
           '#options' => $options,
           '#default_value' => (isset($obj->group_id)) ? $obj->group_id : 0,
-          '#empty_value' => 'None',
           '#ajax' => array(
             'callback' => 'cartogratree_admin_settings_layer_form_update_subgroup_name',
             'wrapper' => 'cartogratree_subgroup_name_div',
@@ -546,6 +560,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
         );
 
         $options = array();
+        $options['None'] = '- None -';
         if (isset($obj->group_id)) {
             $resource = db_query('SELECT s.subgroup_id, s.subgroup_name, gs.subgroup_rank
                 FROM {cartogratree_groups_subgroups} gs
@@ -561,8 +576,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#description' => 'Accordion subgroup name for side navigation menu.',
           '#id' => 'cartogratree_subgroup_name',
           '#options' => $options,
-          '#default_value' => (isset($obj->subgroup_id)) ? $obj->subgroup_id : 0,
-          '#empty_value' => 'None',
+          '#value' => (isset($obj->subgroup_id)) ? $obj->subgroup_id : 'None',
           '#prefix' => '<div id="cartogratree_subgroup_name_div">',
           '#suffix' => '</div>',
         );
@@ -572,6 +586,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#title' => 'Layer rank',
           '#description' => 'Layer rank for side navigation menu.',
           '#default_value' => (isset($obj->layer_rank)) ? $obj->layer_rank : '',
+          '#size' => 3,
         );
 
         // Fields
@@ -633,10 +648,12 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
           'title' => $form_state['values']['name'],
           'name' => $form_state['values']['machine_name'],
           'url' => $form_state['values']['url'],
-          'group_id' => form_get_options($form['group_name'], $form_state['values']['group_name'])[0],
-          'subgroup_id' => form_get_options($form['subgroup_name'], $form_state['values']['subgroup_name'])[0],
+          'group_id' => $form_state['values']['group_name'],
+          'subgroup_id' => $form_state['values']['subgroup_name'],
           'layer_rank' => $form_state['values']['layer_rank'],
         );
+        
+        drupal_set_message ('Subgroup ID: ' . $form_state['values']['subgroup_name']);
 
         if ($form_state['values']['op'] == 'Add') {
             drupal_write_record('cartogratree_layers', $record);
@@ -661,6 +678,7 @@ function cartogratree_admin_settings_layer_form_update_subgroup_name($form, $for
             JOIN {cartogratree_subgroups} s on gs.subgroup_id = s.subgroup_id
             WHERE gs.group_id=' . $group_id . ' ORDER BY gs.subgroup_rank');
     }
+    $options['None'] = '- None -';
     foreach ($resource as $r) {
         $options[$r->subgroup_id] = $r->subgroup_name;
     }
@@ -670,8 +688,7 @@ function cartogratree_admin_settings_layer_form_update_subgroup_name($form, $for
       '#description' => 'Accordion subgroup name for side navigation menu.',
       '#id' => 'cartogratree_subgroup_name',
       '#options' => $options,
-      '#default_value' => 0,
-      '#empty_value' => 'None',
+      '#value' => 'None',
       '#prefix' => '<div id="cartogratree_subgroup_name_div">',
       '#suffix' => '</div>',
     );
@@ -1171,6 +1188,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
 //          '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
           '#default_value' => (isset($obj->precision)) ? $obj->precision : '',
 //          '#required' => TRUE,
+          '#size' => 3,
         );
 
         $form['mask_value'] = array(
@@ -1213,6 +1231,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#description' => 'Order in which this field is shown.',
           '#default_value' => (isset($obj->field_rank)) ? $obj->field_rank : '',
           '#required' => TRUE,
+          '#size' => 3,
         );
 
         $op = ucwords($form_state['build_info']['args'][1]);
