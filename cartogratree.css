@@ -32,7 +32,7 @@
 }
 #cartogratree_sidenav {
     width: 0; /* Changed with JavaScript */
-    position: fixed; /* Stay in place */
+    position: absolute;
     z-index: 1; /* Stay on top */
     background-color: #FFFFFF;  /* White. */
     overflow-x: hidden; /* Disable horizontal scroll */

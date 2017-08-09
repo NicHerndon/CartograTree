@@ -139,15 +139,9 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                     // set navigation position
                     $('body').scrollTop($("#main-menu").offset().top);
                     var top = $('#cartogratree_top_left')[0].getBoundingClientRect().top;
-                    var left = $('#cartogratree_top_left')[0].getBoundingClientRect().left;
                     var height = $('#cartogratree_bottom_left')[0].getBoundingClientRect().bottom - top;
                     // position and open navigation
-                    $("#cartogratree_sidenav").css({ top: top + 'px', left: left + 'px', height: height + 'px', width: '500px'});
-//                    // disable page scrolling
-//                    $('html, body').css({
-//                        position: 'fixed',
-//                        overflow: 'hidden',
-//                    });
+                    $("#cartogratree_sidenav").css({height: height + 'px', width: '500px'});
                 }
             });
             
