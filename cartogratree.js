@@ -3,12 +3,11 @@
  * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree/app).
  */
 'use strict';
-var layers = {}; // Uncaught ReferenceError: layers is not defined
 
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
-            var shown_layers = [], used_layers = [];
+            var shown_layers = [], used_layers = [], layers = {};
             
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
@@ -180,7 +179,6 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                     title: Drupal.settings.layers[i].title,
                     url: Drupal.settings.layers[i].url
                 };
-//                $('input[name="' + Drupal.settings.layers[i].id + '"]:radio').on('change', function(e) {// Uncaught TypeError: $(...).on is not a function
                 $("#" + Drupal.settings.layers[i].id).change(function(e) {
                     // this.id is the layer key in layers
                     switch (e.target.id.substr(e.target.name.length)) {
@@ -196,26 +194,25 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                                 // add layer to shown array
                                 shown_layers.push(this.id);
                                 // update shown layers count
-                                // $('#cartogratree_layers_shown') returns "Uncaught TypeError: $ is not a function" in this code block
-                                jQuery('#cartogratree_layers_shown').text(parseInt(jQuery('#cartogratree_layers_shown').text()) + 1);
+                                $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) + 1);
                                 // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
                                 var j = used_layers.indexOf(this.id);
                                 if (j != -1) {
                                     used_layers.splice(j, 1);
-                                    jQuery('#cartogratree_layers_used').text(parseInt(jQuery('#cartogratree_layers_used').text()) - 1);
+                                    $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
                                 }
                             }
                             else {
-                                jQuery("#cartogratree_popup").dialog({modal: true});
+                                $("#cartogratree_popup").dialog({modal: true});
                                 // uncheck the 'show' radio-button
-                                jQuery('#' + e.target.id).attr('checked', false).toggleClass('ui-state-active', false).button('refresh')
+                                $('#' + e.target.id).attr('checked', false).toggleClass('ui-state-active', false).button('refresh')
                                 // if radio-button was previously set to 'use' then set it again to 'use'
                                 if (used_layers.indexOf(this.id) != -1) {
-                                    jQuery('#' + e.target.name + '2').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
+                                    $('#' + e.target.name + '2').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
                                 }
                                 // if radio-button was previously set to 'skip' then set it again to 'skip'
                                 else {
-                                    jQuery('#' + e.target.name + '3').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
+                                    $('#' + e.target.name + '3').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
                                 }
                             }
                             break;
@@ -223,7 +220,7 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                             // add layer to used array
                             used_layers.push(this.id);
                             // update used layers count
-                            jQuery('#cartogratree_layers_used').text(parseInt(jQuery('#cartogratree_layers_used').text()) + 1);
+                            $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) + 1);
                             // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
                             var j = shown_layers.indexOf(this.id);
                             if (j != -1) {
@@ -238,7 +235,7 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                                     }
                                 }
                                 shown_layers.splice(j, 1);
-                                jQuery('#cartogratree_layers_shown').text(parseInt(jQuery('#cartogratree_layers_shown').text()) - 1);
+                                $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
                             }
                             break;
                         case '3':   // skip
@@ -256,19 +253,19 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                                     }
                                 }
                                 shown_layers.splice(j, 1);
-                                jQuery('#cartogratree_layers_shown').text(parseInt(jQuery('#cartogratree_layers_shown').text()) - 1);
+                                $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
                             }
                             else {
                                 // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
                                 j = used_layers.indexOf(this.id);
                                 if (j != -1) {
                                     used_layers.splice(j, 1);
-                                    jQuery('#cartogratree_layers_used').text(parseInt(jQuery('#cartogratree_layers_used').text()) - 1);
+                                    $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
                                 }
                             }
                             break;
                     }
-                });
+                }).bind(this);
             }
 
             // jQuery UI checkboxes and radios for sidenav
@@ -281,9 +278,9 @@ var layers = {}; // Uncaught ReferenceError: layers is not defined
                 max: 80,
                 values: [-20,20],
                 change: function(event, ui) {
-                    jQuery('#cartogratree_demo_slider_caption').text('Minimum temperature: ' + ui.values[0] + '..' + ui.values[1] + '°C');
+                    $('#cartogratree_demo_slider_caption').text('Minimum temperature: ' + ui.values[0] + '..' + ui.values[1] + '°C');
                 },
-            });
+            }).bind(this);
         },
     };
 }(jQuery));
