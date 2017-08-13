@@ -15,8 +15,9 @@
             var cartogratree_map = new Array(4);
             var target = ['cartogratree_top_left', 'cartogratree_top_right', 'cartogratree_bottom_left', 'cartogratree_bottom_right'];
             var cartogratree_common_view = new ol.View({
-                center: ol.proj.fromLonLat([10, 20]),
-                zoom: 2
+                projection: 'EPSG:4326',
+                center: [-72.256167,41.8103637],//ol.proj.fromLonLat([10, 20]),
+                zoom: 3
             });
             var cartogratree_osm_layer = new ol.layer.Tile({
                 source: new ol.source.OSM()
@@ -188,7 +189,7 @@
                                 cartogratree_mid_layer[shown_layers.length].setSource(new ol.source.TileWMS({
                                             url: cartogratree_gis,
                                             attributions: " &copy; <a href=\"" + layers[this.id].url + "\">" + layers[this.id].title + "</a>",
-                                            params: {LAYERS: layers[this.id].name}
+                                            params: {LAYERS: layers[this.id].name, 'TILED': true}
                                         }));
                                 cartogratree_mid_layer[shown_layers.length].setVisible(true);
                                 // add layer to shown array
