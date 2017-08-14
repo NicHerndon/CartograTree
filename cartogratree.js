@@ -76,8 +76,10 @@
                     }
                     e.map.addOverlay(overlay);
                     var coordinate = e.coordinate, tree = '';
-                    var latlon = 'lat/lon: ' + ol.proj.toLonLat(coordinate)[1].toFixed(3) + '/' + ol.proj.toLonLat(coordinate)[0].toFixed(3) + '<br/>';
-                    var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
+//                    var latlon = 'lat/lon: ' + ol.proj.toLonLat(coordinate)[1].toFixed(3) + '/' + ol.proj.toLonLat(coordinate)[0].toFixed(3) + '<br/>';
+                    var latlon = 'lat/lon: ' + e.coordinate[1].toFixed(3) + '/' + e.coordinate[0].toFixed(3) + '<br/>';
+//                    var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
+                    var hdms = ol.coordinate.toStringHDMS(e.coordinate);
                     $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + latlon + hdms + '</code>');
                     var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
