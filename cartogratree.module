@@ -4,7 +4,6 @@
  * @file
  * Custom functionality for the CartograTree application.
  */
-
 define("CARTOGRATREE_COMPATIBLE_MAJOR_VERSION", '4');
 
 /**
@@ -48,12 +47,11 @@ function cartogratree_menu() {
     $items = array();
 
     // User interface
-    $items['cartogratree/app'] = array(
+    $items['cartogratree'] = array(
       'description' => 'Main UI of CartograTree.',
       'page callback' => 'cartogratree_app_page',
       'page arguments' => array(),
-      'access arguments' => array('access content'),
-//      'type' => NORMAL_MENU_ITEM,
+      'access arguments' => array('use cartogratree'),
     );
 
     // ADMINISTRATION.
@@ -288,7 +286,8 @@ function cartogratree_app_page() {
     // pass info to JS about this accordion
     $accordions = array('#cartogratree_accordion_groups');
     // accordion entries
-    $groups = array(); $layers_js = array();
+    $groups = array();
+    $layers_js = array();
     $layers = cartogratree_get_layers();
     foreach ($layers as $l) {
         $groups[$l->group_rank]['group_name'] = $l->group_name;
@@ -302,27 +301,30 @@ function cartogratree_app_page() {
         $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['subgroup_name'] = $l->subgroup_name;
         // add radio button for layer
         $layer = "cartogratree_sidenav_layer_" . $l->layer_id;
-        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id] = "<div id=\"".$layer."\">
-            <input type=\"radio\" id=\"".$layer."_radio1\" name=\"".$layer."_radio\"><label for=\"".$layer."_radio1\">show</label>
-            <input type=\"radio\" id=\"".$layer."_radio2\" name=\"".$layer."_radio\"><label for=\"".$layer."_radio2\">use</label>
-            <input type=\"radio\" id=\"".$layer."_radio3\" name=\"".$layer."_radio\" checked=\"checked\"><label for=\"".$layer."_radio3\">skip</label> ".$l->title."</div>";
+        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id] = "<div id=\"" . $layer . "\">
+            <input type=\"radio\" id=\"" . $layer . "_radio1\" name=\"" . $layer . "_radio\"><label for=\"" . $layer . "_radio1\">show</label>
+            <input type=\"radio\" id=\"" . $layer . "_radio2\" name=\"" . $layer . "_radio\"><label for=\"" . $layer . "_radio2\">use</label>
+            <input type=\"radio\" id=\"" . $layer . "_radio3\" name=\"" . $layer . "_radio\" checked=\"checked\"><label for=\"" . $layer . "_radio3\">skip</label> " . $l->title . "</div>";
         // pass info to JS about this layer
         array_push($layers_js, array('id' => $layer, 'name' => $l->name, 'title' => $l->title, 'url' => $l->url,));
     }
     foreach ($groups as $g) {
-        $content .= "<h3>". $g['group_name'] . "</h3><div>";
+        $content .= "<h3>" . $g['group_name'] . "</h3><div>";
         if ($g['has_subgroups']) {
             $content .= "<div id=\"cartogratree_accordion_group_" . $g['group_rank'] . "\">";
             // pass info to JS about this accordion
             array_push($accordions, "#cartogratree_accordion_group_" . $g['group_rank']);
         }
         foreach ($g['subgroups'] as $s) {
-            if ($s['subgroup_name'] != '[No subgroup]') $content .= "<h4>". $s['subgroup_name'] . "</h4><div>";
-            $content .= join (PHP_EOL, $s['layers']);
-            if ($s['subgroup_name'] != '[No subgroup]') $content .= "</div>";
+            if ($s['subgroup_name'] != '[No subgroup]')
+                $content .= "<h4>" . $s['subgroup_name'] . "</h4><div>";
+            $content .= join(PHP_EOL, $s['layers']);
+            if ($s['subgroup_name'] != '[No subgroup]')
+                $content .= "</div>";
         }
         $content .= "</div>";
-        if ($g['has_subgroups']) $content .= "</div>";
+        if ($g['has_subgroups'])
+            $content .= "</div>";
     }
     // End of accordion entries and 'Layers' tab content
     $content .= "</div></div>";
@@ -352,7 +354,6 @@ function cartogratree_app_page() {
     array_push($accordions, "#cartogratree_accordion_filters");
     // end of demo content
     // ========================================================================================
-
     // End of 'Filters' tab content
     $content .= "</div>";
     // 'View' tab content
@@ -391,7 +392,7 @@ function cartogratree_app_page() {
     drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
     drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css'
 //        , array('group' => CSS_THEME, 'weight' => 9999,)
-        );
+    );
     $settings = array(
       'cartogratree' => array(
         'gis' => variable_get('cartogratree_gis'),
@@ -408,10 +409,6 @@ function cartogratree_app_page() {
     );
 }
 
-function cartogratree_preprocess_page(&$variables) {
-    
-}
-
 /**
  * Retrieve all layers the current user has permission to see.
  *
@@ -419,12 +416,12 @@ function cartogratree_preprocess_page(&$variables) {
  *   A prepared statement object, already executed.
  */
 function cartogratree_get_layers() {
-  global $user;
-  // Grab the roles and user id of the current user.
-  $uid = $user->uid;
-  $rids = is_array($user->roles) ? array_keys($user->roles) : array();
-  // Only grab layers that the current user has permission to see.
-  $layers = db_query('
+    global $user;
+    // Grab the roles and user id of the current user.
+    $uid = $user->uid;
+    $rids = is_array($user->roles) ? array_keys($user->roles) : array();
+    // Only grab layers that the current user has permission to see.
+    $layers = db_query('
     SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank, l.layer_rank
     FROM {cartogratree_layer_permissions} p
     JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
@@ -432,9 +429,8 @@ function cartogratree_get_layers() {
     JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
     JOIN {cartogratree_groups_subgroups} gs ON g.group_id = gs.group_id AND s.subgroup_id = gs.subgroup_id
     WHERE p.uid=:uid OR p.rid IN (:rids)
-    ORDER BY g.group_rank, gs.subgroup_rank, l.layer_rank',
-    array(':uid' => $uid, ':rids' => $rids));
-  return $layers;
+    ORDER BY g.group_rank, gs.subgroup_rank, l.layer_rank', array(':uid' => $uid, ':rids' => $rids));
+    return $layers;
 }
 
 /**
@@ -446,19 +442,54 @@ function cartogratree_get_layers() {
  * ?q=admin/cartogratree/settings/subgroups/group/<subgroup id>
  */
 function cartogratree_theme($existing, $type, $theme, $path) {
-  $items = array();
+    $items = array();
 
-  $items['cartogratree_admin_form_permission_table'] = array(
-    'function' => 'cartogratree_admin_form_permission_table',
-    'render element' => 'element',
-    'file' => 'includes/cartogratree.admin.inc',
+    $items['cartogratree_admin_form_permission_table'] = array(
+      'function' => 'cartogratree_admin_form_permission_table',
+      'render element' => 'element',
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    $items['cartogratree_admin_form_group_mgmt_table'] = array(
+      'function' => 'cartogratree_admin_form_group_mgmt_table',
+      'render element' => 'element',
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+    $items['page__cartogratree'] = array(// page + menu path
+      'template' => 'page--cartogratree',
+      'preprocess functions' => array('cartogratree_preprocess_page__cartogratree'),
+      'render element' => 'page',
+      'base hook' => 'page',
+      'variables' => cartogratree_variables($variables),
+      'path' => drupal_get_path('module', 'cartogratree') . "/theme/templates",
+    );
+
+    return $items;
+}
+
+function cartogratree_variables(&$variables) {
+//    $variables = array();
+//    dpm('cartogratree_preprocess_page called');
+    $variables['cartogratree_test_1'] = 'set';
+    return $variables;
+}
+
+function cartogratree_preprocess_page__cartogratree(&$variables) {
+    $variables['cartogratree_test_2'] = 'set';
+}
+
+/*
+ * Implements hook_permission().
+ */
+function cartogratree_permission() {
+  return array(
+    'administer cartogratree' => array(
+      'title' => t('Administer CartograTree'),
+      'description' => t('Perform administration tasks for CartograTree.'),
+    ),
+    'use cartogratree' => array(
+      'title' => t('Use CartograTree'),
+      'description' => t('Use the CartograTree application.'),
+    ),
   );
-
-  $items['cartogratree_admin_form_group_mgmt_table'] = array(
-    'function' => 'cartogratree_admin_form_group_mgmt_table',
-    'render element' => 'element',
-    'file' => 'includes/cartogratree.admin.inc',
-  );
-
-  return $items;
 }

@@ -7,7 +7,6 @@ files[] = cartogratree.install
 files[] = cartogratree.js
 files[] = cartogratree.css
 files[] = includes/cartogratree.admin.inc
-files[] = theme/templates/cartogratree_app.tpl.php
 files[] = theme/cartogratree_theme.inc
 configure = admin/cartogratree/settings
 

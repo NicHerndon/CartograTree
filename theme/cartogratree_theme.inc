@@ -6,5 +6,5 @@
 function cartogratree_preprocess_node(&$variables) {
 //    dpm($variables);
 //    kpr($variables);
-    $variables['test'] = 'set';
+    $variables['cartogratree_test_3'] = 'set';
 }
