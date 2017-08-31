@@ -1,4 +1,7 @@
-<?php dpm($variables); print drupal_render($page['content']); ?>
+<?php
+//    dpm($variables);
+    print drupal_render($page['content']);
+ ?>
 
 <?php
 //  print '<pre>'; print "messages"

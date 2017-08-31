@@ -83,17 +83,19 @@
                     $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + latlon + hdms + '</code>');
                     var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
-                            {'INFO_FORMAT': 'text/javascript'});
+                            // upported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
+                            {'INFO_FORMAT': 'application/json'});
                     if (e.map.getLayers().a[1].getVisible()) {
                         var mid_url = e.map.getLayers().a[1].getSource().getGetFeatureInfoUrl(
                                 e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
-                                {'INFO_FORMAT': 'text/javascript'});
+                                {'INFO_FORMAT': 'application/json'});
                         // get mid-layer info - update this section to display details about the layer (instead of "Mid layer:")
                         $.ajax({
                             url : mid_url,
                             dataType : 'text',
                             success: function(data, textStatus, jqXHR){
-                                var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
+//                                var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
+                                var response = JSON.parse(data).features[0];
                                 var mid = '';
                                 Object.keys(response.properties).forEach(function(key) {
                                     mid += key + ': ' + response.properties[key] + '<br>';
@@ -107,7 +109,8 @@
                         url : trees_url,
                         dataType : 'text',
                         success: function(data, textStatus, jqXHR){
-                            var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
+//                            var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
+                            var response = JSON.parse(data).features[0];
                             if (response) {
                                 tree =  response.properties.species + ' (' + response.id + ')<br>';
 //                                tree = 'ID: ' + response.id + '<br>';

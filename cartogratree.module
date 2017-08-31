@@ -455,14 +455,14 @@ function cartogratree_theme($existing, $type, $theme, $path) {
       'render element' => 'element',
       'file' => 'includes/cartogratree.admin.inc',
     );
-    $items['page__cartogratree'] = array(// page + menu path
-      'template' => 'page--cartogratree',
-      'preprocess functions' => array('cartogratree_preprocess_page__cartogratree'),
-      'render element' => 'page',
-      'base hook' => 'page',
-      'variables' => cartogratree_variables($variables),
-      'path' => drupal_get_path('module', 'cartogratree') . "/theme/templates",
-    );
+//    $items['page__cartogratree'] = array(// page + menu path
+//      'template' => 'page--cartogratree',
+//      'preprocess functions' => array('cartogratree_preprocess_page__cartogratree'),
+//      'render element' => 'page',
+//      'base hook' => 'page',
+//      'variables' => cartogratree_variables($variables),
+//      'path' => drupal_get_path('module', 'cartogratree') . "/theme/templates",
+//    );
 
     return $items;
 }
