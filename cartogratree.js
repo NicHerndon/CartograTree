@@ -14,18 +14,21 @@
             var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false})];
             var cartogratree_map = new Array(4);
             var target = ['cartogratree_top_left', 'cartogratree_top_right', 'cartogratree_bottom_left', 'cartogratree_bottom_right'];
-            var cartogratree_common_view = new ol.View({
-                projection: 'EPSG:4326',
-                center: [-72.256167,41.8103637],//ol.proj.fromLonLat([10, 20]),
-                zoom: 3
-            });
+//            var cartogratree_common_view = new ol.View({
+//                projection: 'EPSG:4326',
+//                center: [-72.256167,41.8103637],//ol.proj.fromLonLat([10, 20]),
+//                zoom: 3,
+//                minZoom: 3,
+//                maxZoom: 9,
+//            });
             var cartogratree_osm_layer = new ol.layer.Tile({
                 source: new ol.source.OSM()
             });
             var cartogratree_trees_layer = new ol.layer.Tile({
                 source: new ol.source.TileWMS({
                     url: cartogratree_gis,
-                    params: {LAYERS: 'ct:sample'}
+//                    params: {LAYERS: 'ct:sample'}
+                    params: {LAYERS: 'ct:tgdr_trees,ct:dryad'}
                 })
             });
 
@@ -42,7 +45,15 @@
             for (var i = 0; i < cartogratree_map.length; i++) {
                 // create the maps
                 cartogratree_map[i] = new ol.Map({
-                    view: cartogratree_common_view,
+//                    view: cartogratree_common_view, // shared view
+                    // independent views
+                    view: new ol.View({
+                        projection: 'EPSG:4326',
+                        center: [-72.256167,41.8103637],//ol.proj.fromLonLat([10, 20]),
+                        zoom: 3,
+//                        minZoom: 3,
+                        maxZoom: 9,
+                    }),
                     layers: [
                         // 'background' map
                         cartogratree_osm_layer,
@@ -143,20 +154,8 @@
                 } else {
                     // set navigation position
                     $('body').scrollTop($("#main-menu").offset().top);
-                    var top = $('#cartogratree_top_left')[0].getBoundingClientRect().top;
-                    var height = $('#cartogratree_bottom_left')[0].getBoundingClientRect().bottom - top;
                     // position and open navigation
-                    $("#cartogratree_sidenav").css({height: height + 'px', width: '500px'});
-                }
-            });
-            
-            // Set side navigation height when resizing the window.
-            $(window).resize(function() {
-                if ($("#cartogratree_sidenav").width() == 500) {
-                    // set navigation height
-                    var top = $('#cartogratree_top_left')[0].getBoundingClientRect().top;
-                    var height = $('#cartogratree_bottom_left')[0].getBoundingClientRect().bottom - top;
-                    $("#cartogratree_sidenav").height(height + 'px');
+                    $("#cartogratree_sidenav").css({height: '800px', width: '500px'});
                 }
             });
             
@@ -172,9 +171,9 @@
             // jQuery UI accordions for sidenav
             $(Drupal.settings.accordions.join()).accordion({
                 collapsible: true,
-                autoHeight: false,
                 icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
             });
+            $( ".selector" ).accordion( "resize" );
             // jQuery UI radio-buttons for sidenav
             for (var i in Drupal.settings.layers) {
                 // jQuery UI radio-buttons for sidenav

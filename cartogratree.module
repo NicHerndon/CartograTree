@@ -376,14 +376,17 @@ function cartogratree_app_page() {
     $content .= "</div>";
     // four maps
     $content .= "<div id=\"cartogratree_squares\">
-    <div class=\"cartogratree_row\">
-      <div class=\"cartogratree_left\" id=\"cartogratree_top_left\"></div>
-      <div class=\"cartogratree_right\" id=\"cartogratree_top_right\"></div>
-    </div>
-    <div class=\"cartogratree_row\">
-      <div class=\"cartogratree_left\" id=\"cartogratree_bottom_left\"></div>
-      <div class=\"cartogratree_right\" id=\"cartogratree_bottom_right\"></div>
-    </div></div>";
+        <table>
+            <tr>
+                <td><div class=\"cartogratree_left\" id=\"cartogratree_top_left\"></div></td>
+                <td><div class=\"cartogratree_right\" id=\"cartogratree_top_right\"></div></td>
+            </tr>
+            <tr>
+                <td><div class=\"cartogratree_left\" id=\"cartogratree_bottom_left\"></div></td>
+                <td><div class=\"cartogratree_right\" id=\"cartogratree_bottom_right\"></div></td>
+            </tr>
+        </table>
+    </div>";
 
     libraries_load('openlayers');
     foreach (['dialog', 'tabs', 'accordion', 'button', 'slider'] as $ui) {

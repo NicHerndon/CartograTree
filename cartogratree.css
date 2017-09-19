@@ -1,17 +1,4 @@
 /* Four squares on app page */
-#cartogratree_squares {
-    display:table;
-    table-layout:fixed;
-    height:100%;
-    width:100%;
-}
-.cartogratree_row {
-    display: table-row;
-}
-.cartogratree_left, .cartogratree_right {
-    display: table-cell;
-    width: 50%;
-}
 #cartogratree_top_left, #cartogratree_bottom_left {
     border-right: 1px solid #fff;
 }
@@ -23,6 +10,10 @@
 }
 #cartogratree_bottom_left, #cartogratree_bottom_right {
     border-top: 1px solid #fff;
+}
+#cartogratree_top_left, #cartogratree_top_right, #cartogratree_bottom_right, #cartogratree_bottom_left {
+    height: 400px;
+    width: 600px;
 }
 
 /* Side navigation menu on app page */
