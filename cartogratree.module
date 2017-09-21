@@ -452,43 +452,27 @@ function cartogratree_theme($existing, $type, $theme, $path) {
       'render element' => 'element',
       'file' => 'includes/cartogratree.admin.inc',
     );
-
     $items['cartogratree_admin_form_group_mgmt_table'] = array(
       'function' => 'cartogratree_admin_form_group_mgmt_table',
       'render element' => 'element',
       'file' => 'includes/cartogratree.admin.inc',
     );
-//    $items['page__cartogratree'] = array(// page + menu path
-//      'template' => 'page--cartogratree',
-//      'preprocess functions' => array('cartogratree_preprocess_page__cartogratree'),
-//      'render element' => 'page',
-//      'base hook' => 'page',
-//      'variables' => cartogratree_variables($variables),
-//    );
     $items['page__cartogratree'] = array(
-      'path' => drupal_get_path('module', 'cartogratree') . "/theme/templates",
-      'file' => '../cartogratree_theme.inc',
       'template' => 'page--cartogratree',
       'render element' => 'page',
+      'path' => drupal_get_path('module', 'cartogratree') . "/theme/templates",
+//      'file' => '../cartogratree_theme.inc',
     );
 
     return $items;
 }
 
-//function cartogratree_variables(&$variables) {
-////    $variables = array();
-////    dpm('cartogratree_preprocess_page called');
-//    $variables['cartogratree_test_1'] = 'set';
-//    return $variables;
-//}
-//
-//function cartogratree_preprocess_page__cartogratree(&$variables) {
-//    $variables['cartogratree_test_2'] = 'set';
-//}
-//
-//function cartogratree_preprocess_page(&$variables, $hook) {
-//    $variables['cartogratree_preprocess_page'][] = 'called';
-//}
+/* 
+ * Implements template_preprocess_page().
+ */
+function cartogratree_preprocess_page(&$variables, $hook) {
+    // preprocess here; add to $variables
+}
 
 /*
  * Implements hook_permission().
