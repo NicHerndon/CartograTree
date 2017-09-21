@@ -153,7 +153,7 @@
                     $('html, body').css({overflow: 'auto'});
                 } else {
                     // set navigation position
-                    $('body').scrollTop($("#main-menu").offset().top);
+                    $('body').scrollTop(0);
                     // position and open navigation
                     $("#cartogratree_sidenav").css({height: '800px', width: '500px'});
                 }
