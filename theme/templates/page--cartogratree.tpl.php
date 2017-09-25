@@ -1,12 +1,125 @@
 <?php
-    print drupal_render($page['content']);
- ?>
-
-<?php
-//  print '<pre>'; print "messages"
-//  dpm(get_defined_vars());
-//  dpm($variables);
-//  dpm($theme_hook_suggestions);
-//  dpm(array_keys(theme_get_registry()));
-//  print '</pre>';
+/**
+ * @file
+ * Theme implementation to display the CartograTree page.
+ */
 ?>
+
+<div id="cartogratree_page">
+    <?php if ($breadcrumb): ?>
+        <?php print $breadcrumb; ?>
+    <?php endif; ?>
+
+    <?php dpm($variables); ?>
+
+    <!-- hamburger button -->
+    <span class="cartogratree_navbtn">&#9776;</span> 
+    <!-- side navigation menu -->
+    <div id="cartogratree_sidenav"> 
+        <!-- navigation tabs -->
+        <div id="cartogratree_steps"> 
+            <ul> 
+                <li><a href="#cartogratree_step_1">Layers</a></li> 
+                <li><a href="#cartogratree_step_2">Filters</a></li> 
+                <li><a href="#cartogratree_step_3">View</a></li> 
+            </ul> 
+            <!-- 'Layers' tab content -->
+            <div id="cartogratree_step_1"> 
+                Shown: <span id="cartogratree_layers_shown">0</span>/4 Used: <span id="cartogratree_layers_used">0</span> 
+                <div id="cartogratree_accordion_groups">
+                    <?php
+                        foreach($variables['cartogratree_layers'] as $group) {
+                            echo '<h3>' . $group['group_name'] . '</h3>';
+                            echo '<div>';
+                            if ($group['has_subgroups']) {
+                                echo '<div id="cartogratree_accordion_group_"' . $group['group_rank'] . '">';
+                            }
+                            foreach ($group['subgroups'] as $subgroup) {
+                                if ($subgroup['subgroup_name'] != '[No subgroup]') {
+                                    echo '<h4>' . $subgroup['subgroup_name'] .'</h4>';
+                                    echo '<div>';
+                                }
+                                foreach($subgroup['layers'] as $layer) {
+                                    echo '<div id="cartogratree_sidenav_layer_' . $layer['layer_id'] . '">';
+                                    echo '<input type="radio" id="' . $layer['layer_id'] . '_radio1" name="'
+                                        . $layer['layer_id'] . '_radio"><label for="' . $layer['layer_id'] . '_radio1">show</label>';
+                                    echo '<input type="radio" id="' . $layer['layer_id'] . '_radio2" name="'
+                                        . $layer['layer_id'] . '_radio"><label for="' . $layer['layer_id'] . '_radio2">use</label>';
+                                    echo '<input type="radio" id="' . $layer['layer_id'] . '_radio3" name="'
+                                        . $layer['layer_id'] . '_radio" checked="checked"><label for="' . $layer['layer_id'] . '_radio3">skip</label>';
+                                    echo $layer['layer_title'];
+                                    echo '</div>';
+                                }
+                                if ($subgroup['subgroup_name'] != '[No subgroup]') {
+                                    echo "</div>";
+                                }
+                            }
+                            if ($group['has_subgroups']) {
+                                echo '</div>';
+                            }
+                            echo '</div>';
+                        }
+                    ?>
+                </div>
+            <!-- End of 'Layers' tab content -->
+            </div>
+            <!-- 'Filters' tab content -->
+            <div id="cartogratree_step_2">
+                <!-- demo filters -->
+                Layers:
+                <div id="cartogratree_accordion_filters">
+                    <h3><a herf="#">Trees filter</a></h3>
+                    <div id="cartogratree_demo_checkbox">
+                        <fieldset>
+                            <legend>Tree species</legend>
+                            <input type="checkbox" id="checkbox1" name="checkbox"><label for="checkbox1">Abies alba</label>
+                            <input type="checkbox" id="checkbox2" name="checkbox"><label for="checkbox2">Cedrus deodara</label>
+                            <input type="checkbox" id="checkbox3" name="checkbox"><label for="checkbox3">Fagus grandifolia</label>
+                        </fieldset>
+                    </div>
+                    <h3><a herf="#">Temperature filter</a></h3>
+                    <div>
+                        <div id="cartogratree_demo_slider_caption">Minimum temperature: -20..20 °C</div>
+                        <div id="cartogratree_demo_slider"></div>
+                    </div>
+                </div>
+                <!-- end of demo filters -->
+            <!-- End of 'Filters' tab content -->
+            </div>
+            <!-- 'View' tab content -->
+            <div id="cartogratree_step_3">
+                <div id="cartogratree_demo_radio_view">
+                    <input type="radio" id="cartogratree_demo_radio_view_radio1" name="cartogratree_demo_radio_view_radio" checked="checked"><label for="cartogratree_demo_radio_view_radio1">Maps</label>
+                    <input type="radio" id="cartogratree_demo_radio_view_radio2" name="cartogratree_demo_radio_view_radio"><label for="cartogratree_demo_radio_view_radio2">Table</label>
+                    <input type="radio" id="cartogratree_demo_radio_view_radio3" name="cartogratree_demo_radio_view_radio"><label for="cartogratree_demo_radio_view_radio3">Results</label>
+                </div> 
+            <!-- End of 'View' tab content -->
+            </div>
+        <!-- End of navigation tabs -->
+        </div> 
+    <!-- End of side navigation menu -->
+    </div> 
+
+    <!-- four maps -->
+    <div id="cartogratree_squares">
+        <table>
+            <tr>
+                <td><div class="cartogratree_left" id="cartogratree_top_left"></div></td>
+                <td><div class="cartogratree_right" id="cartogratree_top_right"></div></td>
+            </tr>
+            <tr>
+                <td><div class="cartogratree_left" id="cartogratree_bottom_left"></div></td>
+                <td><div class="cartogratree_right" id="cartogratree_bottom_right"></div></td>
+            </tr>
+        </table>
+    </div>
+    <!-- pop-up window shown when the user tries to select more than four layers to show -->
+    <div id="cartogratree_popup" title="Layers">
+        Only four layers can be shown!<br/>Deselect one of the shown layers and try again.
+    </div>
+    <!-- pop-up window shown when the user clicks on one of the four maps -->
+    <div id="cartogratree_ol_popup" class="cartogratree_ol_popup">
+        <a href="#" id="cartogratree_ol_popup_closer" class="cartogratree_ol_popup_closer"></a>
+        <div id="cartogratree_ol_popup_content"></div>
+    </div>
+</div>

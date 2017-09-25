@@ -1,3 +1,8 @@
+#cartogratree_page {
+    width: 90%;
+    margin: auto;
+}
+
 /* Four squares on app page */
 #cartogratree_top_left, #cartogratree_bottom_left {
     border-right: 1px solid #fff;
