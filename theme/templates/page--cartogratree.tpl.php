@@ -49,7 +49,7 @@
                                     echo '<input type="radio" id="' . $layer['layer_id'] . '_radio2" name="'
                                         . $layer['layer_id'] . '_radio"><label for="' . $layer['layer_id'] . '_radio2">use</label>';
                                     echo '<input type="radio" id="' . $layer['layer_id'] . '_radio3" name="'
-                                        . $layer['layer_id'] . '_radio" checked="checked"><label for="' . $layer['layer_id'] . '_radio3">skip</label>';
+                                        . $layer['layer_id'] . '_radio" checked="checked"><label for="' . $layer['layer_id'] . '_radio3">skip</label>&emsp;';
                                     echo $layer['layer_title'];
                                     echo '</div>';
                                 }
