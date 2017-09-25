@@ -107,3 +107,8 @@
 #cartogratree_sidenav .ui-buttonset {
     margin: 0px;
 }
+
+.ui-accordion-content{
+    min-height: 75px;
+    max-height: 300px;
+}

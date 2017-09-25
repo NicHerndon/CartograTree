@@ -168,9 +168,11 @@
             // jQuery UI accordions for sidenav
             $("[id^=cartogratree_accordion]").accordion({
                 collapsible: true,
+//                autoHeight: false,
                 icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
             });
-            $(".selector").accordion("refresh");
+//            $(".selector").accordion("resize");
+//            $(".selector").accordion({clearStyle: true, autoHeight: false});
             
             // jQuery UI radio-buttons for sidenav
             $("[id^=cartogratree_sidenav_layer]").buttonset();

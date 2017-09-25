@@ -5,13 +5,16 @@
  */
 ?>
 
+<?php
+    if ($breadcrumb) {
+        print $breadcrumb;
+    }
+    if (!user_access('use cartogratree')) {
+        return;
+    }
+?>
+
 <div id="cartogratree_page">
-    <?php if ($breadcrumb): ?>
-        <?php print $breadcrumb; ?>
-    <?php endif; ?>
-
-    <?php dpm($variables); ?>
-
     <!-- hamburger button -->
     <span class="cartogratree_navbtn">&#9776;</span> 
     <!-- side navigation menu -->

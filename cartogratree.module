@@ -334,39 +334,41 @@ function cartogratree_theme($existing, $type, $theme, $path) {
 /* 
  * Implements template_preprocess_page().
  */
-function cartogratree_preprocess_page(&$variables, $hook) {
-    global $user;
-    // Grab the roles and user id of the current user.
-    $uid = $user->uid;
-    $rids = is_array($user->roles) ? array_keys($user->roles) : array();
-    // Only grab layers that the current user has permission to see.
-    $layers = db_query('
-    SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank, l.layer_rank
-    FROM {cartogratree_layer_permissions} p
-    JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
-    JOIN {cartogratree_groups} g ON g.group_id = l.group_id
-    JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
-    JOIN {cartogratree_groups_subgroups} gs ON g.group_id = gs.group_id AND s.subgroup_id = gs.subgroup_id
-    WHERE p.uid=:uid OR p.rid IN (:rids)
-    ORDER BY g.group_rank, gs.subgroup_rank, l.layer_rank', array(':uid' => $uid, ':rids' => $rids));
-    $groups = array();
-    foreach ($layers as $l) {
-        $groups[$l->group_rank]['group_name'] = $l->group_name;
-        $groups[$l->group_rank]['group_rank'] = $l->group_rank;
-        if ($l->subgroup_name != '[No subgroup]') {
-            $groups[$l->group_rank]['has_subgroups'] = TRUE;
-        }
-        else {
-            $groups[$l->group_rank]['has_subgroups'] = FALSE;
-        }
-        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['subgroup_name'] = $l->subgroup_name;
-        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_id'] = $l->layer_id;
-        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_title'] = $l->title;
-        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_name'] = $l->name;
-        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_url'] = $l->url;
+function cartogratree_preprocess_page(&$variables) {
+    if (current_path() == 'cartogratree') {
+        global $user;
+        // Grab the roles and user id of the current user.
+        $uid = $user->uid;
+        $rids = is_array($user->roles) ? array_keys($user->roles) : array();
+        // Only grab layers that the current user has permission to see.
+        $layers = db_query('
+            SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank, l.layer_rank
+            FROM {cartogratree_layer_permissions} p
+            JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
+            JOIN {cartogratree_groups} g ON g.group_id = l.group_id
+            JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
+            JOIN {cartogratree_groups_subgroups} gs ON g.group_id = gs.group_id AND s.subgroup_id = gs.subgroup_id
+            WHERE p.uid=:uid OR p.rid IN (:rids)
+            ORDER BY g.group_rank, gs.subgroup_rank, l.layer_rank', array(':uid' => $uid, ':rids' => $rids));
+        $groups = array();
+        foreach ($layers as $l) {
+            $groups[$l->group_rank]['group_name'] = $l->group_name;
+            $groups[$l->group_rank]['group_rank'] = $l->group_rank;
+            if ($l->subgroup_name != '[No subgroup]') {
+                $groups[$l->group_rank]['has_subgroups'] = TRUE;
+            }
+            else {
+                $groups[$l->group_rank]['has_subgroups'] = FALSE;
+            }
+            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['subgroup_name'] = $l->subgroup_name;
+            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_id'] = $l->layer_id;
+            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_title'] = $l->title;
+            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_name'] = $l->name;
+            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_url'] = $l->url;
 //        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_rank'] = $l->layer_rank;
+        }
+        $variables['cartogratree_layers'] = $groups;
     }
-    $variables['cartogratree_layers'] = $groups;
 }
 
 /*
