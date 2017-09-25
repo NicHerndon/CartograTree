@@ -52,7 +52,7 @@
                         center: [-72.256167,41.8103637],//ol.proj.fromLonLat([10, 20]),
                         zoom: 3,
 //                        minZoom: 3,
-                        maxZoom: 9,
+//                        maxZoom: 9,
                     }),
                     layers: [
                         // 'background' map
@@ -87,9 +87,7 @@
                     }
                     e.map.addOverlay(overlay);
                     var coordinate = e.coordinate, tree = '';
-//                    var latlon = 'lat/lon: ' + ol.proj.toLonLat(coordinate)[1].toFixed(3) + '/' + ol.proj.toLonLat(coordinate)[0].toFixed(3) + '<br/>';
                     var latlon = 'lat/lon: ' + e.coordinate[1].toFixed(3) + '/' + e.coordinate[0].toFixed(3) + '<br/>';
-//                    var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'));
                     var hdms = ol.coordinate.toStringHDMS(e.coordinate);
                     $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + latlon + hdms + '</code>');
                     var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
@@ -105,7 +103,6 @@
                             url : mid_url,
                             dataType : 'text',
                             success: function(data, textStatus, jqXHR){
-//                                var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
                                 var response = JSON.parse(data).features[0];
                                 var mid = '';
                                 Object.keys(response.properties).forEach(function(key) {
@@ -120,7 +117,6 @@
                         url : trees_url,
                         dataType : 'text',
                         success: function(data, textStatus, jqXHR){
-//                            var response = JSON.parse(data.substring('parseResponse('.length, data.length - 1)).features[0];
                             var response = JSON.parse(data).features[0];
                             if (response) {
                                 tree =  response.properties.species + ' (' + response.id + ')<br>';
@@ -153,7 +149,8 @@
                     $('html, body').css({overflow: 'auto'});
                 } else {
                     // set navigation position
-                    $('body').scrollTop($("#main-menu").offset().top);
+//                    $('body').scrollTop($("#main-menu").offset().top);
+                    $('body').scrollTop(0);
                     // position and open navigation
                     $("#cartogratree_sidenav").css({height: '800px', width: '500px'});
                 }
@@ -169,15 +166,16 @@
             // jQuery UI tabs for sidenav
             $("#cartogratree_steps").tabs();
             // jQuery UI accordions for sidenav
-            $(Drupal.settings.accordions.join()).accordion({
+            $("[id^=cartogratree_accordion]").accordion({
                 collapsible: true,
                 icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
             });
-            $( ".selector" ).accordion( "resize" );
+            $(".selector").accordion("refresh");
+            
+            // jQuery UI radio-buttons for sidenav
+            $("[id^=cartogratree_sidenav_layer]").buttonset();
             // jQuery UI radio-buttons for sidenav
             for (var i in Drupal.settings.layers) {
-                // jQuery UI radio-buttons for sidenav
-                $("#" + Drupal.settings.layers[i].id).buttonset();
                 // store layer details
                 layers[Drupal.settings.layers[i].id] = {
                     name: Drupal.settings.layers[i].name,
