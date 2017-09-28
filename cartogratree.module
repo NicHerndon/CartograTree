@@ -49,8 +49,7 @@ function cartogratree_menu() {
     // User interface
     $items['cartogratree'] = array(
       'description' => 'Main UI of CartograTree.',
-      'page callback' => 'cartogratree_app_page',
-      'page arguments' => array(),
+      'title' => 'CartograTree',
       'access arguments' => array('use cartogratree'),
     );
 
@@ -257,49 +256,6 @@ function cartogratree_menu() {
 }
 
 /**
- * The user interface for CartograTree
- */
-function cartogratree_app_page() {
-    libraries_load('openlayers');
-    foreach (['dialog', 'tabs', 'accordion', 'button', 'slider'] as $ui) {
-        drupal_add_library('system', 'ui.' . $ui);
-    }
-    drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
-    drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css'
-//        , array('group' => CSS_THEME, 'weight' => 9999,)
-    );
-
-    global $user;
-    // Grab the roles and user id of the current user.
-    $uid = $user->uid;
-    $rids = is_array($user->roles) ? array_keys($user->roles) : array();
-    // Only grab layers that the current user has permission to see.
-    $result = db_query('
-    SELECT l.layer_id, l.title, l.name, l.url
-    FROM {cartogratree_layer_permissions} p
-    JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
-    WHERE p.uid=:uid OR p.rid IN (:rids)
-    ORDER BY l.layer_rank', array(':uid' => $uid, ':rids' => $rids));
-    $layers = array();
-    foreach ($result as $record) {
-        array_push($layers, array('id' => "cartogratree_sidenav_layer_" . $record->layer_id, 'name' => $record->name, 'title' => $record->title, 'url' => $record->url,));
-    }
-
-    $settings = array(
-      'cartogratree' => array(
-        'gis' => variable_get('cartogratree_gis'),
-        'api' => variable_get('cartogratree_api'),
-      ),
-      'layers' => $layers,
-    );
-    drupal_add_js($settings, 'setting');
-
-    return array(
-      '#type' => 'markup',
-    );
-}
-
-/**
  * Implements hook_theme().
  * Specify how to render the arrays for both permissions tables on
  * ?q=admin/cartogratree/settings/layer/access/<layer id> as HTML;
@@ -331,7 +287,7 @@ function cartogratree_theme($existing, $type, $theme, $path) {
     return $items;
 }
 
-/* 
+/*
  * Implements template_preprocess_page().
  */
 function cartogratree_preprocess_page(&$variables) {
@@ -341,7 +297,7 @@ function cartogratree_preprocess_page(&$variables) {
         $uid = $user->uid;
         $rids = is_array($user->roles) ? array_keys($user->roles) : array();
         // Only grab layers that the current user has permission to see.
-        $layers = db_query('
+        $records = db_query('
             SELECT l.layer_id, l.title, l.name, l.url, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank, l.layer_rank
             FROM {cartogratree_layer_permissions} p
             JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
@@ -351,23 +307,41 @@ function cartogratree_preprocess_page(&$variables) {
             WHERE p.uid=:uid OR p.rid IN (:rids)
             ORDER BY g.group_rank, gs.subgroup_rank, l.layer_rank', array(':uid' => $uid, ':rids' => $rids));
         $groups = array();
-        foreach ($layers as $l) {
-            $groups[$l->group_rank]['group_name'] = $l->group_name;
-            $groups[$l->group_rank]['group_rank'] = $l->group_rank;
-            if ($l->subgroup_name != '[No subgroup]') {
-                $groups[$l->group_rank]['has_subgroups'] = TRUE;
+        $layers = array();
+        foreach ($records as $record) {
+            $groups[$record->group_rank]['group_name'] = $record->group_name;
+            $groups[$record->group_rank]['group_rank'] = $record->group_rank;
+            if ($record->subgroup_name != '[No subgroup]') {
+                $groups[$record->group_rank]['has_subgroups'] = TRUE;
             }
             else {
-                $groups[$l->group_rank]['has_subgroups'] = FALSE;
+                $groups[$record->group_rank]['has_subgroups'] = FALSE;
             }
-            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['subgroup_name'] = $l->subgroup_name;
-            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_id'] = $l->layer_id;
-            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_title'] = $l->title;
-            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_name'] = $l->name;
-            $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_url'] = $l->url;
-//        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_rank'] = $l->layer_rank;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['subgroup_name'] = $record->subgroup_name;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_id'] = $record->layer_id;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_title'] = $record->title;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_name'] = $record->name;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_url'] = $record->url;
+//        $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_rank'] = $record->layer_rank;
+            array_push($layers, array('id' => "cartogratree_sidenav_layer_" . $record->layer_id, 'name' => $record->name, 'title' => $record->title, 'url' => $record->url,));
         }
         $variables['cartogratree_layers'] = $groups;
+
+        libraries_load('openlayers');
+        foreach (['dialog', 'tabs', 'accordion', 'button', 'slider'] as $ui) {
+            drupal_add_library('system', 'ui.' . $ui);
+        }
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
+        drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css');
+
+        $settings = array(
+          'cartogratree' => array(
+            'gis' => variable_get('cartogratree_gis'),
+            'api' => variable_get('cartogratree_api'),
+          ),
+          'layers' => $layers,
+        );
+        drupal_add_js($settings, 'setting');
     }
 }
 
@@ -375,14 +349,14 @@ function cartogratree_preprocess_page(&$variables) {
  * Implements hook_permission().
  */
 function cartogratree_permission() {
-  return array(
-    'administer cartogratree' => array(
-      'title' => t('Administer CartograTree'),
-      'description' => t('Perform administration tasks for CartograTree.'),
-    ),
-    'use cartogratree' => array(
-      'title' => t('Use CartograTree'),
-      'description' => t('Use the CartograTree application.'),
-    ),
-  );
+    return array(
+      'administer cartogratree' => array(
+        'title' => t('Administer CartograTree'),
+        'description' => t('Perform administration tasks for CartograTree.'),
+      ),
+      'use cartogratree' => array(
+        'title' => t('Use CartograTree'),
+        'description' => t('Use the CartograTree application.'),
+      ),
+    );
 }
