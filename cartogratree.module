@@ -368,6 +368,8 @@ function cartogratree_preprocess_page(&$variables) {
 //        $groups[$l->group_rank]['subgroups'][$l->subgroup_rank]['layers'][$l->layer_id]['layer_rank'] = $l->layer_rank;
         }
         $variables['cartogratree_layers'] = $groups;
+        
+        dpm(current_path());
     }
 }
 
