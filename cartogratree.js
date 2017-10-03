@@ -7,7 +7,7 @@
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
-            var shown_layers = [], used_layers = [], layers = {};
+            var shown_layers = [], used_layers = [], layers_for_sidenav = {};
             
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
@@ -92,23 +92,41 @@
                     $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + latlon + hdms + '</code>');
                     var trees_url = cartogratree_trees_layer.getSource().getGetFeatureInfoUrl(
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
-                            // upported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
+                            // supported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
                             {'INFO_FORMAT': 'application/json'});
                     if (e.map.getLayers().a[1].getVisible()) {
+                        var layer_name = e.map.getLayers().a[1].getSource().i.LAYERS;
                         var mid_url = e.map.getLayers().a[1].getSource().getGetFeatureInfoUrl(
                                 e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
                                 {'INFO_FORMAT': 'application/json'});
-                        // get mid-layer info - update this section to display details about the layer (instead of "Mid layer:")
+                        // get mid-layer info
                         $.ajax({
                             url : mid_url,
                             dataType : 'text',
                             success: function(data, textStatus, jqXHR){
                                 var response = JSON.parse(data).features[0];
                                 var mid = '';
-                                Object.keys(response.properties).forEach(function(key) {
-                                    mid += key + ': ' + response.properties[key] + '<br>';
-                                });
-                                $('#cartogratree_ol_popup_content').append('<p>Mid layer:<br><code>' + mid + '</code></p>');
+                                for (var key in response.properties) {
+                                    // should this field be shown in the pop-up
+                                    if (Drupal.settings.fields[layer_name] !== undefined && Drupal.settings.fields[layer_name][key] !== undefined && Drupal.settings.fields[layer_name][key]['Show this field in maps pop-up'] === '1') {
+                                        // should this value be masked
+                                        if (Drupal.settings.fields[layer_name][key]['Value returned by layer that should be masked'] == response.properties[key]) {
+                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + Drupal.settings.fields[layer_name][key]['Text shown to user for masked values'] + '<br>';
+                                        }
+                                        else {
+                                            // type of value: continuous or discrete
+                                            if (Drupal.settings.fields[layer_name][key]['Type of filter'] === 'slider') {
+                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
+                                            }
+                                            else {
+                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+                                            }
+                                        }
+                                    }
+                                }
+                                if (mid !== '') {
+                                   $('#cartogratree_ol_popup_content').append('<p>' + Drupal.settings.fields[layer_name]["Human-readable name for the layer"] + ':<br><code>' + mid + '</code></p>');
+                                }
                             }
                         });
                     }
@@ -177,14 +195,14 @@
             // jQuery UI radio-buttons for sidenav
             $("[id^=cartogratree_sidenav_layer]").buttonset();
             // jQuery UI radio-buttons for sidenav
-            for (var i in Drupal.settings.layers) {
+            for (var i in Drupal.settings.layers_for_sidenav) {
                 // store layer details
-                layers[Drupal.settings.layers[i].id] = {
-                    name: Drupal.settings.layers[i].name,
-                    title: Drupal.settings.layers[i].title,
-                    url: Drupal.settings.layers[i].url
+                layers_for_sidenav[Drupal.settings.layers_for_sidenav[i].id] = {
+                    name: Drupal.settings.layers_for_sidenav[i].name,
+                    title: Drupal.settings.layers_for_sidenav[i].title,
+                    url: Drupal.settings.layers_for_sidenav[i].url
                 };
-                $("#" + Drupal.settings.layers[i].id).change(function(e) {
+                $("#" + Drupal.settings.layers_for_sidenav[i].id).change(function(e) {
                     // this.id is the layer key in layers
                     switch (e.target.id.substr(e.target.name.length)) {
                         case '1':   // show
@@ -192,8 +210,8 @@
                                 // add layer to map
                                 cartogratree_mid_layer[shown_layers.length].setSource(new ol.source.TileWMS({
                                             url: cartogratree_gis,
-                                            attributions: " &copy; <a href=\"" + layers[this.id].url + "\">" + layers[this.id].title + "</a>",
-                                            params: {LAYERS: layers[this.id].name, 'TILED': true}
+                                            attributions: " &copy; <a href=\"" + layers_for_sidenav[this.id].url + "\">" + layers_for_sidenav[this.id].title + "</a>",
+                                            params: {LAYERS: layers_for_sidenav[this.id].name, 'TILED': true}
                                         }));
                                 cartogratree_mid_layer[shown_layers.length].setVisible(true);
                                 // add layer to shown array

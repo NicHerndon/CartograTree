@@ -93,8 +93,8 @@
             <div id="cartogratree_step_3">
                 <div id="cartogratree_demo_radio_view">
                     <input type="radio" id="cartogratree_demo_radio_view_radio1" name="cartogratree_demo_radio_view_radio" checked="checked"><label for="cartogratree_demo_radio_view_radio1">Maps</label>
-                    <input type="radio" id="cartogratree_demo_radio_view_radio2" name="cartogratree_demo_radio_view_radio"><label for="cartogratree_demo_radio_view_radio2">Table</label>
-                    <input type="radio" id="cartogratree_demo_radio_view_radio3" name="cartogratree_demo_radio_view_radio"><label for="cartogratree_demo_radio_view_radio3">Results</label>
+                    <input type="radio" id="cartogratree_demo_radio_view_radio2" name="cartogratree_demo_radio_view_radio" disabled="true"><label for="cartogratree_demo_radio_view_radio2">Table</label>
+                    <input type="radio" id="cartogratree_demo_radio_view_radio3" name="cartogratree_demo_radio_view_radio" disabled="true"><label for="cartogratree_demo_radio_view_radio3">Results</label>
                 </div> 
             <!-- End of 'View' tab content -->
             </div>
