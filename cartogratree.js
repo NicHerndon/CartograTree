@@ -116,10 +116,10 @@
                                         else {
                                             // type of value: continuous or discrete
                                             if (Drupal.settings.fields[layer_name][key]['Type of filter'] === 'slider') {
-                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
+                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
                                             }
                                             else {
-                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
                                             }
                                         }
                                     }
