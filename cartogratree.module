@@ -322,7 +322,10 @@ function cartogratree_preprocess_page(&$variables) {
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_name'] = $record->name;
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_url'] = $record->url;
 //        $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_rank'] = $record->layer_rank;
-            array_push($layers, array('id' => "cartogratree_sidenav_layer_" . $record->layer_id, 'name' => $record->name, 'title' => $record->title, 'url' => $record->url,));
+            $layers["cartogratree_layer_" . $record->layer_id]['name'] = $record->name;
+            $layers["cartogratree_layer_" . $record->layer_id]['title'] = $record->title;
+            $layers["cartogratree_layer_" . $record->layer_id]['url'] = $record->url;
+            $layers["cartogratree_layer_" . $record->layer_id]['filters'] = 0;
             array_push($layer_ids, $record->layer_id);
         }
         $variables['cartogratree_layers'] = $groups;
@@ -348,6 +351,7 @@ function cartogratree_preprocess_page(&$variables) {
             $fields[$record->name][$record->field_name]['Text shown to user for masked values'] = $record->mask_display;
             $fields[$record->name][$record->field_name]['Show this field in maps pop-up'] = $record->pop_up;
             $fields[$record->name][$record->field_name]['Show this field in data table'] = $record->data_table;
+            if ($record->filter == '1') { $layers["cartogratree_layer_" . $record->layer_id]['filters']++; }
         }
         
         libraries_load('openlayers');
@@ -362,7 +366,7 @@ function cartogratree_preprocess_page(&$variables) {
             'gis' => variable_get('cartogratree_gis'),
             'api' => variable_get('cartogratree_api'),
           ),
-          'layers_for_sidenav' => $layers,
+          'layers' => $layers,
           'fields' => $fields,
         );
         drupal_add_js($settings, 'setting');

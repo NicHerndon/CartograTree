@@ -207,7 +207,7 @@ function cartogratree_schema() {
           'default' => 0,
         ),
         'filter_type' => array(
-          'description' => 'Type of filter to use with this field: radio-button, checkbox, slider, or elastic search (radio, check, slider, or elastic, respectively).',
+          'description' => 'Type of filter to use with this field: radio-button, checkbox, slider, or elastic search (radio, checkbox, slider, or elastic, respectively).',
           'type' => 'varchar',
           'length' => 10,
         ),

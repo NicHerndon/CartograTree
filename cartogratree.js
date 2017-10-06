@@ -1,13 +1,13 @@
 /**
  * @file
- * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree/app).
+ * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree).
  */
 'use strict';
 
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
-            var shown_layers = [], used_layers = [], layers_for_sidenav = {};
+            var shown_layers = [], used_layers = [], layers = {};
             
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
@@ -186,23 +186,16 @@
             // jQuery UI accordions for sidenav
             $("[id^=cartogratree_accordion]").accordion({
                 collapsible: true,
-//                autoHeight: false,
                 icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
             });
-//            $(".selector").accordion("resize");
-//            $(".selector").accordion({clearStyle: true, autoHeight: false});
             
             // jQuery UI radio-buttons for sidenav
-            $("[id^=cartogratree_sidenav_layer]").buttonset();
+            $("[id^=cartogratree_layer]").buttonset();
             // jQuery UI radio-buttons for sidenav
-            for (var i in Drupal.settings.layers_for_sidenav) {
-                // store layer details
-                layers_for_sidenav[Drupal.settings.layers_for_sidenav[i].id] = {
-                    name: Drupal.settings.layers_for_sidenav[i].name,
-                    title: Drupal.settings.layers_for_sidenav[i].title,
-                    url: Drupal.settings.layers_for_sidenav[i].url
-                };
-                $("#" + Drupal.settings.layers_for_sidenav[i].id).change(function(e) {
+            for (var id in Drupal.settings.layers) {
+                layers[id] = 'skip';
+                // add listener/callback
+                $("#" + id).change(function(e) {
                     // this.id is the layer key in layers
                     switch (e.target.id.substr(e.target.name.length)) {
                         case '1':   // show
@@ -210,8 +203,8 @@
                                 // add layer to map
                                 cartogratree_mid_layer[shown_layers.length].setSource(new ol.source.TileWMS({
                                             url: cartogratree_gis,
-                                            attributions: " &copy; <a href=\"" + layers_for_sidenav[this.id].url + "\">" + layers_for_sidenav[this.id].title + "</a>",
-                                            params: {LAYERS: layers_for_sidenav[this.id].name, 'TILED': true}
+                                            attributions: " &copy; <a href=\"" + Drupal.settings.layers[this.id].url + "\">" + Drupal.settings.layers[this.id].title + "</a>",
+                                            params: {LAYERS: Drupal.settings.layers[this.id].name, 'TILED': true}
                                         }));
                                 cartogratree_mid_layer[shown_layers.length].setVisible(true);
                                 // add layer to shown array
@@ -220,17 +213,22 @@
                                 $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) + 1);
                                 // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
                                 var j = used_layers.indexOf(this.id);
-                                if (j != -1) {
+                                if (j !== -1) {
                                     used_layers.splice(j, 1);
                                     $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
                                 }
+                                // add filter(s) for this layer
+                                if (layers[this.id] === 'skip' && Drupal.settings.layers[this.id]['filters']) {
+                                    addFilters(this.id);
+                                }
+                                layers[this.id] = 'show';
                             }
                             else {
                                 $("#cartogratree_popup").dialog({modal: true});
                                 // uncheck the 'show' radio-button
                                 $('#' + e.target.id).attr('checked', false).toggleClass('ui-state-active', false).button('refresh')
                                 // if radio-button was previously set to 'use' then set it again to 'use'
-                                if (used_layers.indexOf(this.id) != -1) {
+                                if (used_layers.indexOf(this.id) !== -1) {
                                     $('#' + e.target.name + '2').attr('checked', true).toggleClass('ui-state-active', true).button('refresh')
                                 }
                                 // if radio-button was previously set to 'skip' then set it again to 'skip'
@@ -260,6 +258,11 @@
                                 shown_layers.splice(j, 1);
                                 $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
                             }
+                            // add filter(s) for this layer
+                            if (layers[this.id] === 'skip' && Drupal.settings.layers[this.id]['filters']) {
+                                addFilters(this.id);
+                            }
+                            layers[this.id] = 'use';
                             break;
                         case '3':   // skip
                             // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
@@ -286,6 +289,9 @@
                                     $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
                                 }
                             }
+                            layers[this.id] = 'skip';
+                            // remove filter(s) for this layer
+                            removeFilters(this.id + '_accordion');
                             break;
                     }
                 }).bind(this);
@@ -306,4 +312,63 @@
             }).bind(this);
         },
     };
+
+    function addFilters(id) {
+        var layer_name = Drupal.settings.layers[id].name;
+        var filters = Drupal.settings.layers[id]['filters'] === 1 ? 'Filter' : 'Filters';
+        // add accordion wrapper
+        var html_content = '<div id="' + id + '_accordion">\n\
+                            <h3><a href="#">' + filters + ' from ' + Drupal.settings.layers[id].title + '</a></h3>\n\
+                            <div id="' + id + '_accordion_filters"></div>\n\
+                        </div>\n';
+        $('#' + id).append(html_content);
+        $('#' + id + '_accordion').accordion({collapsible: true});
+        // add filter(s) to accordion wrapper
+        var f = 1;
+        for (var key in Drupal.settings.fields[layer_name]) {
+            if (key !== 'Human-readable name for the layer' && key !== 'Layer ID' && Drupal.settings.fields[layer_name][key]['Filter data by this field'] === '1') {
+                var display_name = Drupal.settings.fields[layer_name][key]['Field name shown to user'];
+                var Values = Drupal.settings.fields[layer_name][key]['Values'];
+                switch (Drupal.settings.fields[layer_name][key]['Type of filter']) {
+                    case 'slider':
+                        var div_id = id + '_filter_' + f++ + '_slider';
+                        var values = Values.split("..");
+                        html_content = '<div id="' + div_id + '_caption">' + display_name + ': ' + Values + '</div>\n';
+                        html_content += '<div id="' + div_id + '"></div>\n';
+                        $('#' + id + '_accordion_filters').append(html_content);
+                        $('#' + div_id).slider({
+                            range: true,
+                            min: parseInt(values[0]),
+                            max: parseInt(values[1]),
+                            values: [parseInt(values[0]), parseInt(values[1])],
+                            slide: function (event, ui) {
+                                $('#' + div_id + '_caption').text(display_name + ': ' + ui.values[0] + '..' + ui.values[1]);
+                            },
+                        });
+                        break;
+                    case 'checkbox':
+                        var div_id = id + '_filter_' + f++ + '_checkbox';
+                        var values = Values.split(";");
+                        html_content = '<div id="' + div_id + '">\n';
+                        html_content += '<fieldset>\n';
+                        html_content += '<legend>' + display_name + '</legend>\n';
+                        for (var i = 0; i < values.length; i++) {
+                            html_content += '<input type="checkbox" id="' + div_id + '_' + i +
+                                    '" name="checkbox"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                        }
+                        html_content += '</fieldset>\n';
+                        html_content += '</div>\n';
+                        $('#' + id + '_accordion_filters').append(html_content);
+                        $('#' + div_id).buttonset();
+                        break;
+                    case 'radio':
+                        break;
+                }
+            }
+        }
+    }
+    
+    function removeFilters(id) {
+        $('#' + id).remove();
+    }
 }(jQuery));

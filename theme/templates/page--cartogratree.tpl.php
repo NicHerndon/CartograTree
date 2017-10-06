@@ -23,7 +23,7 @@
         <div id="cartogratree_steps"> 
             <ul> 
                 <li><a href="#cartogratree_step_1">Layers</a></li> 
-                <li><a href="#cartogratree_step_2">Filters</a></li> 
+                <li><a href="#cartogratree_step_2">Population Filters</a></li> 
                 <li><a href="#cartogratree_step_3">View</a></li> 
             </ul> 
             <!-- 'Layers' tab content -->
@@ -35,7 +35,7 @@
                             echo '<h3>' . $group['group_name'] . '</h3>';
                             echo '<div>';
                             if ($group['has_subgroups']) {
-                                echo '<div id="cartogratree_accordion_group_"' . $group['group_rank'] . '">';
+                                echo '<div id="cartogratree_accordion_group_' . $group['group_rank'] . '">';
                             }
                             foreach ($group['subgroups'] as $subgroup) {
                                 if ($subgroup['subgroup_name'] != '[No subgroup]') {
@@ -43,13 +43,13 @@
                                     echo '<div>';
                                 }
                                 foreach($subgroup['layers'] as $layer) {
-                                    echo '<div id="cartogratree_sidenav_layer_' . $layer['layer_id'] . '">';
-                                    echo '<input type="radio" id="' . $layer['layer_id'] . '_radio1" name="'
-                                        . $layer['layer_id'] . '_radio"><label for="' . $layer['layer_id'] . '_radio1">show</label>';
-                                    echo '<input type="radio" id="' . $layer['layer_id'] . '_radio2" name="'
-                                        . $layer['layer_id'] . '_radio"><label for="' . $layer['layer_id'] . '_radio2">use</label>';
-                                    echo '<input type="radio" id="' . $layer['layer_id'] . '_radio3" name="'
-                                        . $layer['layer_id'] . '_radio" checked="checked"><label for="' . $layer['layer_id'] . '_radio3">skip</label>&emsp;';
+                                    echo '<div id="cartogratree_layer_' . $layer['layer_id'] . '">';
+                                    echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio1" name="cartogratree_layer_'
+                                        . $layer['layer_id'] . '_radio"><label for="cartogratree_layer_' . $layer['layer_id'] . '_radio1">show</label>';
+                                    echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio2" name="cartogratree_layer_'
+                                        . $layer['layer_id'] . '_radio"><label for="cartogratree_layer_' . $layer['layer_id'] . '_radio2">use</label>';
+                                    echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio3" name="cartogratree_layer_'
+                                        . $layer['layer_id'] . '_radio" checked="checked"><label for="cartogratree_layer_' . $layer['layer_id'] . '_radio3">skip</label>&emsp;';
                                     echo $layer['layer_title'];
                                     echo '</div>';
                                 }
@@ -68,25 +68,6 @@
             </div>
             <!-- 'Filters' tab content -->
             <div id="cartogratree_step_2">
-                <!-- demo filters -->
-                Layers:
-                <div id="cartogratree_accordion_filters">
-                    <h3><a herf="#">Trees filter</a></h3>
-                    <div id="cartogratree_demo_checkbox">
-                        <fieldset>
-                            <legend>Tree species</legend>
-                            <input type="checkbox" id="checkbox1" name="checkbox"><label for="checkbox1">Abies alba</label>
-                            <input type="checkbox" id="checkbox2" name="checkbox"><label for="checkbox2">Cedrus deodara</label>
-                            <input type="checkbox" id="checkbox3" name="checkbox"><label for="checkbox3">Fagus grandifolia</label>
-                        </fieldset>
-                    </div>
-                    <h3><a herf="#">Temperature filter</a></h3>
-                    <div>
-                        <div id="cartogratree_demo_slider_caption">Minimum temperature: -20..20 °C</div>
-                        <div id="cartogratree_demo_slider"></div>
-                    </div>
-                </div>
-                <!-- end of demo filters -->
             <!-- End of 'Filters' tab content -->
             </div>
             <!-- 'View' tab content -->
