@@ -182,20 +182,20 @@
 //            });
 
             // jQuery UI tabs for sidenav
-            $("#cartogratree_steps").tabs();
+            $('#cartogratree_steps').tabs();
             // jQuery UI accordions for sidenav
-            $("[id^=cartogratree_accordion]").accordion({
+            $('[id^=cartogratree_accordion]').accordion({
                 collapsible: true,
                 icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
             });
             // jQuery UI radio-buttons for sidenav
-            $("[id^=cartogratree_layer], #cartogratree_view_data_radio").buttonset();
+            $('[id^=cartogratree_layer], #cartogratree_view_data_radio').buttonset();
 
             // change listeners for layers' radio-buttons (show, use, skip)
             for (var id in Drupal.settings.layers) {
                 layers[id] = 'skip';
                 // add listener/callback
-                $("#" + id).change(function(e) {
+                $('#' + id).change(function(e) {
                     // this.id is the layer key in layers
                     switch (e.target.id.substr(e.target.name.length)) {
                         case '1':   // show
@@ -316,7 +316,7 @@
                 var Values = Drupal.settings.fields[layer_name][key]['Values'];
                 switch (Drupal.settings.fields[layer_name][key]['Type of filter']) {
                     case 'slider':
-                        var div_id = id + '_slider' + '_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var div_id = id + '_slider_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
                         var values = Values.split("..");
                         html_content = '<div id="' + div_id + '_caption">' + display_name + ': ' + Values + '</div>\n';
                         html_content += '<div id="' + div_id + '"></div>\n';
@@ -329,34 +329,43 @@
                             slide: function (event, ui) {
                                 $('#' + div_id + '_caption').text(display_name + ': ' + ui.values[0] + '..' + ui.values[1]);
                             },
+                            change: function (event, ui) {
+                                // update maps here based on new ui.values
+                            }
                         });
                         break;
                     case 'checkbox':
-                        var div_id = id + '_checkbox' + '_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var div_id = id + '_checkbox_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
                         var values = Values.split(";");
                         html_content = '<div id="' + div_id + '">\n';
                         html_content += '<fieldset>\n';
                         html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="checkbox" id="' + div_id + '_' + i +
-                                    '" name="checkbox"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                                    '" name="checkbox" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
                         $('#' + id + '_accordion_filters').append(html_content);
                         $('#' + div_id).buttonset();
+                        $('#' + div_id).change(function (e) {
+                            // update maps here based on e.target.value
+                        });
                         break;
                     case 'radio':
-                        var div_id = id + '_radio' + '_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var div_id = id + '_radio_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
                         var values = Values.split(";");
                         html_content = '<div id="' + div_id + '">\n';
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="radio" id="' + div_id + '_' + i +
-                                    '" name="radio"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                                    '" name="radio" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
                         }
                         html_content += '</div>\n';
                         $('#' + id + '_accordion_filters').append(html_content);
                         $('#' + div_id).buttonset();
+                        $('#' + div_id).change(function (e) {
+                            // update maps here based on e.target.value
+                        });
                         break;
                 }
             }
@@ -364,6 +373,7 @@
     }
     
     function removeFilters(id) {
+        // update maps here
         $('#' + id).remove();
     }
 }(jQuery));
