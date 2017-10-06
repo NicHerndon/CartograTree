@@ -23,7 +23,7 @@
         <div id="cartogratree_steps"> 
             <ul> 
                 <li><a href="#cartogratree_step_1">Layers</a></li> 
-                <li><a href="#cartogratree_step_2">Population Filters</a></li> 
+                <li><a href="#cartogratree_step_2">Distribution Filters</a></li> 
                 <li><a href="#cartogratree_step_3">View</a></li> 
             </ul> 
             <!-- 'Layers' tab content -->

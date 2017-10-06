@@ -314,9 +314,8 @@
     };
 
     function addFilters(id) {
-        var layer_name = Drupal.settings.layers[id].name;
-        var filters = Drupal.settings.layers[id]['filters'] === 1 ? 'Filter' : 'Filters';
         // add accordion wrapper
+        var filters = Drupal.settings.layers[id]['filters'] === 1 ? 'Filter' : 'Filters';
         var html_content = '<div id="' + id + '_accordion">\n\
                             <h3><a href="#">' + filters + ' from ' + Drupal.settings.layers[id].title + '</a></h3>\n\
                             <div id="' + id + '_accordion_filters"></div>\n\
@@ -324,14 +323,14 @@
         $('#' + id).append(html_content);
         $('#' + id + '_accordion').accordion({collapsible: true});
         // add filter(s) to accordion wrapper
-        var f = 1;
+        var layer_name = Drupal.settings.layers[id].name;
         for (var key in Drupal.settings.fields[layer_name]) {
             if (key !== 'Human-readable name for the layer' && key !== 'Layer ID' && Drupal.settings.fields[layer_name][key]['Filter data by this field'] === '1') {
                 var display_name = Drupal.settings.fields[layer_name][key]['Field name shown to user'];
                 var Values = Drupal.settings.fields[layer_name][key]['Values'];
                 switch (Drupal.settings.fields[layer_name][key]['Type of filter']) {
                     case 'slider':
-                        var div_id = id + '_filter_' + f++ + '_slider';
+                        var div_id = id + '_slider' + '_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
                         var values = Values.split("..");
                         html_content = '<div id="' + div_id + '_caption">' + display_name + ': ' + Values + '</div>\n';
                         html_content += '<div id="' + div_id + '"></div>\n';
@@ -347,7 +346,7 @@
                         });
                         break;
                     case 'checkbox':
-                        var div_id = id + '_filter_' + f++ + '_checkbox';
+                        var div_id = id + '_checkbox' + '_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
                         var values = Values.split(";");
                         html_content = '<div id="' + div_id + '">\n';
                         html_content += '<fieldset>\n';
@@ -362,6 +361,16 @@
                         $('#' + div_id).buttonset();
                         break;
                     case 'radio':
+                        var div_id = id + '_radio' + '_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var values = Values.split(";");
+                        html_content = '<div id="' + div_id + '">\n';
+                        for (var i = 0; i < values.length; i++) {
+                            html_content += '<input type="radio" id="' + div_id + '_' + i +
+                                    '" name="radio"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                        }
+                        html_content += '</div>\n';
+                        $('#' + id + '_accordion_filters').append(html_content);
+                        $('#' + div_id).buttonset();
                         break;
                 }
             }
