@@ -188,10 +188,10 @@
                 collapsible: true,
                 icons: {"header": "ui-icon-triangle-1-e", "headerSelected": "ui-icon-triangle-1-s" }
             });
-            
             // jQuery UI radio-buttons for sidenav
-            $("[id^=cartogratree_layer]").buttonset();
-            // jQuery UI radio-buttons for sidenav
+            $("[id^=cartogratree_layer], #cartogratree_view_data_radio").buttonset();
+
+            // change listeners for layers' radio-buttons (show, use, skip)
             for (var id in Drupal.settings.layers) {
                 layers[id] = 'skip';
                 // add listener/callback
@@ -296,20 +296,6 @@
                     }
                 }).bind(this);
             }
-
-            // jQuery UI checkboxes and radios for sidenav
-            $('#cartogratree_demo_checkbox, #cartogratree_demo_radio_view').buttonset();
-            
-            // jQuery UI slider for sidenav
-            $("#cartogratree_demo_slider").slider({
-                range: true,
-                min: -80,
-                max: 80,
-                values: [-20,20],
-                change: function(event, ui) {
-                    $('#cartogratree_demo_slider_caption').text('Minimum temperature: ' + ui.values[0] + '..' + ui.values[1] + '°C');
-                },
-            }).bind(this);
         },
     };
 
