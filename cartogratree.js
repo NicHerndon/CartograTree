@@ -95,6 +95,7 @@
                             e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
                             // supported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
                             {'INFO_FORMAT': 'application/json'});
+                    // if the middle layer is visible (an environmental layer is selected for this map)
                     if (e.map.getLayers().a[1].getVisible()) {
                         var layer_name = e.map.getLayers().a[1].getSource().i.LAYERS;
                         var mid_url = e.map.getLayers().a[1].getSource().getGetFeatureInfoUrl(
@@ -132,21 +133,56 @@
                         });
                     }
                     // get tree(s) info - update this section to display only some info, not all of it
-                    $.ajax({
-                        url : trees_url,
-                        dataType : 'text',
-                        success: function(data, textStatus, jqXHR){
-                            var response = JSON.parse(data).features[0];
-                            if (response) {
-                                tree =  response.properties.species + ' (' + response.id + ')<br>';
-//                                tree = 'ID: ' + response.id + '<br>';
-//                                Object.keys(response.properties).forEach(function(key) {
-//                                    tree += key + ': ' + response.properties[key] + '<br>';
-//                                });
-                                $('#cartogratree_ol_popup_content').append('<p>Tree details:<br><code>' + tree + '</code></p>');
+                    var trees_layers = e.map.getLayers().a[2].getSource().i.LAYERS.split(',');
+                    var trees_popup_fields = 0;
+                    for (var l = 0; l < trees_layers.length; l++) {
+                        for (var key in Drupal.settings.fields[trees_layers[l]]) {
+                            if (key !== 'Human-readable name for the layer' && key !== 'Layer ID') {
+                                trees_popup_fields += parseInt(Drupal.settings.fields[trees_layers[l]][key]['Show this field in maps pop-up']);
                             }
                         }
-                    });
+                    }
+                    if (trees_popup_fields) {
+                        $.ajax({
+                            url : trees_url,
+                            dataType : 'text',
+                            success: function(data, textStatus, jqXHR){
+                                var response = JSON.parse(data).features[0];
+                                if (response) {
+                                    tree =  response.properties.species + ' (' + response.id + ')<br>';
+    //                                tree = 'ID: ' + response.id + '<br>';
+    //                                Object.keys(response.properties).forEach(function(key) {
+    //                                    tree += key + ': ' + response.properties[key] + '<br>';
+    //                                });
+                                    $('#cartogratree_ol_popup_content').append('<p>Tree details:<br><code>' + tree + '</code></p>');
+
+    //                                var response = JSON.parse(data).features[0];
+    //                                var mid = '';
+    //                                for (var key in response.properties) {
+    //                                    // should this field be shown in the pop-up
+    //                                    if (Drupal.settings.fields[layer_name] !== undefined && Drupal.settings.fields[layer_name][key] !== undefined && Drupal.settings.fields[layer_name][key]['Show this field in maps pop-up'] === '1') {
+    //                                        // should this value be masked
+    //                                        if (Drupal.settings.fields[layer_name][key]['Value returned by layer that should be masked'] == response.properties[key]) {
+    //                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + Drupal.settings.fields[layer_name][key]['Text shown to user for masked values'] + '<br>';
+    //                                        }
+    //                                        else {
+    //                                            // type of value: continuous or discrete
+    //                                            if (Drupal.settings.fields[layer_name][key]['Type of filter'] === 'slider') {
+    //                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
+    //                                            }
+    //                                            else {
+    //                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+    //                                            }
+    //                                        }
+    //                                    }
+    //                                }
+    //                                if (mid !== '') {
+    //                                   $('#cartogratree_ol_popup_content').append('<p>' + Drupal.settings.fields[layer_name]["Human-readable name for the layer"] + ':<br><code>' + mid + '</code></p>');
+    //                                }
+                                }
+                            }
+                        });
+                    }
                     overlay.setPosition(coordinate);
                     
                     // hide the ol message box when the user clicks the x button
