@@ -28,7 +28,8 @@
                 source: new ol.source.TileWMS({
                     url: cartogratree_gis,
 //                    params: {LAYERS: 'ct:sample'}
-                    params: {LAYERS: 'ct:tgdr_trees,ct:dryad'}
+//                    params: {LAYERS: 'ct:tgdr_trees,ct:dryad'}
+                    params: {LAYERS: 'ct:dryad'}
                 })
             });
 
@@ -239,7 +240,12 @@
                             break;
                         case '2':   // use
                             if (Drupal.settings.layers[this.id]['trees_layer'] === '1') {
-                                // add layer to 4 maps
+                                // add layer to maps
+                                var current_trees_layers = cartogratree_trees_layer.getSource()['i']['LAYERS'];
+                                cartogratree_trees_layer.setSource(new ol.source.TileWMS({
+                                            url: cartogratree_gis,
+                                            params: {LAYERS: current_trees_layers + ',' + Drupal.settings.layers[this.id]['name']}
+                                        }));
                             }
                             else {
                                 // add layer to used array
@@ -301,7 +307,7 @@
                             }
                             layers[this.id] = 'skip';
                             // remove filter(s) for this layer
-                            removeFilters(this.id + '_accordion');
+                            removeFilters(this.id + '_accordion', cartogratree_trees_layer, cartogratree_gis);
                             break;
                     }
                 }).bind(this);
@@ -385,8 +391,20 @@
         }
     }
     
-    function removeFilters(id) {
+    function removeFilters(id, cartogratree_trees_layer, cartogratree_gis) {
         // update maps here
+        var layer_id = id.replace('_accordion', '');
+        if (Drupal.settings.layers[layer_id]['trees_layer'] === '1') {
+            // remove layer from maps
+            var current_trees_layers = cartogratree_trees_layer.getSource()['i']['LAYERS'].split(',');
+            var index = current_trees_layers.indexOf(Drupal.settings.layers[layer_id]['name']) - 1;
+            current_trees_layers = current_trees_layers.splice(index, 1);
+            cartogratree_trees_layer.setSource(new ol.source.TileWMS({
+                        url: cartogratree_gis,
+                        params: {LAYERS: current_trees_layers.join(',')}
+                    }));
+        }
+
         $('#' + id).remove();
     }
 }(jQuery));
