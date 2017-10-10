@@ -493,6 +493,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
             array(array('data' => 'Group name', 'header' => TRUE), $obj->group_name),
             array(array('data' => 'Subgroup name', 'header' => TRUE), $obj->subgroup_name),
             array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
+            array(array('data' => 'Trees layer', 'header' => TRUE), $obj->trees_layer ? 'true' : 'false'),
           ),
         );
         $form['info'] = array(
@@ -537,6 +538,15 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#title' => 'URL',
           '#description' => 'The URL for the provider of the layer.',
           '#default_value' => (isset($obj->url)) ? $obj->url : '',
+          '#required' => TRUE,
+        );
+
+        $form['trees_layer'] = array(
+          '#type' => 'select',
+          '#title' => 'Trees layer',
+          '#description' => 'This layer has trees (true) or other/environmental data (false).',
+          '#options' => array (true => 'true', false => 'false'),
+          '#default_value' => (isset($obj->trees_layer)) ? $obj->trees_layer : false,
           '#required' => TRUE,
         );
 
