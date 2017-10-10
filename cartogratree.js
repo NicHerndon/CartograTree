@@ -238,25 +238,30 @@
                             }
                             break;
                         case '2':   // use
-                            // add layer to used array
-                            used_layers.push(this.id);
-                            // update used layers count
-                            $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) + 1);
-                            // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
-                            var j = shown_layers.indexOf(this.id);
-                            if (j != -1) {
-                                // remove layer from map
-                                for (var k = j; k < shown_layers.length; k++) {
-                                    if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
-                                        cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
+                            if (Drupal.settings.layers[this.id]['trees_layer'] === '1') {
+                                // add layer to 4 maps
+                            }
+                            else {
+                                // add layer to used array
+                                used_layers.push(this.id);
+                                // update used layers count
+                                $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) + 1);
+                                // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
+                                var j = shown_layers.indexOf(this.id);
+                                if (j != -1) {
+                                    // remove layer from map
+                                    for (var k = j; k < shown_layers.length; k++) {
+                                        if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
+                                            cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
+                                        }
+                                        else {
+                                            cartogratree_mid_layer[k].setSource(null);
+                                            cartogratree_mid_layer[k].setVisible(false);
+                                        }
                                     }
-                                    else {
-                                        cartogratree_mid_layer[k].setSource(null);
-                                        cartogratree_mid_layer[k].setVisible(false);
-                                    }
+                                    shown_layers.splice(j, 1);
+                                    $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
                                 }
-                                shown_layers.splice(j, 1);
-                                $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
                             }
                             // add filter(s) for this layer
                             if (layers[this.id] === 'skip' && Drupal.settings.layers[this.id]['filters']) {
@@ -265,28 +270,33 @@
                             layers[this.id] = 'use';
                             break;
                         case '3':   // skip
-                            // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
-                            var j = shown_layers.indexOf(this.id);
-                            if (j != -1) {
-                                // remove layer from map
-                                for (var k = j; k < shown_layers.length; k++) {
-                                    if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
-                                        cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
-                                    }
-                                    else {
-                                        cartogratree_mid_layer[k].setSource(null);
-                                        cartogratree_mid_layer[k].setVisible(false);
-                                    }
-                                }
-                                shown_layers.splice(j, 1);
-                                $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
+                            if (Drupal.settings.layers[this.id]['trees_layer'] === '1') {
+                                // remove layer from maps
                             }
                             else {
-                                // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
-                                j = used_layers.indexOf(this.id);
+                                // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
+                                var j = shown_layers.indexOf(this.id);
                                 if (j != -1) {
-                                    used_layers.splice(j, 1);
-                                    $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
+                                    // remove layer from map
+                                    for (var k = j; k < shown_layers.length; k++) {
+                                        if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
+                                            cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
+                                        }
+                                        else {
+                                            cartogratree_mid_layer[k].setSource(null);
+                                            cartogratree_mid_layer[k].setVisible(false);
+                                        }
+                                    }
+                                    shown_layers.splice(j, 1);
+                                    $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
+                                }
+                                else {
+                                    // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
+                                    j = used_layers.indexOf(this.id);
+                                    if (j != -1) {
+                                        used_layers.splice(j, 1);
+                                        $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
+                                    }
                                 }
                             }
                             layers[this.id] = 'skip';
@@ -356,10 +366,13 @@
                         var div_id = id + '_radio_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
                         var values = Values.split(";");
                         html_content = '<div id="' + div_id + '">\n';
+                        html_content += '<fieldset>\n';
+                        html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="radio" id="' + div_id + '_' + i +
                                     '" name="radio" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
                         }
+                        html_content += '</fieldset>\n';
                         html_content += '</div>\n';
                         $('#' + id + '_accordion_filters').append(html_content);
                         $('#' + div_id).buttonset();
