@@ -91,6 +91,10 @@ function cartogratree_schema() {
           'description' => 'Layer rank for side navigation menu.',
           'type' => 'int',
         ),
+        'trees_layer' => array(
+          'description' => 'Indicates whether this layer has trees (1/yes) or other/environmental data (0/no).',
+          'type' => 'int',
+        ),
       ),
       'primary key' => array('layer_id'),
     );

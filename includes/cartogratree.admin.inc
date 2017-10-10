@@ -470,11 +470,11 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
     $obj = NULL;
     if (isset($form_state['build_info']['args'][1])) {
-        $obj = db_query('
+        $obj = db_query("
             SELECT * FROM {cartogratree_layers} l
             LEFT JOIN {cartogratree_groups} g ON g.group_id = l.group_id
             LEFT JOIN {cartogratree_subgroups} s ON s.subgroup_id = l.subgroup_id
-            WHERE layer_id=:id', array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
+            WHERE layer_id=:id", array(':id' => $form_state['build_info']['args'][1]))->fetchObject();
     }
 
     $form['layer_id'] = array(
@@ -493,6 +493,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
             array(array('data' => 'Group name', 'header' => TRUE), $obj->group_name),
             array(array('data' => 'Subgroup name', 'header' => TRUE), $obj->subgroup_name),
             array(array('data' => 'Layer rank', 'header' => TRUE), $obj->layer_rank),
+            array(array('data' => 'Trees layer', 'header' => TRUE), $obj->trees_layer ? 'true' : 'false'),
           ),
         );
         $form['info'] = array(
@@ -537,6 +538,18 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#title' => 'URL',
           '#description' => 'The URL for the provider of the layer.',
           '#default_value' => (isset($obj->url)) ? $obj->url : '',
+          '#required' => TRUE,
+        );
+
+        $form['trees_layer'] = array(
+          '#type' => 'radios',
+          '#title' => 'Trees layer',
+          '#description' => 'This layer has trees (yes) or other/environmental data (no).',
+          '#options' => array(
+            1 => t('Yes'),
+            0 => t('No'),
+          ),
+          '#default_value' => (isset($obj->trees_layer)) ? $obj->trees_layer : 0,
           '#required' => TRUE,
         );
 
@@ -663,6 +676,7 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
           'title' => $form_state['values']['name'],
           'name' => $form_state['values']['machine_name'],
           'url' => $form_state['values']['url'],
+          'trees_layer' => $form_state['values']['trees_layer'],
           'group_id' => $form_state['values']['group_name'],
           'subgroup_id' => $form_state['values']['subgroup_name'],
           'layer_rank' => $form_state['values']['layer_rank'],
@@ -674,6 +688,7 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
         else {
             $record['layer_id'] = $form_state['values']['layer_id'];
             drupal_write_record('cartogratree_layers', $record, 'layer_id');
+//            dpm($record);
         }
     }
 }
@@ -1152,7 +1167,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#type' => 'select',
           '#title' => 'Filter type',
 //          '#description' => 'Allow users to filter data using this field.',
-          '#options' => array('radio' => 'radio-button', 'check' => 'checkbox', 'slider' => 'slider', 'elastic' => 'elastic search'),
+          '#options' => array('radio' => 'radio-button', 'checkbox' => 'checkbox', 'slider' => 'slider', 'elastic' => 'elastic search'),
           '#default_value' => (isset($obj->filter_type)) ? $obj->filter_type : 'None',
           '#required' => TRUE,
         );

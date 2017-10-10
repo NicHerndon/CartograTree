@@ -28,7 +28,7 @@
             </ul> 
             <!-- 'Layers' tab content -->
             <div id="cartogratree_step_1"> 
-                Shown: <span id="cartogratree_layers_shown">0</span>/4 Used: <span id="cartogratree_layers_used">0</span> 
+                ENVIRONMENTAL LAYERS Shown: <span id="cartogratree_layers_shown">0</span>/4 Used: <span id="cartogratree_layers_used">0</span> 
                 <div id="cartogratree_accordion_groups">
                     <?php
                         foreach($variables['cartogratree_layers'] as $group) {
@@ -44,8 +44,10 @@
                                 }
                                 foreach($subgroup['layers'] as $layer) {
                                     echo '<div id="cartogratree_layer_' . $layer['layer_id'] . '">';
-                                    echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio1" name="cartogratree_layer_'
-                                        . $layer['layer_id'] . '_radio"><label for="cartogratree_layer_' . $layer['layer_id'] . '_radio1">show</label>';
+                                    if (!$layer['trees_layer']) {
+                                        echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio1" name="cartogratree_layer_'
+                                            . $layer['layer_id'] . '_radio"><label for="cartogratree_layer_' . $layer['layer_id'] . '_radio1">show</label>';
+                                    }
                                     echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio2" name="cartogratree_layer_'
                                         . $layer['layer_id'] . '_radio"><label for="cartogratree_layer_' . $layer['layer_id'] . '_radio2">use</label>';
                                     echo '<input type="radio" id="cartogratree_layer_' . $layer['layer_id'] . '_radio3" name="cartogratree_layer_'
