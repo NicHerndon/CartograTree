@@ -24,14 +24,13 @@
             var cartogratree_osm_layer = new ol.layer.Tile({
                 source: new ol.source.OSM()
             });
-            var cartogratree_trees_layer = new ol.layer.Tile({
-                source: new ol.source.TileWMS({
-                    url: cartogratree_gis,
-//                    params: {LAYERS: 'ct:sample'}
-//                    params: {LAYERS: 'ct:tgdr_trees,ct:dryad'}
-                    params: {LAYERS: 'ct:dryad'}
-                })
-            });
+//            var cartogratree_trees_layer = new ol.layer.Tile({
+//                source: new ol.source.TileWMS({
+//                    url: cartogratree_gis,
+//                    params: {LAYERS: ''}
+//                })
+//            });
+            var cartogratree_trees_layer = new ol.layer.Tile({visible: false});
 
             // Create an overlay to anchor the popup to the map.
             var overlay = new ol.Overlay(({
@@ -133,7 +132,7 @@
                         });
                     }
                     // get tree(s) info - update this section to display only some info, not all of it
-                    var trees_layers = e.map.getLayers().a[2].getSource().i.LAYERS.split(',');
+                    var trees_layers = (e.map.getLayers().a[2].getSource() !== null) ? e.map.getLayers().a[2].getSource().i.LAYERS.split(',') : [];
                     var trees_popup_fields = 0;
                     var trees_url = [];
                     for (var l = 0; l < trees_layers.length; l++) {
@@ -287,11 +286,20 @@
                         case '2':   // use
                             if (Drupal.settings.layers[this.id]['trees_layer'] === '1') {
                                 // add layer to maps
-                                var current_trees_layers = cartogratree_trees_layer.getSource()['i']['LAYERS'];
-                                cartogratree_trees_layer.setSource(new ol.source.TileWMS({
-                                            url: cartogratree_gis,
-                                            params: {LAYERS: current_trees_layers + ',' + Drupal.settings.layers[this.id]['name']}
-                                        }));
+                                if (cartogratree_trees_layer.getSource() === null) {
+                                    cartogratree_trees_layer.setSource(new ol.source.TileWMS({
+                                                url: cartogratree_gis,
+                                                params: {LAYERS: Drupal.settings.layers[this.id]['name']}
+                                            }));
+                                    cartogratree_trees_layer.setVisible(true);
+                                }
+                                else {
+                                    var current_trees_layers = cartogratree_trees_layer.getSource()['i']['LAYERS'];
+                                    cartogratree_trees_layer.setSource(new ol.source.TileWMS({
+                                                url: cartogratree_gis,
+                                                params: {LAYERS: current_trees_layers + ',' + Drupal.settings.layers[this.id]['name']}
+                                            }));
+                                }
                             }
                             else {
                                 // add layer to used array
@@ -322,33 +330,28 @@
                             layers[this.id] = 'use';
                             break;
                         case '3':   // skip
-                            if (Drupal.settings.layers[this.id]['trees_layer'] === '1') {
-                                // remove layer from maps
+                            // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
+                            var j = shown_layers.indexOf(this.id);
+                            if (j != -1) {
+                                // remove layer from map
+                                for (var k = j; k < shown_layers.length; k++) {
+                                    if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
+                                        cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
+                                    }
+                                    else {
+                                        cartogratree_mid_layer[k].setSource(null);
+                                        cartogratree_mid_layer[k].setVisible(false);
+                                    }
+                                }
+                                shown_layers.splice(j, 1);
+                                $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
                             }
                             else {
-                                // if radio-button was previously set to 'show' then remove layer from 'shown' list and update the shown layers count
-                                var j = shown_layers.indexOf(this.id);
+                                // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
+                                j = used_layers.indexOf(this.id);
                                 if (j != -1) {
-                                    // remove layer from map
-                                    for (var k = j; k < shown_layers.length; k++) {
-                                        if (k + 1 < 4 && cartogratree_mid_layer[k+1].getSource()) {
-                                            cartogratree_mid_layer[k].setSource(cartogratree_mid_layer[k+1].getSource());
-                                        }
-                                        else {
-                                            cartogratree_mid_layer[k].setSource(null);
-                                            cartogratree_mid_layer[k].setVisible(false);
-                                        }
-                                    }
-                                    shown_layers.splice(j, 1);
-                                    $('#cartogratree_layers_shown').text(parseInt($('#cartogratree_layers_shown').text()) - 1);
-                                }
-                                else {
-                                    // if radio-button was previously set to 'use' then remove layer from 'used' list and update the used layers count
-                                    j = used_layers.indexOf(this.id);
-                                    if (j != -1) {
-                                        used_layers.splice(j, 1);
-                                        $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
-                                    }
+                                    used_layers.splice(j, 1);
+                                    $('#cartogratree_layers_used').text(parseInt($('#cartogratree_layers_used').text()) - 1);
                                 }
                             }
                             layers[this.id] = 'skip';
@@ -443,12 +446,18 @@
         if (Drupal.settings.layers[layer_id]['trees_layer'] === '1') {
             // remove layer from maps
             var current_trees_layers = cartogratree_trees_layer.getSource()['i']['LAYERS'].split(',');
-            var index = current_trees_layers.indexOf(Drupal.settings.layers[layer_id]['name']) - 1;
-            current_trees_layers = current_trees_layers.splice(index, 1);
-            cartogratree_trees_layer.setSource(new ol.source.TileWMS({
-                        url: cartogratree_gis,
-                        params: {LAYERS: current_trees_layers.join(',')}
-                    }));
+            var index = current_trees_layers.indexOf(Drupal.settings.layers[layer_id]['name']);
+            current_trees_layers.splice(index, 1);
+            if (current_trees_layers.length === 0) {
+                cartogratree_trees_layer.setSource(null);
+                cartogratree_trees_layer.setVisible(false);
+            }
+            else {
+                cartogratree_trees_layer.setSource(new ol.source.TileWMS({
+                            url: cartogratree_gis,
+                            params: {LAYERS: current_trees_layers.join(',')}
+                        }));
+            }
         }
 
         $('#' + id).remove();
