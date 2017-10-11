@@ -160,7 +160,8 @@
                                     var response = JSON.parse(data).features[0];
                                     if (response) {
                                         var mid = '';
-                                        var query_strings = jqXHR.responseURL.split('&');
+//                                        var query_strings = jqXHR.responseURL.split('&');
+                                        var query_strings = this.url.split('&');
                                         var layer_id = query_strings.find(function(query_string) {
                                             return query_string.startsWith('QUERY_LAYERS');
                                         });
