@@ -12,6 +12,7 @@
     if (!user_access('use cartogratree')) {
         return;
     }
+    print $messages;
 ?>
 
 <div id="cartogratree_page">
