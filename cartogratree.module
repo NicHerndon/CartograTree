@@ -14,7 +14,7 @@ function cartogratree_libraries_info() {
     // Expected to be extracted into 'sites/all/libraries/openlayers'.
     $libraries = array();
     $libraries['openlayers'] = array(
-      'name' => 'OpenLayers3',
+      'name' => 'OpenLayers',
       'vendor url' => 'http://openlayers.org',
       'download url' => 'https://openlayers.org/en/v4.1.1',
       'version' => '4.1.1',
