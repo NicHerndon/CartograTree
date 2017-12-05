@@ -298,7 +298,7 @@ function cartogratree_preprocess_page(&$variables) {
         $rids = is_array($user->roles) ? array_keys($user->roles) : array();
         // Only grab layers that the current user has permission to see.
         $records = db_query('
-            SELECT l.layer_id, l.title, l.name, l.url, l.layer_rank, l.trees_layer, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank
+            SELECT l.layer_id, l.title, l.name, l.url, l.layer_rank, l.trees_layer, l.layer_type, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank
             FROM {cartogratree_layer_permissions} p
             JOIN {cartogratree_layers} l ON l.layer_id=p.layer_id
             JOIN {cartogratree_groups} g ON g.group_id = l.group_id
@@ -321,12 +321,14 @@ function cartogratree_preprocess_page(&$variables) {
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_title'] = $record->title;
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_name'] = $record->name;
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_url'] = $record->url;
-            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['trees_layer'] = $record->trees_layer;
 //        $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_rank'] = $record->layer_rank;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['trees_layer'] = $record->trees_layer;
+            $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_type'] = $record->layer_type;
             $layers["cartogratree_layer_" . $record->layer_id]['name'] = $record->name;
             $layers["cartogratree_layer_" . $record->layer_id]['title'] = $record->title;
             $layers["cartogratree_layer_" . $record->layer_id]['url'] = $record->url;
             $layers["cartogratree_layer_" . $record->layer_id]['trees_layer'] = $record->trees_layer;
+            $layers["cartogratree_layer_" . $record->layer_id]['layer_type'] = $record->layer_type;
             $layers["cartogratree_layer_" . $record->layer_id]['filters'] = 0;
             array_push($layer_ids, $record->layer_id);
         }

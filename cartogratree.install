@@ -95,6 +95,12 @@ function cartogratree_schema() {
           'description' => 'Indicates whether this layer has trees (1/yes) or other/environmental data (0/no).',
           'type' => 'int',
         ),
+        'layer_type' => array(
+          'description' => 'Indicates the type of layer: vector, or raster.',
+          'type' => 'character',
+          'length' => 6,
+          'not null' => FALSE,
+        ),
       ),
       'primary key' => array('layer_id'),
     );
@@ -253,4 +259,17 @@ function cartogratree_schema() {
     );
 
     return $schema;
+}
+
+function cartogratree_update_7002() {
+    db_add_field(
+        'cartogratree_layers',
+        'layer_type',
+        array(
+          'description' => 'Indicates the type of layer: vector, or raster.',
+          'type' => 'char',
+          'length' => 6,
+          'not null' => FALSE,
+        )
+    );
 }

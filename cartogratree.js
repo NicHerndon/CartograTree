@@ -3,6 +3,7 @@
  * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree).
  */
 'use strict';
+var cartogratree_mid_layer, cartogratree_mid_layer_cql_filter = {}, cartogratree_trees_layer, cartogratree_trees_layer_cql_filter = {};
 
 (function ($) {
     Drupal.behaviors.cartogratree = {
@@ -11,7 +12,7 @@
             
             // Attach the maps to the four squares on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
-            var cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false})];
+            cartogratree_mid_layer = [new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false}), new ol.layer.Tile({opacity: 0.8, visible: false})];
             var cartogratree_map = new Array(4);
             var target = ['cartogratree_top_left', 'cartogratree_top_right', 'cartogratree_bottom_left', 'cartogratree_bottom_right'];
 //            var cartogratree_common_view = new ol.View({
@@ -30,7 +31,7 @@
 //                    params: {LAYERS: ''}
 //                })
 //            });
-            var cartogratree_trees_layer = new ol.layer.Tile({visible: false});
+            cartogratree_trees_layer = new ol.layer.Tile({visible: false});
 
             // Create an overlay to anchor the popup to the map.
             var overlay = new ol.Overlay(({
@@ -265,7 +266,7 @@
                                 }
                                 // add filter(s) for this layer
                                 if (layers[this.id] === 'skip' && Drupal.settings.layers[this.id]['filters']) {
-                                    addFilters(this.id);
+                                    add_filters(this.id);
                                 }
                                 layers[this.id] = 'show';
                             }
@@ -325,7 +326,7 @@
                             }
                             // add filter(s) for this layer
                             if (layers[this.id] === 'skip' && Drupal.settings.layers[this.id]['filters']) {
-                                addFilters(this.id);
+                                add_filters(this.id);
                             }
                             layers[this.id] = 'use';
                             break;
@@ -356,7 +357,7 @@
                             }
                             layers[this.id] = 'skip';
                             // remove filter(s) for this layer
-                            removeFilters(this.id + '_accordion', cartogratree_trees_layer, cartogratree_gis);
+                            remove_filters(this.id + '_accordion', cartogratree_gis);
                             break;
                     }
                 }).bind(this);
@@ -364,7 +365,7 @@
         },
     };
 
-    function addFilters(id) {
+    function add_filters(id) {
         // add accordion wrapper
         var filters = Drupal.settings.layers[id]['filters'] === 1 ? 'Filter' : 'Filters';
         var html_content = '<div id="' + id + '_accordion">\n\
@@ -396,6 +397,7 @@
                             },
                             change: function (event, ui) {
                                 // update maps here based on new ui.values
+                                filter_layers(this.id);
                             }
                         });
                         break;
@@ -407,7 +409,7 @@
                         html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="checkbox" id="' + div_id + '_' + i +
-                                    '" name="checkbox" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                                    '" name="' + div_id + '" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
@@ -415,6 +417,7 @@
                         $('#' + div_id).buttonset();
                         $('#' + div_id).change(function (e) {
                             // update maps here based on e.target.value
+                            filter_layers(this.id);
                         });
                         break;
                     case 'radio':
@@ -433,6 +436,7 @@
                         $('#' + div_id).buttonset();
                         $('#' + div_id).change(function (e) {
                             // update maps here based on e.target.value
+                            filter_layers(this.id);
                         });
                         break;
                 }
@@ -440,7 +444,7 @@
         }
     }
     
-    function removeFilters(id, cartogratree_trees_layer, cartogratree_gis) {
+    function remove_filters(id, cartogratree_gis) {
         // update maps here
         var layer_id = id.replace('_accordion', '');
         if (Drupal.settings.layers[layer_id]['trees_layer'] === '1') {
@@ -462,4 +466,54 @@
 
         $('#' + id).remove();
     }
+    
+    function filter_layers(id) {
+        var id_tokens = id.split('_'), layer = {}, filter = {};
+        // get layer details
+        layer['id'] = id_tokens.slice(0,3).join('_');
+        layer['type'] = Drupal.settings.layers[layer['id']].layer_type;     // vector or raster
+        layer['name'] = Drupal.settings.layers[layer['id']].name;           // key for Drupal.settings.fields
+        layer['trees'] = Drupal.settings.layers[layer['id']].trees_layer;   // yes(1) or no(0)
+        // get filter details
+        filter['type'] = id_tokens[3];                                      // checkbox, radio, or slider
+        filter['id'] = id_tokens[5];
+        for (var key in Drupal.settings.fields[layer['name']]) {
+            if (typeof (Drupal.settings.fields[layer['name']][key]["Field ID"]) !== 'undefined' &&
+                    Drupal.settings.fields[layer['name']][key]["Field ID"] === filter['id']) {
+                filter['name'] = key;
+            }
+        }
+        switch(filter['type']) {
+            case 'checkbox':
+                filter['values'] = Array();
+                var x = $("input[type='checkbox'][name=" + id + "]:checked").serializeArray();
+                $.each(x, function (i, field) {
+                    filter['values'].push(field.value);
+                });
+                break;
+            case 'radio':
+                filter['values'] = Array();
+                var x = $("#" + id + " input[type='radio']:checked").serializeArray();
+                $.each(x, function (i, field) {
+                    filter['values'].push(field.value);
+                });
+                break;
+            case 'slider':
+                filter['values'] = $('#' + id).slider('values');
+                break;
+        }
+        // apply filter
+        if (layer['trees']) {
+            cartogratree_trees_layer_cql_filter[filter['name']] = filter['values'];
+            var cql_filters = Array();
+            for (var key in cartogratree_trees_layer_cql_filter) {
+                var cql_filter = cartogratree_trees_layer_cql_filter[key].length > 0 ?
+                        key + " in ('" + cartogratree_trees_layer_cql_filter[key].join("','") + "')" : '';
+                if (cql_filter)
+                    cql_filters.push(cql_filter);
+            }
+            cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": cql_filters.join(' and ')});
+        }
+    }
+    
 }(jQuery));
