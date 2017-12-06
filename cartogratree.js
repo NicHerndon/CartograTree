@@ -108,20 +108,20 @@ var cartogratree_mid_layer, cartogratree_mid_layer_cql_filter = {}, cartogratree
                             success: function(data, textStatus, jqXHR){
                                 var response = JSON.parse(data).features[0];
                                 var mid = '';
-                                for (var key in response.properties) {
-                                    // should this field be shown in the pop-up
-                                    if (Drupal.settings.fields[layer_name] !== undefined && Drupal.settings.fields[layer_name][key] !== undefined && Drupal.settings.fields[layer_name][key]['Show this field in maps pop-up'] === '1') {
-                                        // should this value be masked
-                                        if (Drupal.settings.fields[layer_name][key]['Value returned by layer that should be masked'] == response.properties[key]) {
-                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + Drupal.settings.fields[layer_name][key]['Text shown to user for masked values'] + '<br>';
-                                        }
-                                        else {
-                                            // type of value: continuous or discrete
-                                            if (Drupal.settings.fields[layer_name][key]['Type of filter'] === 'slider') {
-                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
-                                            }
-                                            else {
-                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+                                if (typeof (response) !== 'undefined') {
+                                    for (var key in response.properties) {
+                                        // should this field be shown in the pop-up
+                                        if (Drupal.settings.fields[layer_name] !== undefined && Drupal.settings.fields[layer_name][key] !== undefined && Drupal.settings.fields[layer_name][key]['Show this field in maps pop-up'] === '1') {
+                                            // should this value be masked
+                                            if (Drupal.settings.fields[layer_name][key]['Value returned by layer that should be masked'] == response.properties[key]) {
+                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + Drupal.settings.fields[layer_name][key]['Text shown to user for masked values'] + '<br>';
+                                            } else {
+                                                // type of value: continuous or discrete
+                                                if (Drupal.settings.fields[layer_name][key]['Type of filter'] === 'slider') {
+                                                    mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
+                                                } else {
+                                                    mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+                                                }
                                             }
                                         }
                                     }
@@ -445,8 +445,10 @@ var cartogratree_mid_layer, cartogratree_mid_layer_cql_filter = {}, cartogratree
     }
     
     function remove_filters(id, cartogratree_gis) {
-        // update maps here
         var layer_id = id.replace('_accordion', '');
+        // remove filters for this layer
+        cartogratree_trees_layer_cql_filter[layer_id] = {};
+        // update maps
         if (Drupal.settings.layers[layer_id]['trees_layer'] === '1') {
             // remove layer from maps
             var current_trees_layers = cartogratree_trees_layer.getSource()['i']['LAYERS'].split(',');
@@ -463,7 +465,7 @@ var cartogratree_mid_layer, cartogratree_mid_layer_cql_filter = {}, cartogratree
                         }));
             }
         }
-
+        // update DOM
         $('#' + id).remove();
     }
     
@@ -502,17 +504,28 @@ var cartogratree_mid_layer, cartogratree_mid_layer_cql_filter = {}, cartogratree
                 filter['values'] = $('#' + id).slider('values');
                 break;
         }
-        // apply filter
+        // create filter
+        if (typeof (cartogratree_trees_layer_cql_filter[layer['id']]) === 'undefined') {
+            cartogratree_trees_layer_cql_filter[layer['id']] = {};
+        }
+        cartogratree_trees_layer_cql_filter[layer['id']][filter['name']] = filter['values'];
+        var cql_filters = Array();
+        for (var key in cartogratree_trees_layer_cql_filter[layer['id']]) {
+            var cql_filter = cartogratree_trees_layer_cql_filter[layer['id']][key].length > 0 ?
+                    key + " in ('" + cartogratree_trees_layer_cql_filter[layer['id']][key].join("','") + "')" : '';
+            if (cql_filter)
+                cql_filters.push(cql_filter);
+        }
+        // apply single layer filter; need to implement cross-layers filters
         if (layer['trees']) {
-            cartogratree_trees_layer_cql_filter[filter['name']] = filter['values'];
-            var cql_filters = Array();
-            for (var key in cartogratree_trees_layer_cql_filter) {
-                var cql_filter = cartogratree_trees_layer_cql_filter[key].length > 0 ?
-                        key + " in ('" + cartogratree_trees_layer_cql_filter[key].join("','") + "')" : '';
-                if (cql_filter)
-                    cql_filters.push(cql_filter);
-            }
             cartogratree_trees_layer.getSource().updateParams({"CQL_FILTER": cql_filters.join(' and ')});
+        }
+        else {
+            for (var i = 0; i < cartogratree_mid_layer.length; i++) {
+                if (cartogratree_mid_layer[i].getVisible() && cartogratree_mid_layer[i].getSource()['i']['LAYERS'] === layer['name']) {
+                    cartogratree_mid_layer[i].getSource().updateParams({"CQL_FILTER": cql_filters.join(' and ')});
+                }
+            }
         }
     }
     
