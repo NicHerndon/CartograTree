@@ -26,6 +26,7 @@
                 <li><a href="#cartogratree_step_1">Layers</a></li> 
                 <li><a href="#cartogratree_step_2">Distribution Filters</a></li> 
                 <li><a href="#cartogratree_step_3">View</a></li> 
+                <li><a href="#cartogratree_step_4">Analyze</a></li> 
             </ul> 
             <!-- 'Layers' tab content -->
             <div id="cartogratree_step_1"> 
@@ -82,6 +83,15 @@
                 </div> 
             <!-- End of 'View' tab content -->
             </div>
+            <!-- 'Analyze' tab content -->
+            <div id="cartogratree_step_4">
+                <form name="cartogratree_data_collection_form" action="cartogratree_data_collection" method="POST">
+                    <input type="hidden" id="cartogratree_data_collection_individual_ids" name="cartogratree_data_collection_individual_ids" value="" />
+                    <input type="hidden" id="cartogratree_data_collection_layer_ids" name="cartogratree_data_collection_layer_ids" value="" />
+                    <input type="submit" value="Create data collection" id="cartogratree_create_data_collection" />
+                </form>
+            <!-- End of 'Analyze' tab content -->
+            </div> 
         <!-- End of navigation tabs -->
         </div> 
     <!-- End of side navigation menu -->

@@ -53,6 +53,14 @@ function cartogratree_menu() {
       'access arguments' => array('use cartogratree'),
     );
 
+    $items['cartogratree_data_collection'] = array(
+      'description' => 'CartograTree: prepare data collection.',
+      'title' => 'CartograTree data collection',
+      'page callback' => 'cartogratree_data_collection_form',
+      'page arguments' => array(),
+      'access arguments' => array('use cartogratree'),
+    );
+
     // ADMINISTRATION.
     // List servers and layers.
     $items['admin/cartogratree/settings'] = array(
@@ -358,6 +366,15 @@ function cartogratree_preprocess_page(&$variables) {
             if ($record->filter == '1') { $layers["cartogratree_layer_" . $record->layer_id]['filters']++; }
         }
         
+        // ======= temp code for data collections testing =======
+        $dc = array(1 => 'first_id');
+//        $dc = array();
+//        $records = db_query('select id, value from {some_table}');
+//        foreach ($records as $record) {
+//            $dc[$record->id] = $record->value;
+//        }
+        // ======= temp code for data collections testing =======
+        
         libraries_load('openlayers');
         foreach (['dialog', 'tabs', 'accordion', 'button', 'slider'] as $ui) {
             drupal_add_library('system', 'ui.' . $ui);
@@ -372,6 +389,7 @@ function cartogratree_preprocess_page(&$variables) {
           ),
           'layers' => $layers,
           'fields' => $fields,
+          'data_collections_records' => $dc,
         );
         drupal_add_js($settings, 'setting');
     }
@@ -391,4 +409,51 @@ function cartogratree_permission() {
         'description' => t('Use the CartograTree application.'),
       ),
     );
+}
+
+/**
+ * Prepare data collection to upload to Galaxy.
+ * URL suffix: ?q=cartogratree_data_collection
+ */
+function cartogratree_data_collection_form() {
+    $form['individual_ids'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($_POST['cartogratree_data_collection_individual_ids'])) ? $_POST['cartogratree_data_collection_individual_ids'] : '1',
+    );
+    
+    $form['layer_ids'] = array(
+      '#type' => 'hidden',
+      '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
+    );
+    
+    $form['collection_name'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Collection name',
+      '#description' => 'Unique name to identify this data set in Galaxy.',
+    );
+    
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Send data to Galaxy',
+    );
+
+    return $form;
+}
+
+/**
+ * Prepare data collection to upload to Galaxy: Submission.
+ * URL suffix: ?q=cartogratree_data_collection
+ */
+function cartogratree_data_collection_form_submit($form, &$form_state) {
+    $details = array(
+      'uid' => 1,
+      'collection_name' => 'First collection from CartograTree',
+      'bundle_name' => 'Need help with bundle name',
+      'collection_name' => $form_state['values']['collection_name'],
+      'ids' => array('1', '2', '3'),
+      'fields' => array('min_temperature'),
+      'description' => 'Testing Tripal data collections',
+    );
+    
+    tripal_create_collection($details);
 }
