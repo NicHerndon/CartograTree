@@ -342,13 +342,21 @@ var cartogratree_mid_layer, cartogratree_mid_layer_cql_filter = {}, cartogratree
                             remove_filters(this.id + '_accordion', cartogratree_gis);
                             break;
                     }
+                    // update #cartogratree_data_collection_layer_ids
+                    var layer_ids = Array();
+                    for(var i = 0; i < shown_layers.length; i++) {
+                        layer_ids.push(shown_layers[i].split('_')[2]);
+                    }
+                    for(var i = 0; i < used_layers.length; i++) {
+                        layer_ids.push(used_layers[i].split('_')[2]);
+                    }
+                    $('#cartogratree_data_collection_layer_ids').val(layer_ids.join(','));
                 }).bind(this);
             }
 
             // ======= Pass tree IDs and layer IDs to data collections form =======
             $('#cartogratree_create_data_collection').bind("click", function () {
                 $('#cartogratree_data_collection_individual_ids').val('1,2,3');
-                $('#cartogratree_data_collection_layer_ids').val('a,b,c,d');
             }).bind(this);
             // ======= End of: Pass tree IDs and layer IDs to data collections form =======
         },
