@@ -1,43 +1,32 @@
+* {
+    box-sizing: border-box;
+}
+
 #cartogratree_page {
-    width: 90%;
+    /*width: 90%;*/
     margin: auto;
 }
 
-/* Four squares on app page */
-#cartogratree_top_left, #cartogratree_bottom_left {
-    border-right: 1px solid #fff;
-}
-#cartogratree_top_right, #cartogratree_bottom_right {
-    border-left: 1px solid #fff;
-}
-#cartogratree_top_left, #cartogratree_top_right {
-    border-bottom: 1px solid #fff;
-}
-#cartogratree_bottom_left, #cartogratree_bottom_right {
-    border-top: 1px solid #fff;
-}
-#cartogratree_top_left, #cartogratree_top_right, #cartogratree_bottom_right, #cartogratree_bottom_left {
-    height: 400px;
-    width: 600px;
-}
-
-/* Side navigation menu on app page */
-.cartogratree_navbtn {
-    font-size: 30px;
-    cursor: pointer;
-}
+/* panes layout */
 #cartogratree_sidenav {
-    width: 0; /* Changed with JavaScript */
-    position: absolute;
-    z-index: 1; /* Stay on top */
-    background-color: #FFFFFF;  /* White. */
-    overflow-x: hidden; /* Disable horizontal scroll */
-    /*transition: 0.5s;  0.5 second transition effect to slide in the sidenav */
+  display: block; 
+  float: left;
+  height: 100vh;
+  width: 30%;
+  margin: 0px;
 }
-
-/* message pop-up */
-#cartogratree_popup {
-    display: none;
+#cartogratree_map_and_info {
+  display: block; 
+  float: left;
+  height: 100vh;
+  width: 70%;
+  margin: 0px;
+}
+#cartogratree_map {
+	height: 70%;
+}
+#cartogratree_info {
+	height: 30%;
 }
 
 /* maps pop-up */
@@ -85,7 +74,7 @@
 }
 
 /*jQuery UI*/
-#cartogratree_sidenav .ui-widget, .ui-buttonset, fieldset legend {
+#cartogratree_sidenav #cartogratree_info_tabs .ui-widget, .ui-buttonset, fieldset legend {
     font-size: 0.929em;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
@@ -107,8 +96,7 @@
 #cartogratree_sidenav .ui-buttonset {
     margin: 0px;
 }
-
 .ui-accordion-content{
-    min-height: 75px;
-    max-height: 300px;
+    min-height: 200px;
+    max-height: 2500px;
 }
