@@ -40,7 +40,7 @@
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
-    min-width: 280px;
+    min-width: 360px;
 }
 .cartogratree_ol_popup:after, .cartogratree_ol_popup:before {
     top: 100%;
@@ -71,6 +71,21 @@
 }
 .cartogratree_ol_popup_closer:after {
     content: "✖";
+}
+#cartogratree_ol_popup_content table {
+    border-collapse: collapse;
+    width: 100%;
+}
+#cartogratree_ol_popup_content th, #cartogratree_ol_popup_content td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+#cartogratree_ol_popup_content tr:hover {
+    background-color: #f5f5f5;
+}
+#cartogratree_ol_popup_content h4 {
+    background-color: powderblue;
 }
 
 /*jQuery UI*/

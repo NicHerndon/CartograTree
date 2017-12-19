@@ -61,8 +61,15 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                 e.map.addOverlay(overlay);
                 var coordinate = e.coordinate, tree = '';
                 var latlon = 'lat/lon: ' + e.coordinate[1].toFixed(3) + '/' + e.coordinate[0].toFixed(3) + '<br/>';
+
+                $('#cartogratree_ol_popup_content').html('');   // wipe-out popup content
+                // add location to popup content
+                var html_content = '<h4>Location</h4>\n';
+                html_content += '<table><tr><td>Latitude</td><td>' + e.coordinate[1].toFixed(3) + '</td></tr>\n';
+                html_content += '<tr><td>Longitude</td><td>' + e.coordinate[0].toFixed(3) + '</td></tr></table>';
+                $('#cartogratree_ol_popup_content').append(html_content);
+
                 var hdms = ol.coordinate.toStringHDMS(e.coordinate);
-                $('#cartogratree_ol_popup_content').html('Coordinates:<br/><code>' + latlon + hdms + '</code>');
                 // for each environmental layer used
                 for (var layer_id in cartogratree_mid_layer) {
                     var layer_name = cartogratree_mid_layer[layer_id].getSource().i.LAYERS;
@@ -75,28 +82,30 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                         dataType: 'text',
                         success: function (data, textStatus, jqXHR) {
                             var response = JSON.parse(data).features[0];
-                            var mid = '';
-                            layer_name = get_layer_name(this.url);
+                            layer_name = get_layer_names(this.url)[0];
+                            var table = '<table>';
                             if (typeof (response) !== 'undefined') {
                                 for (var key in response.properties) {
                                     // should this field be shown in the pop-up
                                     if (Drupal.settings.fields[layer_name] !== undefined && Drupal.settings.fields[layer_name][key] !== undefined && Drupal.settings.fields[layer_name][key]['Show this field in maps pop-up'] === '1') {
                                         // should this value be masked
                                         if (Drupal.settings.fields[layer_name][key]['Value returned by layer that should be masked'] == response.properties[key]) {
-                                            mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + Drupal.settings.fields[layer_name][key]['Text shown to user for masked values'] + '<br>';
+                                            table += '<tr><td>' + Drupal.settings.fields[layer_name][key]['Field name shown to user'] + '</td><td>' + Drupal.settings.fields[layer_name][key]['Text shown to user for masked values'] + '</td></tr>';
                                         } else {
                                             // type of value: continuous or discrete
                                             if (Drupal.settings.fields[layer_name][key]['Type of filter'] === 'slider') {
-                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '<br>';
+                                                table += '<tr><td>' + Drupal.settings.fields[layer_name][key]['Field name shown to user'] + '</td><td>' + response.properties[key].toFixed(Drupal.settings.fields[layer_name][key]['Precision used with range values']) + '</td></tr>';
                                             } else {
-                                                mid += Drupal.settings.fields[layer_name][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+                                                table += '<tr><td>' + Drupal.settings.fields[layer_name][key]['Field name shown to user'] + '</td><td>' + response.properties[key] + '</td></tr>';
                                             }
                                         }
                                     }
                                 }
                             }
-                            if (mid !== '') {
-                                $('#cartogratree_ol_popup_content').append('<p>' + Drupal.settings.fields[layer_name]["Human-readable name for the layer"] + ':<br><code>' + mid + '</code></p>');
+                            table += '</table>';
+                            if (table !== '<table></table>') {
+                                html_content = '<h4>' + Drupal.settings.fields[layer_name]["Human-readable name for the layer"] + '</h4>' + table;
+                                $('#cartogratree_ol_popup_content').append(html_content);
                             }
                         }
                     });
@@ -105,9 +114,11 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                 var trees_layers = (cartogratree_trees_layer.getSource() !== null) ? cartogratree_trees_layer.getSource().i.LAYERS.split(',') : [];
                 var trees_popup_fields = 0;
                 var trees_url = [];
-                for (var key in Drupal.settings.fields[trees_layers]) {
-                    if (key !== 'Human-readable name for the layer' && key !== 'Layer ID') {
-                        trees_popup_fields += parseInt(Drupal.settings.fields[trees_layers][key]['Show this field in maps pop-up']);
+                for (var l = 0; l < trees_layers.length; l++) {
+                    for (var key in Drupal.settings.fields[trees_layers[l]]) {
+                        if (key !== 'Human-readable name for the layer' && key !== 'Layer ID') {
+                            trees_popup_fields += parseInt(Drupal.settings.fields[trees_layers[l]][key]['Show this field in maps pop-up']);
+                        }
                     }
                 }
                 if (trees_popup_fields) {
@@ -127,31 +138,30 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                                 success: function (data, textStatus, jqXHR) {
                                     var response = JSON.parse(data).features[0];
                                     if (response) {
-                                        var mid = '';
-//                                        var query_strings = jqXHR.responseURL.split('&');
-                                        var query_strings = this.url.split('&');
-                                        var layer_id = query_strings.find(function (query_string) {
-                                            return query_string.startsWith('QUERY_LAYERS');
-                                        });
-                                        layer_id = layer_id.split('=')[1].replace('%3A', ':');
-                                        for (var key in response.properties) {
-                                            // should this field be shown in the pop-up
-                                            if (Drupal.settings.fields[layer_id] !== undefined && Drupal.settings.fields[layer_id][key] !== undefined && Drupal.settings.fields[layer_id][key]['Show this field in maps pop-up'] === '1') {
-                                                // should this value be masked
-                                                if (Drupal.settings.fields[layer_id][key]['Value returned by layer that should be masked'] == response.properties[key]) {
-                                                    mid += Drupal.settings.fields[layer_id][key]['Field name shown to user'] + ': ' + Drupal.settings.fields[layer_id][key]['Text shown to user for masked values'] + '<br>';
-                                                } else {
-                                                    // type of value: continuous or discrete
-                                                    if (Drupal.settings.fields[layer_id][key]['Type of filter'] === 'slider') {
-                                                        mid += Drupal.settings.fields[layer_id][key]['Field name shown to user'] + ': ' + response.properties[key].toFixed(Drupal.settings.fields[layer_id][key]['Precision used with range values']) + '<br>';
+                                        var layer_names = get_layer_names(this.url);
+                                        for (var l = 0; l < layer_names.length; l++) {
+                                            var table = '<table>';
+                                            for (var key in response.properties) {
+                                                // should this field be shown in the pop-up
+                                                if (Drupal.settings.fields[layer_names[l]] !== undefined && Drupal.settings.fields[layer_names[l]][key] !== undefined && Drupal.settings.fields[layer_names[l]][key]['Show this field in maps pop-up'] === '1') {
+                                                    // should this value be masked
+                                                    if (Drupal.settings.fields[layer_names[l]][key]['Value returned by layer that should be masked'] == response.properties[key]) {
+                                                        table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + Drupal.settings.fields[layer_names[l]][key]['Text shown to user for masked values'] + '</td></tr>';
                                                     } else {
-                                                        mid += Drupal.settings.fields[layer_id][key]['Field name shown to user'] + ': ' + response.properties[key] + '<br>';
+                                                        // type of value: continuous or discrete
+                                                        if (Drupal.settings.fields[layer_names[l]][key]['Type of filter'] === 'slider') {
+                                                            table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key].toFixed(Drupal.settings.fields[layer_names[l]][key]['Precision used with range values']) + '</td></tr>';
+                                                        } else {
+                                                            table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key] + '</td></tr>';
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                        if (mid !== '') {
-                                            $('#cartogratree_ol_popup_content').append('<p>' + Drupal.settings.fields[layer_id]["Human-readable name for the layer"] + ':<br><code>' + mid + '</code></p>');
+                                            table += '</table>';
+                                            if (table !== '<table></table>') {
+                                                html_content = '<h4>' + Drupal.settings.fields[layer_names[l]]["Human-readable name for the layer"] + '</h4>' + table;
+                                                $('#cartogratree_ol_popup_content').append(html_content);
+                                            }
                                         }
                                     }
                                 }
@@ -415,14 +425,12 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
         }
     }
     
-    function get_layer_name(url) {
-        var args = url.split('&');
-        var layer_name;
-        for (var i = 0; i < args.length; i++) {
-            if (args[i].startsWith('LAYERS=')) {
-                layer_name = args[i].split('=')[1].replace('%3A', ':');
-            }
-        }
+    function get_layer_names(url) {
+        var query_strings = url.split('&');
+        var layer_name = query_strings.find(function (query_string) {
+            return query_string.startsWith('LAYERS=');
+        });
+        layer_name = layer_name.split('=')[1].replace('%3A', ':').split('%2C');
         return layer_name;
     }
 
