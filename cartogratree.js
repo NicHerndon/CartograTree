@@ -179,8 +179,45 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                 });
             });
 
-            // jQuery UI tabs for sidenav
-            $('#cartogratree_steps, #cartogratree_info_tabs').tabs();
+            // jQuery UI tabs
+            // side tabs
+            $("#cartogratree_steps").tabs({
+                activate: function (event, ui) {
+                    if ($("#cartogratree_steps").tabs('option').active === 2) {
+                        if (cartogratree_trees_layer.getSource() === null) {
+                            $('#cartogratree_create_data_collection').val('No data selected');
+                        }
+                        else {
+                            $('#cartogratree_create_data_collection').val('Collecting data from map. Please wait');
+                            $('#cartogratree_create_data_collection').prop('disabled', true);
+                            // === update in background #cartogratree_data_collection_individual_ids ===
+                            var cql_filter = (cartogratree_trees_layer.getSource().getParams().CQL_FILTER) ?
+                                '&cql_filter=' + cartogratree_trees_layer.getSource().getParams().CQL_FILTER : '';
+                            $.ajax({
+                                url: Drupal.settings.cartogratree.gis.replace(
+                                        '/wms',
+                                        '/ows?service=WFS&version=2.0&request=GetFeature&typeName=' + cartogratree_trees_layer.getSource().getParams().LAYERS + '&outputFormat=application/json&format_options=callback:getJson&SrsName=EPSG:4326' + cql_filter),
+                                dataType: 'text',
+                                success: function (data, textStatus, jqXHR) {
+                                    var response = JSON.parse(data).features;
+                                    if (typeof (response) !== 'undefined') {
+                                        var ids = Array();
+                                        for (var feature_id in response) {
+                                            ids.push(response[feature_id].properties.uniquename);
+                                        }
+                                        $('#cartogratree_data_collection_individual_ids').val(ids.join(','));
+                                        $('#cartogratree_create_data_collection').val('Confirm data for analysis/proceed to table view');
+                                        $('#cartogratree_create_data_collection').prop('disabled', false);
+                                    }
+                                }
+                            });
+                            // === End of: update in background #cartogratree_data_collection_individual_ids ===
+                        }
+                    }
+                }
+            }).bind(this);
+            // bottom tabs
+            $('#cartogratree_info_tabs').tabs();
             // jQuery UI accordions for sidenav
             $('[id^=cartogratree_accordion]').accordion({
                 collapsible: true,

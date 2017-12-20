@@ -72,6 +72,9 @@
 .cartogratree_ol_popup_closer:after {
     content: "✖";
 }
+#cartogratree_ol_popup_content {
+    overflow-x: auto;
+}
 #cartogratree_ol_popup_content table {
     border-collapse: collapse;
     width: 100%;

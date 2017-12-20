@@ -110,7 +110,7 @@ print $messages;
                 <form name="cartogratree_data_collection_form" action="cartogratree_data_collection" method="POST">
                     <input type="hidden" id="cartogratree_data_collection_individual_ids" name="cartogratree_data_collection_individual_ids" value="" />
                     <input type="hidden" id="cartogratree_data_collection_layer_ids" name="cartogratree_data_collection_layer_ids" value="" />
-                    <input type="submit" value="Create data collection" id="cartogratree_create_data_collection" />
+                    <input type="submit" value="Collecting data from map. Please wait" id="cartogratree_create_data_collection" disabled />
                 </form>
             </div> 
             <!-- End of 'Analyze' tab content -->
