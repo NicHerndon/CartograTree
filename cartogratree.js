@@ -276,12 +276,6 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                     }
                 }).bind(this);
             }
-
-            // ======= Pass tree IDs and layer IDs to data collections form =======
-            $('#cartogratree_create_data_collection').bind("click", function () {
-                $('#cartogratree_data_collection_individual_ids').val('1,2,3');
-            }).bind(this);
-            // ======= End of: Pass tree IDs and layer IDs to data collections form =======
         },
     };
 
