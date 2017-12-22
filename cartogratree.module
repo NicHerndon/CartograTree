@@ -260,6 +260,16 @@ function cartogratree_menu() {
       'file' => 'includes/cartogratree.admin.inc',
     );
 
+    // -- Get environmental values.
+    $items['admin/cartogratree/settings/get_environmental_values'] = array(
+      'title' => 'Get environmental values for CartograTree',
+      'description' => 'Uses GeoServer WMS to get environmental values from one layer for all geo-referenced trees.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_admin_get_environmental_values', 4),
+      'access arguments' => array('administer cartogratree'),
+      'file' => 'includes/cartogratree.admin.inc',
+    );
+
     return $items;
 }
 
@@ -479,6 +489,7 @@ function cartogratree_data_collection_form() {
           '#markup' => '<p>No data selected.</p>',
         );
     }
+    
     return $form;
 }
 

@@ -1278,3 +1278,97 @@ function cartogratree_admin_settings_field_form_submit($form, &$form_state) {
         }
     }
 }
+
+/**
+ * Get environmental values for CartograTree form.
+ * URL suffix: ?q=admin/cartogratree/settings/get_environmental_values/<layer id>
+ */
+function cartogratree_admin_get_environmental_values($form, &$form_state) {
+    $options = array(); $layers = array();
+    $resource = db_query('SELECT layer_id, title, name FROM {cartogratree_layers} where trees_layer is null order by layer_id');
+    foreach ($resource as $r) {
+        $options[$r->layer_id] = $r->title;
+        $layers[$r->layer_id]['display_name'] = $r->title;
+        $layers[$r->layer_id]['gis_name'] = $r->name;
+    }
+    $form['layer_select'] = array(
+      '#type' => 'select',
+      '#title' => t('Environmental layer'),
+      '#options' => $options,
+      '#default_value' => (isset($form_state['build_info']['args'][0]) && isset($options[$form_state['build_info']['args'][0]])) ?
+                            $form_state['build_info']['args'][0] :
+                            '',
+      '#description' => t('Choose the environmental layer to pool for values.'),
+      '#id' => 'cartogratree_layer_select',
+    );
+    
+    $form['get_values_button'] = array(
+      '#type' => 'markup',
+//      '#markup' => '<button onclick="cartogratree_get_env_vals()">Get environmental values</button>',
+//      '#markup' => '<button id="cartogratree_get_env_vals">Get environmental values</button>',
+      '#markup' => '<input type="button" value="Get environmental values" id="cartogratree_get_env_vals" /><br/>',
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Write values to database',
+      '#disabled' => TRUE,
+    );
+    
+    $table = array(
+      'header' => array(
+        'uniquename' => 'Tree ID',
+        'genus' => 'Genus',
+        'species' => 'Species',
+        'subkingdom' => 'Sub-kingdom',
+        'family' => 'Family',
+        'latitude' => 'Latitude',
+        'longitude' => 'Longitude',
+        'coordinate_type' => 'Coordinate type',
+        'env' => 'Environmental value'
+      ),
+      'rows' => array(),
+    );
+    $results = db_select('chado.ct_view', 'v')
+        ->extend('PagerDefault')
+        ->fields('v')
+        ->limit(25)
+        ->execute();
+    $locations = array();
+    foreach ($results as $r) {
+        $table['rows'][] = array(
+            'uniquename' => $r->uniquename,
+            'genus' => $r->genus,
+            'species' => $r->species,
+            'subkingdom' => $r->subkingdom,
+            'family' => $r->family,
+            'latitude' => $r->latitude,
+            'longitude' => $r->longitude,
+            'coordinate_type' => $r->coordinate_type,
+            'env' => '',
+        );
+        if (isset($locations[$r->latitude . ',' . $r->longitude])) {
+            array_push($locations[$r->latitude . ',' . $r->longitude], $r->uniquename);
+        }
+        else {
+            $locations[$r->longitude . ',' . $r->latitude] = array($r->uniquename);
+        }
+    }
+    $form['table'] = array(
+      '#type' => 'markup',
+      '#markup' => theme('table', $table).theme('pager'),
+//      '#markup' => theme('table', $table),
+    );
+    
+    
+    $settings = array(
+      'gis' => variable_get('cartogratree_gis'),
+      'layers' => $layers,
+      'locations' => $locations,
+    );
+    libraries_load('openlayers');
+    drupal_add_js($settings, 'setting');
+    drupal_add_js(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree_admin_get_environmental_values.js');
+
+    return $form;
+}
