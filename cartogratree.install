@@ -258,6 +258,39 @@ function cartogratree_schema() {
       'primary key' => array('field_id'),
     );
 
+    $schema['cartogratree_environmental_values'] = array(
+      'description' => 'Stores environmental values for geo-referenced trees in the database.',
+      'fields' => array(
+        'latitude' => array(
+          'description' => 'Latitude of the location, in WGS84 projection.',
+          'type' => 'float',
+        ),
+        'longitude' => array(
+          'description' => 'Longitude of the location, in WGS84 projection.',
+          'type' => 'float',
+        ),
+        'layer_id' => array(
+          'description' => 'ID of the environmental layer.',
+          'type' => 'int',
+        ),
+        'field_id' => array(
+          'description' => 'ID of the field in the environmental layer.',
+          'type' => 'int',
+        ),
+        'field_name' => array(
+          'description' => 'Text shown to user for the field in the environmental layer.',
+          'type' => 'varchar',
+          'length' => 64,
+        ),
+        'field_value' => array(
+          'description' => 'Value of the field in the environmental layer.',
+          'type' => 'varchar',
+          'length' => 8096,
+        ),
+      ),
+      'primary key' => array('latitude', 'longitude', 'layer_id', 'field_id'),
+    );
+
     return $schema;
 }
 
@@ -266,10 +299,50 @@ function cartogratree_update_7002() {
         'cartogratree_layers',
         'layer_type',
         array(
-          'description' => 'Indicates the type of layer: vector, or raster.',
-          'type' => 'char',
-          'length' => 6,
-          'not null' => FALSE,
+            'description' => 'Indicates the type of layer: vector, or raster.',
+            'type' => 'char',
+            'length' => 6,
+            'not null' => FALSE,
+        )
+    );
+}
+
+function cartogratree_update_7003() {
+    // drush updatedb
+    // Drupal data types: https://www.drupal.org/node/159605
+    db_create_table(
+        'cartogratree_environmental_values',
+        array(
+        'description' => 'Stores environmental values for geo-referenced trees in the database.',
+        'fields' => array(
+          'latitude' => array(
+            'description' => 'Latitude of the location, in WGS84 projection.',
+            'type' => 'float',
+          ),
+          'longitude' => array(
+            'description' => 'Longitude of the location, in WGS84 projection.',
+            'type' => 'float',
+          ),
+          'layer_id' => array(
+            'description' => 'ID of the environmental layer.',
+            'type' => 'int',
+          ),
+          'field_id' => array(
+            'description' => 'ID of the field in the environmental layer.',
+            'type' => 'int',
+          ),
+          'field_name' => array(
+            'description' => 'Text shown to user for the field in the environmental layer.',
+            'type' => 'varchar',
+            'length' => 64,
+          ),
+          'field_value' => array(
+            'description' => 'Value of the field in the environmental layer.',
+            'type' => 'varchar',
+            'length' => 8096,
+          ),
+        ),
+        'primary key' => array('latitude', 'longitude', 'layer_id', 'field_id'),
         )
     );
 }

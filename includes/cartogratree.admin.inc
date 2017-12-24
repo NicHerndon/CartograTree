@@ -1355,9 +1355,11 @@ function cartogratree_admin_get_environmental_values($form, &$form_state) {
         }
     }
     $form['table'] = array(
+      '#prefix' => '<div id="cartogratree_environmental_table">',
       '#type' => 'markup',
       '#markup' => theme('table', $table).theme('pager'),
 //      '#markup' => theme('table', $table),
+      '#suffix' => '</div>',
     );
     
     
