@@ -1315,38 +1315,60 @@ function cartogratree_admin_get_environmental_values($form, &$form_state) {
       '#disabled' => TRUE,
     );
     
-    $table = array(
-      'header' => array(
-        'uniquename' => 'Tree ID',
-        'genus' => 'Genus',
-        'species' => 'Species',
-        'subkingdom' => 'Sub-kingdom',
-        'family' => 'Family',
-        'latitude' => 'Latitude',
-        'longitude' => 'Longitude',
-        'coordinate_type' => 'Coordinate type',
-        'env' => 'Environmental value'
-      ),
-      'rows' => array(),
+    $form['output_details'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Output details'),
+      '#id' => 'cartogratree_output_details',
+      '#disabled' => TRUE,
     );
-    $results = db_select('chado.ct_view', 'v')
-        ->extend('PagerDefault')
-        ->fields('v')
-        ->limit(25)
-        ->execute();
+    
+    $form['output_data'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Output data'),
+      '#id' => 'cartogratree_output_data',
+      '#disabled' => TRUE,
+    );
+    
+    $form['output_errors'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Output errors'),
+      '#id' => 'cartogratree_output_errors',
+      '#disabled' => TRUE,
+    );
+    
+//    $table = array(
+//      'header' => array(
+//        'uniquename' => 'Tree ID',
+//        'genus' => 'Genus',
+//        'species' => 'Species',
+//        'subkingdom' => 'Sub-kingdom',
+//        'family' => 'Family',
+//        'latitude' => 'Latitude',
+//        'longitude' => 'Longitude',
+//        'coordinate_type' => 'Coordinate type',
+//        'env' => 'Environmental value'
+//      ),
+//      'rows' => array(),
+//    );
+//    $results = db_select('chado.ct_view', 'v')
+//        ->extend('PagerDefault')
+//        ->fields('v')
+//        ->limit(25)
+//        ->execute();
+    $results = db_query('SELECT * FROM {chado.ct_view}');
     $locations = array();
     foreach ($results as $r) {
-        $table['rows'][] = array(
-            'uniquename' => $r->uniquename,
-            'genus' => $r->genus,
-            'species' => $r->species,
-            'subkingdom' => $r->subkingdom,
-            'family' => $r->family,
-            'latitude' => $r->latitude,
-            'longitude' => $r->longitude,
-            'coordinate_type' => $r->coordinate_type,
-            'env' => '',
-        );
+//        $table['rows'][] = array(
+//            'uniquename' => $r->uniquename,
+//            'genus' => $r->genus,
+//            'species' => $r->species,
+//            'subkingdom' => $r->subkingdom,
+//            'family' => $r->family,
+//            'latitude' => $r->latitude,
+//            'longitude' => $r->longitude,
+//            'coordinate_type' => $r->coordinate_type,
+//            'env' => '',
+//        );
         if (isset($locations[$r->latitude . ',' . $r->longitude])) {
             array_push($locations[$r->latitude . ',' . $r->longitude], $r->uniquename);
         }
@@ -1354,14 +1376,12 @@ function cartogratree_admin_get_environmental_values($form, &$form_state) {
             $locations[$r->longitude . ',' . $r->latitude] = array($r->uniquename);
         }
     }
-    $form['table'] = array(
-      '#prefix' => '<div id="cartogratree_environmental_table">',
-      '#type' => 'markup',
-      '#markup' => theme('table', $table).theme('pager'),
-//      '#markup' => theme('table', $table),
-      '#suffix' => '</div>',
-    );
-    
+//    $form['table'] = array(
+//      '#prefix' => '<div id="cartogratree_environmental_table">',
+//      '#type' => 'markup',
+//      '#markup' => theme('table', $table).theme('pager'),
+//      '#suffix' => '</div>',
+//    );
     
     $settings = array(
       'gis' => variable_get('cartogratree_gis'),
