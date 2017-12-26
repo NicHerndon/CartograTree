@@ -106,11 +106,15 @@ function cartogratree_admin_list() {
 //        ->limit(10)
 //        ->execute();
     foreach ($results as $r) {
+        $operations = l('edit', 'admin/cartogratree/settings/layer/edit/' . $r->layer_id) . ' | '
+          . l('delete', 'admin/cartogratree/settings/layer/delete/' . $r->layer_id) . ' | '
+          . l('access', 'admin/cartogratree/settings/layer/access/' . $r->layer_id);
+        if (!$r->trees_layer) {
+            $operations .= ' | ' . l('get values', 'admin/cartogratree/settings/get_environmental_values/' . $r->layer_id);
+        }
         $table['rows'][] = array(
           'name' => $r->title,
-          l('edit', 'admin/cartogratree/settings/layer/edit/' . $r->layer_id) . ' | '
-          . l('delete', 'admin/cartogratree/settings/layer/delete/' . $r->layer_id) . ' | '
-          . l('access', 'admin/cartogratree/settings/layer/access/' . $r->layer_id)
+          $operations,
         );
     }
     // If there are no layers yet, display only the headers of the table.
@@ -344,7 +348,6 @@ function cartogratree_admin_group_management_form($form, &$form_state) {
     $form['subgroup']['add']['text'] = array(
       '#type' => 'textfield',
       '#title' => 'Subgroup rank',
-//      '#size' => 3,     // seems ineffective here
     );
 
     $form['subgroup']['add']['submit'] = array(
@@ -449,7 +452,6 @@ function cartogratree_admin_settings_subgroup_form_submit($form, &$form_state) {
     else {
         $record = array(
           'subgroup_name' => $form_state['values']['subgroup_name'],
-//          'subgroup_rank' => $form_state['values']['subgroup_rank'],
         );
 
         if ($form_state['values']['op'] == 'Add') {
@@ -1124,11 +1126,6 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           . theme('table', $table),
         );
 
-//        $form['name'] = array(
-//          '#type' => 'hidden',
-//          '#value' => $obj->name,
-//        );
-
         $form['delete'] = array(
           '#type' => 'submit',
           '#value' => 'Delete',
@@ -1166,7 +1163,6 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
         $form['filter_type'] = array(
           '#type' => 'select',
           '#title' => 'Filter type',
-//          '#description' => 'Allow users to filter data using this field.',
           '#options' => array('radio' => 'radio-button', 'checkbox' => 'checkbox', 'slider' => 'slider', 'elastic' => 'elastic search'),
           '#default_value' => (isset($obj->filter_type)) ? $obj->filter_type : 'None',
           '#required' => TRUE,
@@ -1183,9 +1179,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
         $form['precision'] = array(
           '#type' => 'textfield',
           '#title' => 'Precision used with range values',
-//          '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
           '#default_value' => (isset($obj->precision)) ? $obj->precision : '',
-//          '#required' => TRUE,
           '#size' => 3,
         );
 
@@ -1194,7 +1188,6 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#title' => 'Mask value',
           '#description' => 'Value returned by layer that should be masked.',
           '#default_value' => (isset($obj->mask_value)) ? $obj->mask_value : '',
-//          '#required' => TRUE,
         );
 
         $form['mask_display'] = array(
@@ -1202,7 +1195,6 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
           '#title' => 'Mask display',
           '#description' => 'Text shown to user for masked values.',
           '#default_value' => (isset($obj->mask_display)) ? $obj->mask_display : '',
-//          '#required' => TRUE,
         );
 
         $form['pop_up'] = array(
@@ -1293,82 +1285,47 @@ function cartogratree_admin_get_environmental_values($form, &$form_state) {
     }
     $form['layer_select'] = array(
       '#type' => 'select',
-      '#title' => t('Environmental layer'),
+      '#title' => t('1. Choose the environmental layer to pool for values'),
       '#options' => $options,
       '#default_value' => (isset($form_state['build_info']['args'][0]) && isset($options[$form_state['build_info']['args'][0]])) ?
                             $form_state['build_info']['args'][0] :
                             '',
-      '#description' => t('Choose the environmental layer to pool for values.'),
       '#id' => 'cartogratree_layer_select',
     );
     
     $form['get_values_button'] = array(
-      '#type' => 'markup',
-//      '#markup' => '<button onclick="cartogratree_get_env_vals()">Get environmental values</button>',
-//      '#markup' => '<button id="cartogratree_get_env_vals">Get environmental values</button>',
-      '#markup' => '<input type="button" value="Get environmental values" id="cartogratree_get_env_vals" /><br/>',
+      '#type' => 'button',
+      '#id' => 'cartogratree_get_env_vals',
+      '#value' => t('2. Get environmental values'),
     );
 
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => 'Write values to database',
-      '#disabled' => TRUE,
+      '#id' => 'cartogratree_submit_env_vals',
+      '#value' => '3. Write values to database',
     );
     
     $form['output_details'] = array(
       '#type' => 'textarea',
       '#title' => t('Output details'),
       '#id' => 'cartogratree_output_details',
-      '#disabled' => TRUE,
     );
     
     $form['output_data'] = array(
       '#type' => 'textarea',
       '#title' => t('Output data'),
       '#id' => 'cartogratree_output_data',
-      '#disabled' => TRUE,
     );
     
     $form['output_errors'] = array(
       '#type' => 'textarea',
-      '#title' => t('Output errors'),
+      '#title' => t('Locations with errors'),
       '#id' => 'cartogratree_output_errors',
-      '#disabled' => TRUE,
     );
     
-//    $table = array(
-//      'header' => array(
-//        'uniquename' => 'Tree ID',
-//        'genus' => 'Genus',
-//        'species' => 'Species',
-//        'subkingdom' => 'Sub-kingdom',
-//        'family' => 'Family',
-//        'latitude' => 'Latitude',
-//        'longitude' => 'Longitude',
-//        'coordinate_type' => 'Coordinate type',
-//        'env' => 'Environmental value'
-//      ),
-//      'rows' => array(),
-//    );
-//    $results = db_select('chado.ct_view', 'v')
-//        ->extend('PagerDefault')
-//        ->fields('v')
-//        ->limit(25)
-//        ->execute();
     $results = db_query('SELECT * FROM {chado.ct_view}');
     $locations = array();
     foreach ($results as $r) {
-//        $table['rows'][] = array(
-//            'uniquename' => $r->uniquename,
-//            'genus' => $r->genus,
-//            'species' => $r->species,
-//            'subkingdom' => $r->subkingdom,
-//            'family' => $r->family,
-//            'latitude' => $r->latitude,
-//            'longitude' => $r->longitude,
-//            'coordinate_type' => $r->coordinate_type,
-//            'env' => '',
-//        );
         if (isset($locations[$r->latitude . ',' . $r->longitude])) {
             array_push($locations[$r->latitude . ',' . $r->longitude], $r->uniquename);
         }
@@ -1376,12 +1333,6 @@ function cartogratree_admin_get_environmental_values($form, &$form_state) {
             $locations[$r->longitude . ',' . $r->latitude] = array($r->uniquename);
         }
     }
-//    $form['table'] = array(
-//      '#prefix' => '<div id="cartogratree_environmental_table">',
-//      '#type' => 'markup',
-//      '#markup' => theme('table', $table).theme('pager'),
-//      '#suffix' => '</div>',
-//    );
     
     $settings = array(
       'gis' => variable_get('cartogratree_gis'),
@@ -1393,4 +1344,58 @@ function cartogratree_admin_get_environmental_values($form, &$form_state) {
     drupal_add_js(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree_admin_get_environmental_values.js');
 
     return $form;
+}
+
+/**
+ * Get environmental values for CartograTree submit.
+ * URL suffix: ?q=admin/cartogratree/settings/get_environmental_values/<layer id>
+ */
+function cartogratree_admin_get_environmental_values_submit($form, &$form_state) {
+    $layer_id = $form_state['values']['layer_select'];
+    
+    $fields = array();
+    $records = db_query('SELECT * FROM {cartogratree_fields} WHERE layer_id = :id', array(':id' => $layer_id));
+    foreach ($records as $record) {
+        $fields[$record->field_name]['field_id'] = $record->field_id;
+        $fields[$record->field_name]['Field name shown to user'] = $record->display_name;
+        $fields[$record->field_name]['Value returned by layer that should be masked'] = $record->mask_value;
+        $fields[$record->field_name]['Text shown to user for masked values'] = $record->mask_display;
+        $fields[$record->field_name]['Show this field in data table'] = $record->data_table;
+    }
+    
+    $lines = explode("\n", $form_state['values']['output_data']);
+//    $num_records = 0; $inserts = 0;
+//    dpm($form_state['values']);
+    foreach ($lines as $line) {
+        $line = str_replace("\r", '', $line);   // remove carriage returns
+        $columns = explode("\t", $line);
+//        if (count($columns) > 0) {
+//            $num_records++;
+//        }
+        if ($fields[$columns[1]]['Show this field in data table'] == 1) {
+            $coords = explode(',', $columns[0]);
+            $value = ($columns[2] == $fields[$columns[1]]['Value returned by layer that should be masked']) ?
+                $fields[$columns[1]]['Text shown to user for masked values'] :
+                $columns[2];
+
+            $record = array(
+              'latitude' => $coords[1],
+              'longitude' => $coords[0],
+              'layer_id' => $layer_id,
+              'field_id' => $fields[$columns[1]]['field_id'],
+              'field_name' => $fields[$columns[1]]['Field name shown to user'],
+              'field_value' => $value,
+            );
+//            // If the record insert or update failed, returns FALSE.
+//            // If it succeeded, returns SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
+//            // define('SAVED_NEW', 1); define('SAVED_UPDATED', 2);
+//            $inserts += drupal_write_record('cartogratree_environmental_values', $record);
+        }
+    }
+//    if ($inserts) {
+//        drupal_set_message('Successfully saved ' + $inserts + ' of ' + $num_records + ' records to database.');
+//    }
+
+    // Redirect to cartogratree management page.
+    drupal_goto('admin/cartogratree/settings');
 }

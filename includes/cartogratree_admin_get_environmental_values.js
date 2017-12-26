@@ -10,22 +10,37 @@ var urls = {}, number_of_locations, start, successes = 0, errors = 0;
         attach: function (context, settings) {
             number_of_locations = Object.keys(Drupal.settings.locations).length;
             
-            $("#cartogratree_get_env_vals").click(function () {
+            $().ready(function () {
+                // change input type so the form is not submitted when user clicks on 'Get environmental values' button
+                $('#cartogratree_get_env_vals').clone().attr('type','button').insertAfter('#cartogratree_get_env_vals').prev().remove();
+                // disable the submit button
+                $('#cartogratree_submit_env_vals').attr('disabled', true);
+            });
+            
+            $('#cartogratree_layer_select').change(function () {
+                if ($('#cartogratree_output_data').val().length) {
+                    // disable the submit button
+                    $('#cartogratree_submit_env_vals').attr('disabled', true);
+                }
+            });
+            
+            $('#cartogratree_get_env_vals').click(function () {
+                $('#cartogratree_output_details').val('Unique locations: ' + number_of_locations);
+                // disable controls
+                $('#cartogratree_get_env_vals, #cartogratree_layer_select').attr('disabled', true);
+
+                // get environmental data
                 var view = new ol.View({
                     projection: 'EPSG:4326',
                     center: [0,0],
                     zoom: 20,
                 });
-                
                 var layer = new ol.layer.Tile({
                     source: new ol.source.TileWMS({
                         url: Drupal.settings.gis,
                         params: {LAYERS: Drupal.settings.layers[$('#cartogratree_layer_select').val()].gis_name}
                     }),
                 });
-                
-                $('#cartogratree_output_details').val('Unique locations: ' + number_of_locations);
-
                 start = new Date();
                 for (var long_lat in Drupal.settings.locations) {
                     var url = layer.getSource().getGetFeatureInfoUrl(
@@ -46,7 +61,7 @@ var urls = {}, number_of_locations, start, successes = 0, errors = 0;
                                 update_details();
                             }
                             catch (e) {
-                                $('#cartogratree_output_errors').append(urls[this.url] + "\tERROR: did not receive environmental data.\n");
+                                $('#cartogratree_output_errors').append(urls[this.url] + "\n");
                                 errors++;
                                 update_details();
                             }
@@ -55,15 +70,17 @@ var urls = {}, number_of_locations, start, successes = 0, errors = 0;
                 }
             }).bind(this);
         }
-    }
+    };
     
     function update_details() {
-        var stop = new Date();
-        var content = 'Unique locations: ' + number_of_locations + '\n';
-        content += "Successes: " + successes + '\n';
-        content += "Errors: " + errors + '\n';
+        var content = 'Unique locations: ' + number_of_locations + '.\n';
+        content += "Successes: " + successes + '.\n';
+        content += "Errors: " + errors + '.\n';
         if (successes + errors === number_of_locations) {
-            content += 'Time elapsed: ' + (stop.getTime() - start.getTime()) / 1000.0 + ' seconds\n';
+            var stop = new Date();
+            content += 'Time elapsed: ' + (stop.getTime() - start.getTime()) / 1000.0 + ' seconds.\n';
+            // enable controls
+            $('#cartogratree_layer_select, #cartogratree_submit_env_vals').attr('disabled', false);
         }
         $('#cartogratree_output_details').val(content);
     }

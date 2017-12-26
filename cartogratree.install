@@ -263,11 +263,13 @@ function cartogratree_schema() {
       'fields' => array(
         'latitude' => array(
           'description' => 'Latitude of the location, in WGS84 projection.',
-          'type' => 'float',
+          'type' => 'varchar',
+          'length' => 20,
         ),
         'longitude' => array(
           'description' => 'Longitude of the location, in WGS84 projection.',
-          'type' => 'float',
+          'type' => 'varchar',
+          'length' => 20,
         ),
         'layer_id' => array(
           'description' => 'ID of the environmental layer.',
@@ -345,4 +347,21 @@ function cartogratree_update_7003() {
         'primary key' => array('latitude', 'longitude', 'layer_id', 'field_id'),
         )
     );
+}
+
+function cartogratree_update_7004() {
+    db_drop_primary_key('cartogratree_environmental_values');
+    db_change_field('cartogratree_environmental_values', 'latitude', 'latitude',
+        array(
+            'description' => 'Latitude of the location, in WGS84 projection.',
+            'type' => 'varchar',
+            'length' => 20,
+        ));
+    db_change_field('cartogratree_environmental_values', 'longitude', 'longitude',
+        array(
+            'description' => 'Longitude of the location, in WGS84 projection.',
+            'type' => 'varchar',
+            'length' => 20,
+        ),
+        array('primary key' => array('latitude', 'longitude', 'layer_id', 'field_id')));
 }
