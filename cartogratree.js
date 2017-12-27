@@ -203,7 +203,8 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                                     if (typeof (response) !== 'undefined') {
                                         var ids = Array();
                                         for (var feature_id in response) {
-                                            ids.push(response[feature_id].properties.uniquename);
+//                                            ids.push(response[feature_id].properties.uniquename);
+                                            ids.push("'" + response[feature_id].properties.uniquename + "'");
                                         }
                                         $('#cartogratree_data_collection_individual_ids').val(ids.join(','));
                                         $('#cartogratree_create_data_collection').val('Confirm data for analysis/proceed to table view');

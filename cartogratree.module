@@ -419,76 +419,68 @@ function cartogratree_permission() {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form() {
-    if (isset($_POST['cartogratree_data_collection_individual_ids'])) {
-        $form['individual_ids'] = array(
-          '#type' => 'hidden',
-          '#value' => $_POST['cartogratree_data_collection_individual_ids'],
-        );
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Send data to Galaxy'),
+    );
+    
+    $ids = (isset($_POST['cartogratree_data_collection_individual_ids'])) ? $_POST['cartogratree_data_collection_individual_ids'] : "''";
 
-//        $form['layer_ids'] = array(
-//          '#type' => 'hidden',
-//          '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
-//        );
-
-        $form['collection_name'] = array(
-          '#type' => 'textfield',
-          '#title' => 'Collection name',
-          '#description' => 'Unique name to identify this data set in Galaxy.',
-        );
-
-        $form['collection_description'] = array(
-          '#type' => 'textfield',
-          '#title' => 'Collection description',
-          '#description' => 'Description for this data collection.',
-        );
+//    $form['layer_ids'] = array(
+//      '#type' => 'hidden',
+//      '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
+//    );
+//
+//    $form['collection_name'] = array(
+//      '#type' => 'textfield',
+//      '#title' => 'Collection name',
+//      '#description' => 'Unique name to identify this data set in Galaxy.',
+//    );
+//
+//    $form['collection_description'] = array(
+//      '#type' => 'textfield',
+//      '#title' => 'Collection description',
+//      '#description' => 'Description for this data collection.',
+//    );
         
-        $table = array(
-          'header' => array(
-            'uniquename' => 'Tree ID',
-            'genus' => 'Genus',
-            'species' => 'Species',
-            'subkingdom' => 'Sub-kingdom',
-            'family' => 'Family',
-            'latitude' => 'Latitude',
-            'longitude' => 'Longitude',
-            'coordinate_type' => 'Coordinate type',
-          ),
-          'rows' => array(),
-        );
-        $results = db_select('chado.ct_view', 'v')
-            ->extend('PagerDefault')
-            ->fields('v')
-            ->condition('uniquename', explode(',', $_POST['cartogratree_data_collection_individual_ids']), 'IN')
-            ->limit(25)
-            ->execute();
-        foreach ($results as $r) {
-            $table['rows'][] = array(
-                'uniquename' => $r->uniquename,
-                'genus' => $r->genus,
-                'species' => $r->species,
-                'subkingdom' => $r->subkingdom,
-                'family' => $r->family,
-                'latitude' => $r->latitude,
-                'longitude' => $r->longitude,
-                'coordinate_type' => $r->coordinate_type,
-            );
-        }
-        $form['table'] = array(
-          '#type' => 'markup',
-          '#markup' => theme('table', $table).theme('pager'),
-        );
-
-        $form['submit'] = array(
-          '#type' => 'submit',
-          '#value' => 'Send data to Galaxy',
+    $table = array(
+      'header' => array(
+        'uniquename' => 'Tree ID',
+        'genus' => 'Genus',
+        'species' => 'Species',
+        'subkingdom' => 'Sub-kingdom',
+        'family' => 'Family',
+        'latitude' => 'Latitude',
+        'longitude' => 'Longitude',
+        'coordinate_type' => 'Coordinate type',
+      ),
+      'rows' => array(),
+    );
+//    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
+    $results = db_query('select * from {chado.ct_view} where uniquename in (' . $ids . ')');
+//    $results = db_select('chado.ct_view', 'v')
+//        ->extend('PagerDefault')
+//        ->fields('v')
+//        ->condition('uniquename', explode(',', $_POST['cartogratree_data_collection_individual_ids']), 'IN')
+//        ->limit(25)
+//        ->execute();
+    foreach ($results as $r) {
+        $table['rows'][] = array(
+            'uniquename' => $r->uniquename,
+            'genus' => $r->genus,
+            'species' => $r->species,
+            'subkingdom' => $r->subkingdom,
+            'family' => $r->family,
+            'latitude' => $r->latitude,
+            'longitude' => $r->longitude,
+            'coordinate_type' => $r->coordinate_type,
         );
     }
-    else {
-        $form['no_data'] = array(
-          '#type' => 'markup',
-          '#markup' => '<p>No data selected.</p>',
-        );
-    }
+    $form['table'] = array(
+      '#type' => 'markup',
+      '#markup' => theme('table', $table),
+//        .theme('pager'),
+    );
     
     return $form;
 }
@@ -498,15 +490,17 @@ function cartogratree_data_collection_form() {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form_submit($form, &$form_state) {
-    global $user;
-    $details = array(
-      'uid' => $user->id,
-      'collection_name' => $form_state['values']['collection_name'],
-      'bundle_name' => 'Need help with bundle name',
-      'ids' => explode(',', $form_state['values']['individual_ids']),
-      'fields' => array('min_temperature'),
-      'description' => $form_state['values']['collection_description'],
-    );
-    
-    tripal_create_collection($details);
+//    global $user;
+//    $details = array(
+//      'uid' => $user->id,
+//      'collection_name' => $form_state['values']['collection_name'],
+//      'bundle_name' => 'Need help with bundle name',
+//      'ids' => explode(',', $form_state['values']['individual_ids']),
+//      'fields' => array('min_temperature'),
+//      'description' => $form_state['values']['collection_description'],
+//    );
+//    
+//    tripal_create_collection($details);
+//    $form_state['redirect'] = 'cartogratree';
+    dpm($form['values']['table']);
 }
