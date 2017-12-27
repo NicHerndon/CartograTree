@@ -118,3 +118,34 @@
     min-height: 200px;
     max-height: 2500px;
 }
+/*jQuery UI checkboxes and radio buttons*/
+/*http://freefrontend.com/css-radio-buttons/, https://codepen.io/samkeddy/pen/PbROLK*/
+#cartogratree_steps input[type="radio"], input[type="checkbox"]{
+  position: absolute;
+  visibility: hidden;
+  display: none;
+}
+#cartogratree_steps label {
+  color: #222;
+  background: #ddd;
+  display: inline-block;
+  cursor: pointer;
+  padding: 2px 7px;
+  border: 1px solid #aaaaaa;
+  border-radius: 4px;
+}
+#cartogratree_steps input[type="radio"]:checked + label {
+  color: #fff;
+  background: #2a7ef6;
+}
+#cartogratree_steps input[type="checkbox"]:checked + label {
+  color: #ffffff;
+  background: #2a7ef6;
+}
+#cartogratree_steps legend {
+  color: #2a7ef6;
+  background: #eee;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-bottom: 1px solid #aaaaaa;
+}
