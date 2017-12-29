@@ -172,7 +172,7 @@ print $messages;
             </div>
             <div id="cartogratree_cite_tab">
                 <p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) <a href="https://peerj.com/preprints/2345v4.pdf">CartograTree: Enabling Landscape Genomics for Forest Trees</a>. In <i>Proceedings of the Open Source Geospatial Research & Education Symposium</i> (OGRS 2016), Perugia, Italy.</p>
-                <p>Vasquez-Gross H.A., Yu J.J., Figueroa B., Gessler D.D.G., Neale D.B., and Wegrzyn J.L. (2013) <a href="http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12067/full">CartograTree: connecting tree genomes, phenotypes, and environment</a><i>Molecular Ecology Resources, 13</i>(3), 528-537</p>
+                <p>Vasquez-Gross H.A., Yu J.J., Figueroa B., Gessler D.D.G., Neale D.B., and Wegrzyn J.L. (2013) <a href="http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12067/full">CartograTree: connecting tree genomes, phenotypes, and environment</a> <i>Molecular Ecology Resources, 13</i>(3), 528-537</p>
             </div>
         </div>
         <!--End of info-->

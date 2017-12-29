@@ -56,9 +56,9 @@ function cartogratree_menu() {
     $items['cartogratree_data_collection'] = array(
       'description' => 'CartograTree: prepare data collection.',
       'title' => 'CartograTree data collection',
-      'page callback' => 'cartogratree_data_collection_form',
-      'page arguments' => array(),
-      'access arguments' => array('use cartogratree'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('cartogratree_data_collection_form'),
+      'access arguments' => array('cartogratree analysis'),
     );
 
     // ADMINISTRATION.
@@ -402,6 +402,7 @@ function cartogratree_preprocess_page(&$variables) {
  * Implements hook_permission().
  */
 function cartogratree_permission() {
+    // Go to admin/people/permissions to manage permissions
     return array(
       'administer cartogratree' => array(
         'title' => t('Administer CartograTree'),
@@ -411,6 +412,10 @@ function cartogratree_permission() {
         'title' => t('Use CartograTree'),
         'description' => t('Use the CartograTree application.'),
       ),
+      'cartogratree analysis' => array(
+        'title' => t('CartograTree Analysis'),
+        'description' => t('Analyze data with CartograTree.'),
+      ),
     );
 }
 
@@ -418,14 +423,21 @@ function cartogratree_permission() {
  * Prepare data collection to upload to Galaxy.
  * URL suffix: ?q=cartogratree_data_collection
  */
-function cartogratree_data_collection_form() {
+function cartogratree_data_collection_form($form, &$form_state) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Send data to Galaxy'),
     );
     
-    $ids = (isset($_POST['cartogratree_data_collection_individual_ids'])) ? $_POST['cartogratree_data_collection_individual_ids'] : "''";
+    $ids = (isset($_POST['cartogratree_data_collection_individual_ids']))
+        ? $_POST['cartogratree_data_collection_individual_ids']
+        : "''";
 
+    $form['ids'] = array(
+      '#type' => 'hidden',
+      '#value' => $ids,
+    );
+    
 //    $form['layer_ids'] = array(
 //      '#type' => 'hidden',
 //      '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
@@ -457,6 +469,7 @@ function cartogratree_data_collection_form() {
       'rows' => array(),
     );
 //    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
+//    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $ids));
     $results = db_query('select * from {chado.ct_view} where uniquename in (' . $ids . ')');
 //    $results = db_select('chado.ct_view', 'v')
 //        ->extend('PagerDefault')
@@ -481,8 +494,24 @@ function cartogratree_data_collection_form() {
       '#markup' => theme('table', $table),
 //        .theme('pager'),
     );
-    
+
     return $form;
+}
+
+function cartogratree_data_collection_form_validate($form, &$form_state) {
+//    dpm($form_state);
+    if(!isset($form_state['input']['ids'])) {
+        form_set_error('ids', 'No IDs passed!');        
+    }
+
+    $db_ids = array();
+    $results = db_query('select uniquename from {chado.ct_view}');
+    foreach ($results as $r) {
+        array_push($db_ids, "'" . $r->uniquename . "'");
+    }
+    if (count(array_diff(explode(',', $form_state['input']['ids']), $db_ids))) {
+        form_set_error('ids', 'Invalid IDs passed!');
+    }
 }
 
 /**
@@ -490,9 +519,9 @@ function cartogratree_data_collection_form() {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form_submit($form, &$form_state) {
-//    global $user;
+    global $user;
 //    $details = array(
-//      'uid' => $user->id,
+//      'uid' => $user->uid,
 //      'collection_name' => $form_state['values']['collection_name'],
 //      'bundle_name' => 'Need help with bundle name',
 //      'ids' => explode(',', $form_state['values']['individual_ids']),
@@ -502,5 +531,10 @@ function cartogratree_data_collection_form_submit($form, &$form_state) {
 //    
 //    tripal_create_collection($details);
 //    $form_state['redirect'] = 'cartogratree';
-    dpm($form['values']['table']);
+//    dpm($form_state['values']);
+    
+    $file_name = date('Ymd_') . $user->uid . '_snps.tsv';
+    $data = str_replace("'", '', explode(',', $form_state['input']['ids']));
+    $file = file_put_contents($file_name, $data);
+    tripal_add_remote_job('CartograTree analysis', 'command_here', array($file), TRUE);
 }

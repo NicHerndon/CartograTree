@@ -27,6 +27,7 @@
 }
 #cartogratree_info {
 	height: 30%;
+        overflow: scroll;
 }
 
 /* maps pop-up */
@@ -117,6 +118,11 @@
 .ui-accordion-content{
     min-height: 200px;
     max-height: 2500px;
+}
+#cartogratree_info_tabs {
+    min-height: 30%;
+    max-height: 30%;
+    overflow: auto;
 }
 /*jQuery UI checkboxes and radio buttons*/
 /*http://freefrontend.com/css-radio-buttons/, https://codepen.io/samkeddy/pen/PbROLK*/
