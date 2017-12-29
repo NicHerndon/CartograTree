@@ -12,21 +12,21 @@
   display: block; 
   float: left;
   height: 100vh;
-  width: 30%;
+  width: 33%;
   margin: 0px;
 }
 #cartogratree_map_and_info {
   display: block; 
   float: left;
   height: 100vh;
-  width: 70%;
+  width: 67%;
   margin: 0px;
 }
 #cartogratree_map {
-	height: 70%;
+	height: 67%;
 }
 #cartogratree_info {
-	height: 30%;
+	height: 33%;
         overflow: scroll;
 }
 
@@ -101,17 +101,6 @@
     color: #ffffff;
     background: #007fff;
 }
-#cartogratree_sidenav .ui-accordion-header {
-    text-indent: 24px;
-}
-#cartogratree_sidenav fieldset {
-    margin-top: 5px;
-    margin-bottom: 20px;
-    padding-bottom: 0px;
-}
-#cartogratree_sidenav legend {
-    top: -22px;
-}
 #cartogratree_sidenav .ui-buttonset {
     margin: 0px;
 }
@@ -120,8 +109,8 @@
     max-height: 2500px;
 }
 #cartogratree_info_tabs {
-    min-height: 30%;
-    max-height: 30%;
+    min-height: 33%;
+    max-height: 33%;
     overflow: auto;
 }
 /*jQuery UI checkboxes and radio buttons*/
