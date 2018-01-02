@@ -455,18 +455,15 @@ function cartogratree_data_collection_form($form, &$form_state) {
 //      '#description' => 'Description for this data collection.',
 //    );
         
-    $table = array(
-      'header' => array(
-        'uniquename' => 'Tree ID',
-        'genus' => 'Genus',
-        'species' => 'Species',
-        'subkingdom' => 'Sub-kingdom',
-        'family' => 'Family',
-        'latitude' => 'Latitude',
-        'longitude' => 'Longitude',
-        'coordinate_type' => 'Coordinate type',
-      ),
-      'rows' => array(),
+    $header = array(
+      'uniquename' => array('data' => t('Tree ID'), 'field' => 'n.uniquename', 'sort' => 'asc'),
+      'genus' => array('data' => t('Genus'), 'field' => 'n.genus'),
+      'species' => array('data' => t('Species'), 'field' => 'n.species'),
+      'subkingdom' => array('data' => t('Sub-kingdom'), 'field' => 'n.subkingdom'),
+      'family' => array('data' => t('Family'), 'field' => 'n.family'),
+      'latitude' => array('data' => t('Latitude'), 'field' => 'n.latitude'),
+      'longitude' => array('data' => t('Longitude'), 'field' => 'n.longitude'),
+      'coordinate_type' => array('data' => t('Coordinate type'), 'field' => 'n.coordinate_type'),
     );
 //    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
 //    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $ids));
@@ -477,8 +474,9 @@ function cartogratree_data_collection_form($form, &$form_state) {
 //        ->condition('uniquename', explode(',', $_POST['cartogratree_data_collection_individual_ids']), 'IN')
 //        ->limit(25)
 //        ->execute();
+    $options = array();
     foreach ($results as $r) {
-        $table['rows'][] = array(
+        $options[$r->uniquename] = array(
             'uniquename' => $r->uniquename,
             'genus' => $r->genus,
             'species' => $r->species,
@@ -490,9 +488,11 @@ function cartogratree_data_collection_form($form, &$form_state) {
         );
     }
     $form['table'] = array(
-      '#type' => 'markup',
-      '#markup' => theme('table', $table),
-//        .theme('pager'),
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+      '#emtpy' => t('No trees selected.'),
+      '#attributes' => array('width' => '100%'),
     );
 
     return $form;
