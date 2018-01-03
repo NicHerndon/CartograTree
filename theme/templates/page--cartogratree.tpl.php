@@ -6,9 +6,6 @@
 ?>
 
 <?php
-if ($breadcrumb) {
-    print $breadcrumb;
-}
 if (!user_access('use cartogratree')) {
     return;
 }
@@ -18,9 +15,15 @@ print $messages;
 
 <div id="cartogratree_page">
     <!-- side navigation menu -->
-    <div id="cartogratree_sidenav"> 
+    <div id="cartogratree_sidenav">
         <!-- navigation tabs -->
         <div id="cartogratree_steps" style="height: 100%"> 
+            <img src="<?php echo drupal_get_path('module', 'cartogratree')?>/theme/templates/logo_cartogratree_v2.png" alt="CartograTree logo" width="50%">
+            <?php
+            if ($breadcrumb) {
+                print $breadcrumb;
+            }
+            ?>
             <ul> 
                 <li><a href="#cartogratree_step_1">Search Trees</a></li> 
                 <li><a href="#cartogratree_step_2">Display Layers</a></li> 

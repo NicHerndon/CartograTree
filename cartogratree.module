@@ -383,9 +383,6 @@ function cartogratree_preprocess_page(&$variables) {
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree.js');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree.css');
 
-//        drupal_add_js(drupal_get_path('module', 'jquery_update') . '/replace/ui/ui/jquery-ui.js');
-//        drupal_add_css(drupal_get_path('module', 'jquery_update') . '/replace/ui/themes/base/jquery-ui.css');
-
         $settings = array(
           'cartogratree' => array(
             'gis' => variable_get('cartogratree_gis'),
