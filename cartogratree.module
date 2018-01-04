@@ -421,6 +421,60 @@ function cartogratree_permission() {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form($form, &$form_state) {
+    global $user;
+    // Grab the user id of the current user.
+    $uid = $user->uid;
+    // Only grab galaxy instances the current user has created.
+    $records = db_query('SELECT url, api_key, servername
+        FROM {tripal_galaxy}
+        WHERE uid=:uid', array(':uid' => $uid));
+    $server_options = array(); $history_options = array();
+    $cmd = ''; $display_results = 'test';
+    foreach ($records as $r) {
+        $server_options[$r->url . ',' . $r->api_key] = $r->servername;
+        // get list of Galaxy history entries
+        $cmd = realpath('.') . '/' . drupal_get_path('module', 'cartogratree') . '/includes/galaxy_api/display.py ' . $r->api_key . ' ' .$r->url . '/galaxy/api/histories';
+        $display_results = `python $cmd`;
+        // parse result
+        $lines = explode(PHP_EOL, $display_results);
+        $history = ''; $histories = array();
+        foreach ($lines as $line) {
+            if (preg_match('/#\d+:\s(.*)/', $line, $matches)) {
+                $history = $matches[1];
+                $histories[$history]['url'] = $matches[1];
+            }
+            else if (preg_match('/\s+name:\s(.*)/', $line, $matches)) {
+                $histories[$history]['name'] = $matches[1];
+            }
+            else if (preg_match('/\s+id:\s(.*)/', $line, $matches)) {
+                $histories[$history]['id'] = $matches[1];
+            }
+            else if (preg_match('/\s+deleted:\s(.*)/', $line, $matches)) {
+                $histories[$history]['deleted'] = $matches[1];
+            }
+        }
+        // add histories to $history_options
+        foreach ($histories as $history) {
+            if ($history['deleted'] == 'False') {
+                $history_options[$r->servername][$history['id']] = $history['name'];
+            }
+        }
+    }
+    $form['galaxy_server'] = array(
+      '#type' => 'select',
+      '#title' => 'Galaxy server',
+      '#options' => $server_options,
+      '#description' => count($server_options) ? '' : 'Set up a Galaxy instance at admin/tripal/extension/galaxy.',
+      '#required' => TRUE,
+    );
+    $form['galaxy_history'] = array(
+      '#type' => 'select',
+      '#title' => 'Galaxy history',
+      '#options' => $history_options,
+      '#description' => count($history_options) ? '' : 'Create and save a history in your Galaxy account.',
+      '#required' => TRUE,
+    );
+
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Send data to Galaxy'),
@@ -516,22 +570,16 @@ function cartogratree_data_collection_form_validate($form, &$form_state) {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form_submit($form, &$form_state) {
+    // create file(s)
     global $user;
-//    $details = array(
-//      'uid' => $user->uid,
-//      'collection_name' => $form_state['values']['collection_name'],
-//      'bundle_name' => 'Need help with bundle name',
-//      'ids' => explode(',', $form_state['values']['individual_ids']),
-//      'fields' => array('min_temperature'),
-//      'description' => $form_state['values']['collection_description'],
-//    );
-//    
-//    tripal_create_collection($details);
-//    $form_state['redirect'] = 'cartogratree';
-//    dpm($form_state['values']);
-    
-    $file_name = date('Ymd_') . $user->uid . '_snps.tsv';
+    $file_name = realpath('.') . '/' . date('Ymd_') . $user->uid . '_snps.tsv';
     $data = str_replace("'", '', explode(',', $form_state['input']['ids']));
     $file = file_put_contents($file_name, $data);
-    tripal_add_remote_job('CartograTree analysis', 'command_here', array($file), TRUE);
+    // upload file(s) to selected history
+    $galaxy = explode (',', $form_state['values']['galaxy_server']);
+    $cmd = realpath('.') . '/' . drupal_get_path('module', 'cartogratree') . '/includes/galaxy_api/upload_to_history.py ' . $galaxy[1] . ' ' .$galaxy[0] . '/galaxy ' . $form_state['values']['galaxy_history'] . ' ' . $file_name;
+    `python $cmd`;
+    // redirect user to galaxy instance
+    $form_state['redirect'] = $galaxy[0];
+
 }
