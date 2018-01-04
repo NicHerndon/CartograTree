@@ -568,6 +568,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#id' => 'cartogratree_group_name',
           '#options' => $options,
           '#default_value' => (isset($obj->group_id)) ? $obj->group_id : 0,
+          '#required' => TRUE,
         );
 
         $options = array();
@@ -589,6 +590,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
           '#default_value' => (isset($obj->subgroup_id)) ? $obj->subgroup_id : 'None',
           '#prefix' => '<div id="cartogratree_subgroup_name_div">',
           '#suffix' => '</div>',
+          '#required' => TRUE,
         );
 
         $form['layer_rank'] = array(
