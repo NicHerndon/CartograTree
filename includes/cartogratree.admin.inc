@@ -1171,7 +1171,7 @@ function cartogratree_admin_settings_field_form($form, &$form_state) {
         );
 
         $form['field_values'] = array(
-          '#type' => 'textfield',
+          '#type' => 'textarea',
           '#title' => 'Field values',
           '#description' => 'Range for slider (e.g., 0..20), and semi-colon sperated list for radio and check.',
           '#default_value' => (isset($obj->field_values)) ? $obj->field_values : '',
