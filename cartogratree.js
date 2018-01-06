@@ -343,7 +343,7 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                         html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="checkbox" id="' + div_id + '_' + i +
-                                    '" name="' + div_id + '" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                                    '" name="' + div_id + '" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
