@@ -314,6 +314,95 @@ function cartogratree_preprocess_page(&$variables) {
         // Grab the roles and user id of the current user.
         $uid = $user->uid;
         $rids = is_array($user->roles) ? array_keys($user->roles) : array();
+
+        // get or set session_id
+        $session = array();
+        parse_str($_SERVER['QUERY_STRING'], $query_string);
+        if (isset($query_string['session_id'])) {
+            $records = db_query('
+                SELECT *
+                FROM {cartogratree_sessions}
+                WHERE session_id=:session_id
+                ORDER BY id', array(':session_id' => $query_string['session_id']));
+            $ids = array();
+            foreach ($records as $r) {
+                array_push($ids, array('id' => $r->id, 'op_type' => $r->operation_type));
+            }
+            if(count($ids) > 0) {   // session_id exists in database
+                // write session to database
+                $record = array(
+                  'session_id' => $query_string['session_id'],
+                  'operation_type' => 1,    // read
+                  'operation_timestamp' => date('Y-m-d H:i:s'),
+                  'remote_addr' => $_SERVER['REMOTE_ADDR'],
+                  'http_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+                  'uid' => $uid,
+                  'rid' => "'" . implode(',', $rids) . "'",
+                );
+                drupal_write_record('cartogratree_sessions', $record);
+                // get session details to pass to JS - check user permissions
+                $id = 'none';
+                foreach($ids as $key => $val) {
+                    if ($val['op_type'] == 2) { // details (layers, filters, records) for session_id were written to database
+                        $id = $val['id'];
+                    }
+                }
+                $session_id = $query_string['session_id'];
+                $session['id'] = $session_id;
+                if($id != 'none') {
+                    // layers
+                    $records = db_query('
+                        SELECT *
+                        FROM {cartogratree_session_layers}
+                        WHERE id=:id
+                        ORDER BY layer_id', array(':id' => $id));
+                    $layers = array();
+                    foreach ($records as $r) {
+                        array_push($layers, $r->layer_id);
+                    }
+                    $session['layers'] = $layers;
+                    // filters
+                    $records = db_query('
+                        SELECT *
+                        FROM {cartogratree_session_filters}
+                        WHERE id=:id
+                        ORDER BY layer_id, filter_id', array(':id' => $id));
+                    $filters = array();
+                    foreach ($records as $r) {
+                        array_push($filters, array($r->filter_id => $r->layer_id));
+                    }
+                    $session['filters'] = $filters;
+                }
+            }
+            else {          // session_id does not exist in database
+                $path = explode('/', $_SERVER['REQUEST_URI']);
+                $path[count($path) - 1] = 'cartogratree_invalid_session_id';
+                $location = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . implode('/', $path);
+                header('Location: ' . $location);
+                exit();
+                // add redirect in Drupal back to cartogratree
+            }
+        }
+        else {  // create session_id, record in database, and redirect user to URL with session_id
+            $date = date('Y-m-d H:i:s');
+            $session_id = md5($date . rand(0,99));
+            // write session to database
+            $record = array(
+              'session_id' => $session_id,
+              'operation_type' => 0,    // insert
+              'operation_timestamp' => $date,
+              'remote_addr' => $_SERVER['REMOTE_ADDR'],
+              'http_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+              'uid' => $uid,
+              'rid' => "'" . implode(',', $rids) . "'",
+            );
+            drupal_write_record('cartogratree_sessions', $record);
+            // redirect client to updated URL
+            $location = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?session_id=' . $session_id;
+            header('Location: ' . $location);
+            exit();
+        }
+        
         // Only grab layers that the current user has permission to see.
         $records = db_query('
             SELECT l.layer_id, l.title, l.name, l.url, l.layer_rank, l.trees_layer, l.layer_type, g.group_name, s.subgroup_name, g.group_rank, gs.subgroup_rank
@@ -390,6 +479,7 @@ function cartogratree_preprocess_page(&$variables) {
           ),
           'layers' => $layers,
           'fields' => $fields,
+          'session' => $session,
         );
         drupal_add_js($settings, 'setting');
     }

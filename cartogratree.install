@@ -293,6 +293,112 @@ function cartogratree_schema() {
       'primary key' => array('latitude', 'longitude', 'layer_id', 'field_id'),
     );
 
+    $schema['cartogratree_sessions'] = array(
+      'description' => 'Keeps track of sessions.',
+      'fields' => array(
+        'id' => array(
+          'description' => 'Primary Key',
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'session_id' => array(
+          'description' => 'Session identifier.',
+          'type' => 'char',
+          'length' => 32,
+        ),
+        'operation_type' => array(
+          'description' => 'Type of operation for this session_id: 0/insert, 1/read, or 2/write.',
+          'type' => 'int',
+        ),
+        'operation_timestamp' => array(
+          'description' => 'Time when operation was performed for this session_id.',
+          'type' => 'varchar',
+          'length' => 20,
+        ),
+        'remote_addr' => array(
+          'description' => 'IP address of the client.',
+          'type' => 'varchar',
+          'length' => 16,
+        ),
+        'http_user_agent' => array(
+          'description' => 'Browser details of the client.',
+          'type' => 'varchar',
+          'length' => 1024,
+        ),
+        'uid' => array(
+          'description' => 'Drupal user ID.',
+          'type' => 'int',
+        ),
+        'rids' => array(
+          'description' => 'Drupal role IDs.',
+          'type' => 'varchar',
+          'length' => 10,
+        ),
+      ),
+      'primary key' => array('id'),
+    );
+
+    $schema['cartogratree_session_layers'] = array(
+      'description' => 'Keeps track of layers used in each session.',
+      'fields' => array(
+        'id' => array(
+          'description' => 'Primary Key of cartogratree_sessions.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'layer_id' => array(
+          'description' => 'Layer ID.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('id', 'layer_id'),
+    );
+
+    $schema['cartogratree_session_filters'] = array(
+      'description' => 'Keeps track of filters used in each session.',
+      'fields' => array(
+        'id' => array(
+          'description' => 'Primary Key of cartogratree_sessions.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'layer_id' => array(
+          'description' => 'Layer ID.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'filter_id' => array(
+          'description' => 'Filter ID.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'field_value' => array(
+          'description' => 'Value selected for this field.',
+          'type' => 'varchar',
+          'length' => 128,
+        ),
+      ),
+      'primary key' => array('id', 'layer_id', 'filter_id'),
+    );
+
+    $schema['cartogratree_session_records'] = array(
+      'description' => 'Keeps track of individuals selected in each session.',
+      'fields' => array(
+        'id' => array(
+          'description' => 'Primary Key of cartogratree_sessions.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'record_id' => array(
+          'description' => 'ID of the individual/tree.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('id', 'record_id'),
+    );
+
     return $schema;
 }
 
@@ -312,6 +418,7 @@ function cartogratree_update_7002() {
 function cartogratree_update_7003() {
     // drush updatedb
     // Drupal data types: https://www.drupal.org/node/159605
+    // PostgreSQL data types: https://www.postgresql.org/docs/9.5/static/datatype.html
     db_create_table(
         'cartogratree_environmental_values',
         array(
@@ -364,4 +471,132 @@ function cartogratree_update_7004() {
             'length' => 20,
         ),
         array('primary key' => array('latitude', 'longitude', 'layer_id', 'field_id')));
+}
+
+function cartogratree_update_7005() {
+    db_create_table(
+        'cartogratree_sessions',
+        array(
+            'description' => 'Keeps track of sessions.',
+            'fields' => array(
+              'id' => array(
+                'description' => 'Primary Key',
+                'type' => 'serial',
+                'not null' => TRUE,
+              ),
+              'session_id' => array(
+                'description' => 'Session identifier.',
+                'type' => 'char',
+                'length' => 32,
+              ),
+              'operation_type' => array(
+                'description' => 'Type of operation for this session_id: 0/insert, 1/read, or 2/write.',
+                'type' => 'int',
+              ),
+              'operation_timestamp' => array(
+                'description' => 'Time when operation was performed for this session_id.',
+                'type' => 'varchar',
+                'length' => 20,
+              ),
+              'remote_addr' => array(
+                'description' => 'IP address of the client.',
+                'type' => 'varchar',
+                'length' => 16,
+              ),
+              'http_user_agent' => array(
+                'description' => 'Browser details of the client.',
+                'type' => 'varchar',
+                'length' => 1024,
+              ),
+              'uid' => array(
+                'description' => 'Drupal user ID.',
+                'type' => 'int',
+              ),
+              'rid' => array(
+                'description' => 'Drupal role ID.',
+                'type' => 'int',
+              ),
+            ),
+            'primary key' => array('id'),
+        )
+    );
+
+    db_create_table(
+        'cartogratree_session_layers',
+        array(
+            'description' => 'Keeps track of layers used in each session.',
+            'fields' => array(
+              'id' => array(
+                'description' => 'Primary Key of cartogratree_sessions.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+              'layer_id' => array(
+                'description' => 'Layer ID.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+            ),
+            'primary key' => array('id', 'layer_id'),
+        )
+    );
+
+    db_create_table(
+        'cartogratree_session_filters',
+        array(
+            'description' => 'Keeps track of filters used in each session.',
+            'fields' => array(
+              'id' => array(
+                'description' => 'Primary Key of cartogratree_sessions.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+              'layer_id' => array(
+                'description' => 'Layer ID.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+              'filter_id' => array(
+                'description' => 'Filter ID.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+              'field_value' => array(
+                'description' => 'Value selected for this field.',
+                'type' => 'varchar',
+                'length' => 128,
+              ),
+            ),
+            'primary key' => array('id', 'layer_id', 'filter_id'),
+        )
+    );
+
+    db_create_table(
+        'cartogratree_session_records',
+        array(
+            'description' => 'Keeps track of individuals selected in each session.',
+            'fields' => array(
+              'id' => array(
+                'description' => 'Primary Key of cartogratree_sessions.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+              'record_id' => array(
+                'description' => 'ID of the individual/tree.',
+                'type' => 'int',
+                'not null' => TRUE,
+              ),
+            ),
+            'primary key' => array('id', 'record_id'),
+        )
+    );
+}
+
+function cartogratree_update_7006() {
+    db_change_field('cartogratree_sessions', 'rid', 'rids',
+        array(
+            'description' => 'Drupal role IDs.',
+            'type' => 'varchar',
+            'length' => 10,
+        ));
 }

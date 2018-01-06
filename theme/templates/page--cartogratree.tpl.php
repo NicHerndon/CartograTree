@@ -111,8 +111,10 @@ print $messages;
             <!-- 'Analyze' tab content -->
             <div id="cartogratree_step_3">
                 <form name="cartogratree_data_collection_form" action="cartogratree_data_collection" method="POST">
-                    <input type="hidden" id="cartogratree_data_collection_individual_ids" name="cartogratree_data_collection_individual_ids" value="" />
+                    <input type="hidden" id="cartogratree_session_id" name="cartogratree_session_id" value="<?php parse_str($_SERVER['QUERY_STRING'], $query_string); echo $query_string['session_id']; ?>" />
                     <input type="hidden" id="cartogratree_data_collection_layer_ids" name="cartogratree_data_collection_layer_ids" value="" />
+                    <input type="hidden" id="cartogratree_data_collection_filters" name="cartogratree_data_collection_filters" value="" />
+                    <input type="hidden" id="cartogratree_data_collection_individual_ids" name="cartogratree_data_collection_individual_ids" value="" />
                     <input type="submit" value="Collecting data from map. Please wait" id="cartogratree_create_data_collection" disabled />
                 </form>
             </div> 
