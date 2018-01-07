@@ -431,6 +431,7 @@ function cartogratree_preprocess_page(&$variables) {
 //        $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_rank'] = $record->layer_rank;
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['trees_layer'] = $record->trees_layer;
             $groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_type'] = $record->layer_type;
+            $layers["cartogratree_layer_" . $record->layer_id]['layer_id'] = $record->layer_id;
             $layers["cartogratree_layer_" . $record->layer_id]['name'] = $record->name;
             $layers["cartogratree_layer_" . $record->layer_id]['title'] = $record->title;
             $layers["cartogratree_layer_" . $record->layer_id]['url'] = $record->url;

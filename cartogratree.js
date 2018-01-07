@@ -4,6 +4,7 @@
  */
 'use strict';
 var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, cartogratree_trees_layer_cql_filter = {};
+var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][field_value] = 'selected'
 
 (function ($) {
     Drupal.behaviors.cartogratree = {
@@ -261,6 +262,8 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                                 });
                                 cartogratree_map.addLayer(cartogratree_mid_layer[this.id]);
                             }
+                            // update session details
+                            cartogratree_session[Drupal.settings.layers[this.id].layer_id] = {};
                             // add filter(s) for this layer
                             if (Drupal.settings.layers[this.id]['filters']) {
                                 add_filters(this.id);
@@ -271,6 +274,8 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                             cartogratree_map.removeLayer(cartogratree_mid_layer[this.id]);
                             // remove layer from associative array
                             delete cartogratree_mid_layer[this.id];
+                            // update session details
+                            delete cartogratree_session[Drupal.settings.layers[this.id].layer_id];
                             // remove filter(s) for this layer
                             remove_filters(this.id + '_accordion', cartogratree_gis);
                             break;
@@ -310,14 +315,19 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
         }
         // add filter(s) to accordion wrapper
         var layer_name = Drupal.settings.layers[id].name;
+        var layer_id = Drupal.settings.layers[id].layer_id;
         for (var key in Drupal.settings.fields[layer_name]) {
             if (key !== 'Human-readable name for the layer' && key !== 'Layer ID' && Drupal.settings.fields[layer_name][key]['Filter data by this field'] === '1') {
                 var display_name = Drupal.settings.fields[layer_name][key]['Field name shown to user'];
                 var Values = Drupal.settings.fields[layer_name][key]['Values'];
+                var field_id = Drupal.settings.fields[layer_name][key]['Field ID'];
+                cartogratree_session[layer_id][field_id] = {};  // update session details
                 switch (Drupal.settings.fields[layer_name][key]['Type of filter']) {
                     case 'slider':
-                        var div_id = id + '_slider_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var div_id = id + '_slider_filter_' + field_id;
                         var values = Values.split("..");
+                        cartogratree_session[layer_id][field_id]['min'] = values[0];   // update session details
+                        cartogratree_session[layer_id][field_id]['max'] = values[1];   // update session details
                         html_content = '<div id="' + div_id + '_caption">' + display_name + ': ' + Values + '</div>\n';
                         html_content += '<div id="' + div_id + '"></div>\n';
                         $('#' + id + '_accordion_filters').append(html_content);
@@ -336,7 +346,7 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                         });
                         break;
                     case 'checkbox':
-                        var div_id = id + '_checkbox_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var div_id = id + '_checkbox_filter_' + field_id;
                         var values = Values.split(";");
                         html_content = '<div id="' + div_id + '">\n';
                         html_content += '<fieldset>\n';
@@ -344,6 +354,7 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="checkbox" id="' + div_id + '_' + i +
                                     '" name="' + div_id + '" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                            cartogratree_session[layer_id][field_id][values[i]] = 'selected';   // update session details
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
@@ -355,14 +366,21 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                         });
                         break;
                     case 'radio':
-                        var div_id = id + '_radio_filter_' + Drupal.settings.fields[layer_name][key]['Field ID'];
+                        var div_id = id + '_radio_filter_' + field_id;
                         var values = Values.split(";");
                         html_content = '<div id="' + div_id + '">\n';
                         html_content += '<fieldset>\n';
                         html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
-                            html_content += '<input type="radio" id="' + div_id + '_' + i +
-                                    '" name="radio" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                            if (i == 0) {
+                                html_content += '<input type="radio" id="' + div_id + '_' + i +
+                                        '" name="radio" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                                cartogratree_session[layer_id][field_id][values[i]] = 'selected';   // update session details
+                            }
+                            else {
+                                html_content += '<input type="radio" id="' + div_id + '_' + i +
+                                        '" name="radio" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+                            }
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
@@ -406,6 +424,7 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
         var id_tokens = id.split('_'), layer = {}, filter = {};
         // get layer details
         layer['id'] = id_tokens.slice(0, 3).join('_');
+        layer['layer_id'] = Drupal.settings.layers[layer['id']].layer_id;
         layer['type'] = Drupal.settings.layers[layer['id']].layer_type;     // vector or raster
         layer['name'] = Drupal.settings.layers[layer['id']].name;           // key for Drupal.settings.fields
         layer['trees'] = Drupal.settings.layers[layer['id']].trees_layer;   // yes(1) or no(0)
@@ -418,12 +437,14 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                 filter['name'] = key;
             }
         }
+        cartogratree_session[layer.layer_id][filter.id] = {};   // update session details
         switch (filter['type']) {
             case 'checkbox':
                 filter['values'] = Array();
                 var x = $("input[type='checkbox'][name=" + id + "]:checked").serializeArray();
                 $.each(x, function (i, field) {
                     filter['values'].push(field.value);
+                    cartogratree_session[layer.layer_id][filter.id][field.value] = 'selected';  // update session details
                 });
                 break;
             case 'radio':
@@ -431,10 +452,14 @@ var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, car
                 var x = $("#" + id + " input[type='radio']:checked").serializeArray();
                 $.each(x, function (i, field) {
                     filter['values'].push(field.value);
+                    cartogratree_session[layer.layer_id][filter.id][field.value] = 'selected';  // update session details
                 });
                 break;
             case 'slider':
-                filter['values'] = $('#' + id).slider('values');
+                var values = $('#' + id).slider('values');
+                cartogratree_session[layer.layer_id][filter.id]['min'] = values[0];             // update session details
+                cartogratree_session[layer.layer_id][filter.id]['max'] = values[1];             // update session details
+                filter['values'] = values;
                 break;
         }
         // create filter
