@@ -519,8 +519,10 @@ function cartogratree_data_collection_form($form, &$form_state) {
 
     $http_referer_path = explode('/', parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH));
     $request_uri = explode('/', $_SERVER['REQUEST_URI']);
+    $session_id = '';
+//    dpm($_SERVER);
     // if origin is cartogratree page on this server then write session details to database
-    if (parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST) == $_SERVER['HTTP_HOST'] && $http_referer_path[count($request_uri) - 1] == 'cartogratree') {
+    if (isset($_SERVER['HTTP_ORIGIN']) && parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST) == $_SERVER['HTTP_HOST'] && $http_referer_path[count($request_uri) - 1] == 'cartogratree') {
         parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $query_string);
         $session_id = $query_string['session_id'];
         
@@ -534,7 +536,8 @@ function cartogratree_data_collection_form($form, &$form_state) {
           'remote_addr' => $_SERVER['REMOTE_ADDR'],
           'http_user_agent' => $_SERVER['HTTP_USER_AGENT'],
           'uid' => $uid,
-          'rid' => "'" . implode(',', $rids) . "'",
+//          'rid' => "'" . implode(',', $rids) . "'",
+          'rid' => implode(',', $rids),
         );
         drupal_write_record('cartogratree_sessions', $record);
         // get latest ID for this session
@@ -558,7 +561,8 @@ function cartogratree_data_collection_form($form, &$form_state) {
                       'id' => $id,
                       'layer_id' => $layer_id,
                       'filter_id' => $field_id,
-                      'field_value' => "'" . $val . "'",
+//                      'field_value' => "'" . $val . "'",
+                      'field_value' => $val,
                     );
                     drupal_write_record('cartogratree_session_filters', $record);
 //                    dpm('cartogratree_session_filters: layer_id=>'.$layer_id.' filter_id=>'.$field_id." field_value=>'".$val."'");
@@ -575,6 +579,15 @@ function cartogratree_data_collection_form($form, &$form_state) {
 //            dpm("cartogratree_session_records: record_id'" . $record_id . "'");
         }
     }
+    else {
+        parse_str($_SERVER['QUERY_STRING'], $query_string);
+        $session_id = $query_string['cartogratree_session_id'];
+    }
+
+    $form['session_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $session_id,
+    );
     
     // Only grab galaxy instances the current user has created.
     $records = db_query('SELECT url, api_key, servername
@@ -632,20 +645,6 @@ function cartogratree_data_collection_form($form, &$form_state) {
       '#value' => t('Send data to Galaxy'),
     );
     
-//    $ids = (isset($_POST['cartogratree_data_collection_individual_ids']))
-//        ? $_POST['cartogratree_data_collection_individual_ids']
-//        : "''";
-//
-//    $form['ids'] = array(
-//      '#type' => 'hidden',
-//      '#value' => $ids,
-//    );
-//    
-////    $form['layer_ids'] = array(
-////      '#type' => 'hidden',
-////      '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
-////    );
-////
 ////    $form['collection_name'] = array(
 ////      '#type' => 'textfield',
 ////      '#title' => 'Collection name',
@@ -714,19 +713,21 @@ function cartogratree_data_collection_form($form, &$form_state) {
 }
 
 function cartogratree_data_collection_form_validate($form, &$form_state) {
-//    dpm($form_state);
-    if(!isset($form_state['input']['ids'])) {
-        form_set_error('ids', 'No IDs passed!');        
-    }
+    // TO DO: check that user has access to record_ids and layers passed to form
 
-    $db_ids = array();
-    $results = db_query('select uniquename from {chado.ct_view}');
-    foreach ($results as $r) {
-        array_push($db_ids, "'" . $r->uniquename . "'");
-    }
-    if (count(array_diff(explode(',', $form_state['input']['ids']), $db_ids))) {
-        form_set_error('ids', 'Invalid IDs passed!');
-    }
+////    dpm($form_state);
+//    if(!isset($form_state['input']['ids'])) {
+//        form_set_error('ids', 'No IDs passed!');        
+//    }
+//
+//    $db_ids = array();
+//    $results = db_query('select uniquename from {chado.ct_view}');
+//    foreach ($results as $r) {
+//        array_push($db_ids, "'" . $r->uniquename . "'");
+//    }
+//    if (count(array_diff(explode(',', $form_state['input']['ids']), $db_ids))) {
+//        form_set_error('ids', 'Invalid IDs passed!');
+//    }
 }
 
 /**
@@ -734,10 +735,20 @@ function cartogratree_data_collection_form_validate($form, &$form_state) {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form_submit($form, &$form_state) {
+    $ids = array();
+    foreach ($form_state['values']['table'] as $id => $selected) {
+        if (isset($selected) && $selected != '') {
+            array_push($ids, $id);
+        }
+    }
+    // query the database using these ids
     // create file(s)
     global $user;
     $file_name = realpath('.') . '/' . date('Ymd_') . $user->uid . '_snps.tsv';
-    $data = str_replace("'", '', explode(',', $form_state['input']['ids']));
+    $data = '';
+    foreach ($ids as $id) {
+        $data .= $id . PHP_EOL;
+    }
     $file = file_put_contents($file_name, $data);
     // upload file(s) to selected history
     $galaxy = explode (',', $form_state['values']['galaxy_server']);
