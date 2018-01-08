@@ -512,9 +512,70 @@ function cartogratree_permission() {
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form($form, &$form_state) {
-    global $user;
     // Grab the user id of the current user.
+    global $user;
     $uid = $user->uid;
+    $rids = is_array($user->roles) ? array_keys($user->roles) : array();
+
+    $http_referer_path = explode('/', parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH));
+    $request_uri = explode('/', $_SERVER['REQUEST_URI']);
+    // if origin is cartogratree page on this server then write session details to database
+    if (parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST) == $_SERVER['HTTP_HOST'] && $http_referer_path[count($request_uri) - 1] == 'cartogratree') {
+        parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $query_string);
+        $session_id = $query_string['session_id'];
+        
+//        dpm(json_decode($_POST['cartogratree_session'], true));
+        
+        // write session details to database
+        $record = array(
+          'session_id' => $session_id,
+          'operation_type' => 2,    // write
+          'operation_timestamp' => date('Y-m-d H:i:s'),
+          'remote_addr' => $_SERVER['REMOTE_ADDR'],
+          'http_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+          'uid' => $uid,
+          'rid' => "'" . implode(',', $rids) . "'",
+        );
+        drupal_write_record('cartogratree_sessions', $record);
+        // get latest ID for this session
+        $records = db_query('SELECT id FROM {cartogratree_sessions} WHERE session_id=:session_id AND operation_type = 2 ORDER BY id', array(':session_id' => $session_id));
+        $id = '';
+        foreach ($records as $r) {
+            $id = $r->id;
+        }
+
+        $cartogratree_session = json_decode($_POST['cartogratree_session'], true);
+        foreach ($cartogratree_session['layers'] as $layer_id => $layer) {
+            $record = array(
+              'id' => $id,
+              'layer_id' => $layer_id,
+            );
+            drupal_write_record('cartogratree_session_layers', $record);
+//            dpm('cartogratree_session_layers: layer_id=>'.$layer_id);
+            foreach ($layer['fields'] as $field_id => $field) {
+                foreach ($field['values'] as $val => $dmy) {
+                    $record = array(
+                      'id' => $id,
+                      'layer_id' => $layer_id,
+                      'filter_id' => $field_id,
+                      'field_value' => "'" . $val . "'",
+                    );
+                    drupal_write_record('cartogratree_session_filters', $record);
+//                    dpm('cartogratree_session_filters: layer_id=>'.$layer_id.' filter_id=>'.$field_id." field_value=>'".$val."'");
+                }
+            }
+        }
+        foreach ($cartogratree_session['records']['list'] as $record_id => $dmy) {
+            $record = array(
+              'id' => $id,
+//              'record_id' => "'" . $record_id . "'",
+              'record_id' => $record_id,
+            );
+            drupal_write_record('cartogratree_session_records', $record);
+//            dpm("cartogratree_session_records: record_id'" . $record_id . "'");
+        }
+    }
+    
     // Only grab galaxy instances the current user has created.
     $records = db_query('SELECT url, api_key, servername
         FROM {tripal_galaxy}
@@ -571,31 +632,31 @@ function cartogratree_data_collection_form($form, &$form_state) {
       '#value' => t('Send data to Galaxy'),
     );
     
-    $ids = (isset($_POST['cartogratree_data_collection_individual_ids']))
-        ? $_POST['cartogratree_data_collection_individual_ids']
-        : "''";
-
-    $form['ids'] = array(
-      '#type' => 'hidden',
-      '#value' => $ids,
-    );
-    
-//    $form['layer_ids'] = array(
+//    $ids = (isset($_POST['cartogratree_data_collection_individual_ids']))
+//        ? $_POST['cartogratree_data_collection_individual_ids']
+//        : "''";
+//
+//    $form['ids'] = array(
 //      '#type' => 'hidden',
-//      '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
+//      '#value' => $ids,
 //    );
-//
-//    $form['collection_name'] = array(
-//      '#type' => 'textfield',
-//      '#title' => 'Collection name',
-//      '#description' => 'Unique name to identify this data set in Galaxy.',
-//    );
-//
-//    $form['collection_description'] = array(
-//      '#type' => 'textfield',
-//      '#title' => 'Collection description',
-//      '#description' => 'Description for this data collection.',
-//    );
+//    
+////    $form['layer_ids'] = array(
+////      '#type' => 'hidden',
+////      '#value' => (isset($_POST['cartogratree_data_collection_layer_ids'])) ? $_POST['cartogratree_data_collection_layer_ids'] : 'a',
+////    );
+////
+////    $form['collection_name'] = array(
+////      '#type' => 'textfield',
+////      '#title' => 'Collection name',
+////      '#description' => 'Unique name to identify this data set in Galaxy.',
+////    );
+////
+////    $form['collection_description'] = array(
+////      '#type' => 'textfield',
+////      '#title' => 'Collection description',
+////      '#description' => 'Description for this data collection.',
+////    );
         
     $header = array(
       'uniquename' => array('data' => t('Tree ID'), 'field' => 'n.uniquename', 'sort' => 'asc'),
@@ -607,16 +668,28 @@ function cartogratree_data_collection_form($form, &$form_state) {
       'longitude' => array('data' => t('Longitude'), 'field' => 'n.longitude'),
       'coordinate_type' => array('data' => t('Coordinate type'), 'field' => 'n.coordinate_type'),
     );
-//    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
-//    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $ids));
-    $results = db_query('select * from {chado.ct_view} where uniquename in (' . $ids . ')');
-//    $results = db_select('chado.ct_view', 'v')
-//        ->extend('PagerDefault')
-//        ->fields('v')
-//        ->condition('uniquename', explode(',', $_POST['cartogratree_data_collection_individual_ids']), 'IN')
-//        ->limit(25)
-//        ->execute();
-    $options = array();
+
+    // get latest ID for this session
+    $id = '';
+    $records = db_query('SELECT id FROM {cartogratree_sessions} WHERE session_id=:session_id AND operation_type = 2 ORDER BY id', array(':session_id' => $session_id));
+    foreach ($records as $r) {
+        $id = $r->id;
+    }
+    $results = db_query('
+        SELECT	t2.*
+        FROM	{cartogratree_session_records} as t1
+        JOIN	{chado.ct_view} as t2 on t1.record_id = t2.uniquename
+        WHERE	t1.id=:id', array(':id' => $id));
+////    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
+////    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $ids));
+//    $results = db_query('select * from {chado.ct_view} where uniquename in (' . $ids . ')');
+////    $results = db_select('chado.ct_view', 'v')
+////        ->extend('PagerDefault')
+////        ->fields('v')
+////        ->condition('uniquename', explode(',', $_POST['cartogratree_data_collection_individual_ids']), 'IN')
+////        ->limit(25)
+////        ->execute();
+//    $options = array();
     foreach ($results as $r) {
         $options[$r->uniquename] = array(
             'uniquename' => $r->uniquename,

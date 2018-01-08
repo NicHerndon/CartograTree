@@ -392,7 +392,8 @@ function cartogratree_schema() {
         ),
         'record_id' => array(
           'description' => 'ID of the individual/tree.',
-          'type' => 'int',
+          'type' => 'varchar',
+          'length' => 128,
           'not null' => TRUE,
         ),
       ),
@@ -598,5 +599,15 @@ function cartogratree_update_7006() {
             'description' => 'Drupal role IDs.',
             'type' => 'varchar',
             'length' => 10,
+        ));
+}
+
+function cartogratree_update_7007() {
+    db_change_field('cartogratree_session_records', 'record_id', 'record_id',
+        array(
+            'description' => 'ID of the individual/tree.',
+            'type' => 'varchar',
+            'length' => 128,
+            'not null' => TRUE,
         ));
 }

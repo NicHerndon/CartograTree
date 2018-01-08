@@ -4,11 +4,16 @@
  */
 'use strict';
 var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, cartogratree_trees_layer_cql_filter = {};
-var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][field_value] = 'selected'
+var cartogratree_session = {'layers': {}, 'records': {}};
 
 (function ($) {
     Drupal.behaviors.cartogratree = {
         attach: function (context, settings) {
+            cartogratree_session.records = {
+                'list': {},
+                'add': {},
+                'remove': {},
+            };
             // Attach the map to the map square on the app page.
             var cartogratree_gis = Drupal.settings.cartogratree.gis;
             var target = 'cartogratree_map';
@@ -191,7 +196,7 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                         else {
                             $('#cartogratree_create_data_collection').val('Collecting data from map. Please wait');
                             $('#cartogratree_create_data_collection').prop('disabled', true);
-                            // === update in background #cartogratree_data_collection_individual_ids ===
+                            // === update in background #cartogratree_session ===
                             var cql_filter = (cartogratree_trees_layer.getSource().getParams().CQL_FILTER) ?
                                 '&cql_filter=' + cartogratree_trees_layer.getSource().getParams().CQL_FILTER : '';
                             $.ajax({
@@ -205,15 +210,17 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                                         var ids = Array();
                                         for (var feature_id in response) {
 //                                            ids.push(response[feature_id].properties.uniquename);
-                                            ids.push("'" + response[feature_id].properties.uniquename + "'");
+//                                            ids.push("'" + response[feature_id].properties.uniquename + "'");
+                                            cartogratree_session.records.list[response[feature_id].properties.uniquename] = 'selected';
                                         }
-                                        $('#cartogratree_data_collection_individual_ids').val(ids.join(','));
+//                                        $('#cartogratree_session').val(ids.join(','));
+                                        $('#cartogratree_session').val(JSON.stringify(cartogratree_session));
                                         $('#cartogratree_create_data_collection').val('Confirm data for analysis/proceed to table view');
                                         $('#cartogratree_create_data_collection').prop('disabled', false);
                                     }
                                 }
                             });
-                            // === End of: update in background #cartogratree_data_collection_individual_ids ===
+                            // === End of: update in background #cartogratree_session ===
                         }
                     }
                 }
@@ -263,7 +270,7 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                                 cartogratree_map.addLayer(cartogratree_mid_layer[this.id]);
                             }
                             // update session details
-                            cartogratree_session[Drupal.settings.layers[this.id].layer_id] = {};
+                            cartogratree_session.layers[Drupal.settings.layers[this.id].layer_id] = {'fields': {}};
                             // add filter(s) for this layer
                             if (Drupal.settings.layers[this.id]['filters']) {
                                 add_filters(this.id);
@@ -275,7 +282,7 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                             // remove layer from associative array
                             delete cartogratree_mid_layer[this.id];
                             // update session details
-                            delete cartogratree_session[Drupal.settings.layers[this.id].layer_id];
+                            delete cartogratree_session.layers[Drupal.settings.layers[this.id].layer_id];
                             // remove filter(s) for this layer
                             remove_filters(this.id + '_accordion', cartogratree_gis);
                             break;
@@ -321,13 +328,12 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                 var display_name = Drupal.settings.fields[layer_name][key]['Field name shown to user'];
                 var Values = Drupal.settings.fields[layer_name][key]['Values'];
                 var field_id = Drupal.settings.fields[layer_name][key]['Field ID'];
-                cartogratree_session[layer_id][field_id] = {};  // update session details
+                cartogratree_session.layers[layer_id]['fields'][field_id] = {'values': {}};  // update session details
                 switch (Drupal.settings.fields[layer_name][key]['Type of filter']) {
                     case 'slider':
                         var div_id = id + '_slider_filter_' + field_id;
                         var values = Values.split("..");
-                        cartogratree_session[layer_id][field_id]['min'] = values[0];   // update session details
-                        cartogratree_session[layer_id][field_id]['max'] = values[1];   // update session details
+                        cartogratree_session.layers[layer_id]['fields'][field_id]['values'][Values] = 'set';   // update session details
                         html_content = '<div id="' + div_id + '_caption">' + display_name + ': ' + Values + '</div>\n';
                         html_content += '<div id="' + div_id + '"></div>\n';
                         $('#' + id + '_accordion_filters').append(html_content);
@@ -353,8 +359,10 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                         html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
                             html_content += '<input type="checkbox" id="' + div_id + '_' + i +
-                                    '" name="' + div_id + '" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
-                            cartogratree_session[layer_id][field_id][values[i]] = 'selected';   // update session details
+                                    '" name="' + div_id + '" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+//                                    '" name="' + div_id + '" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+//                            // update session details: add value to selected
+//                            cartogratree_session.layers[layer_id]['fields'][field_id]['values'][values[i]] = 'selected';
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
@@ -372,15 +380,16 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                         html_content += '<fieldset>\n';
                         html_content += '<legend>' + display_name + '</legend>\n';
                         for (var i = 0; i < values.length; i++) {
-                            if (i == 0) {
-                                html_content += '<input type="radio" id="' + div_id + '_' + i +
-                                        '" name="radio" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
-                                cartogratree_session[layer_id][field_id][values[i]] = 'selected';   // update session details
-                            }
-                            else {
+//                            if (i == 0) {
+//                                html_content += '<input type="radio" id="' + div_id + '_' + i +
+//                                        '" name="radio" value="' + values[i] + '" checked="checked"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
+//                                // update session details: add value to selected
+//                                cartogratree_session.layers[layer_id]['fields'][field_id]['values'][values[i]] = 'selected';
+//                            }
+//                            else {
                                 html_content += '<input type="radio" id="' + div_id + '_' + i +
                                         '" name="radio" value="' + values[i] + '"><label for="' + div_id + '_' + i + '">' + values[i] + '</label>';
-                            }
+//                            }
                         }
                         html_content += '</fieldset>\n';
                         html_content += '</div>\n';
@@ -437,14 +446,14 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                 filter['name'] = key;
             }
         }
-        cartogratree_session[layer.layer_id][filter.id] = {};   // update session details
+        cartogratree_session.layers[layer.layer_id]['fields'][filter.id] = {'values': {}};   // update session details
         switch (filter['type']) {
             case 'checkbox':
                 filter['values'] = Array();
                 var x = $("input[type='checkbox'][name=" + id + "]:checked").serializeArray();
                 $.each(x, function (i, field) {
                     filter['values'].push(field.value);
-                    cartogratree_session[layer.layer_id][filter.id][field.value] = 'selected';  // update session details
+                    cartogratree_session.layers[layer.layer_id]['fields'][filter.id]['values'][field.value] = 'selected';  // update session details
                 });
                 break;
             case 'radio':
@@ -452,13 +461,12 @@ var cartogratree_session = {};  // cartogratree_session[layer_id][field_id][fiel
                 var x = $("#" + id + " input[type='radio']:checked").serializeArray();
                 $.each(x, function (i, field) {
                     filter['values'].push(field.value);
-                    cartogratree_session[layer.layer_id][filter.id][field.value] = 'selected';  // update session details
+                    cartogratree_session.layers[layer.layer_id]['fields'][filter.id]['values'][field.value] = 'selected';  // update session details
                 });
                 break;
             case 'slider':
                 var values = $('#' + id).slider('values');
-                cartogratree_session[layer.layer_id][filter.id]['min'] = values[0];             // update session details
-                cartogratree_session[layer.layer_id][filter.id]['max'] = values[1];             // update session details
+                cartogratree_session.layers[layer.layer_id]['fields'][filter.id]['values'][values.join('..')] = 'set';  // update session details
                 filter['values'] = values;
                 break;
         }
