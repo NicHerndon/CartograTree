@@ -520,13 +520,10 @@ function cartogratree_data_collection_form($form, &$form_state) {
     $http_referer_path = explode('/', parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH));
     $request_uri = explode('/', $_SERVER['REQUEST_URI']);
     $session_id = '';
-//    dpm($_SERVER);
     // if origin is cartogratree page on this server then write session details to database
     if (isset($_SERVER['HTTP_ORIGIN']) && parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST) == $_SERVER['HTTP_HOST'] && $http_referer_path[count($request_uri) - 1] == 'cartogratree') {
         parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $query_string);
         $session_id = $query_string['session_id'];
-        
-//        dpm(json_decode($_POST['cartogratree_session'], true));
         
         // write session details to database
         $record = array(
@@ -536,7 +533,6 @@ function cartogratree_data_collection_form($form, &$form_state) {
           'remote_addr' => $_SERVER['REMOTE_ADDR'],
           'http_user_agent' => $_SERVER['HTTP_USER_AGENT'],
           'uid' => $uid,
-//          'rid' => "'" . implode(',', $rids) . "'",
           'rid' => implode(',', $rids),
         );
         drupal_write_record('cartogratree_sessions', $record);
@@ -554,36 +550,32 @@ function cartogratree_data_collection_form($form, &$form_state) {
               'layer_id' => $layer_id,
             );
             drupal_write_record('cartogratree_session_layers', $record);
-//            dpm('cartogratree_session_layers: layer_id=>'.$layer_id);
             foreach ($layer['fields'] as $field_id => $field) {
                 foreach ($field['values'] as $val => $dmy) {
                     $record = array(
                       'id' => $id,
                       'layer_id' => $layer_id,
                       'filter_id' => $field_id,
-//                      'field_value' => "'" . $val . "'",
                       'field_value' => $val,
                     );
                     drupal_write_record('cartogratree_session_filters', $record);
-//                    dpm('cartogratree_session_filters: layer_id=>'.$layer_id.' filter_id=>'.$field_id." field_value=>'".$val."'");
                 }
             }
         }
         foreach ($cartogratree_session['records']['list'] as $record_id => $dmy) {
             $record = array(
               'id' => $id,
-//              'record_id' => "'" . $record_id . "'",
               'record_id' => $record_id,
             );
             drupal_write_record('cartogratree_session_records', $record);
-//            dpm("cartogratree_session_records: record_id'" . $record_id . "'");
         }
+    }
+    else if ($_POST['cartogratree_session_id']) {
+        $session_id = $_POST['cartogratree_session_id'];
     }
     else {
         parse_str($_SERVER['QUERY_STRING'], $query_string);
         $session_id = $query_string['cartogratree_session_id'];
-//        $session_id = $_POST['cartogratree_session_id'];
-//        dpm($session_id);
     }
 
     $form['cartogratree_session_id'] = array(
@@ -646,18 +638,6 @@ function cartogratree_data_collection_form($form, &$form_state) {
       '#type' => 'submit',
       '#value' => t('Send data to Galaxy'),
     );
-    
-////    $form['collection_name'] = array(
-////      '#type' => 'textfield',
-////      '#title' => 'Collection name',
-////      '#description' => 'Unique name to identify this data set in Galaxy.',
-////    );
-////
-////    $form['collection_description'] = array(
-////      '#type' => 'textfield',
-////      '#title' => 'Collection description',
-////      '#description' => 'Description for this data collection.',
-////    );
         
     $header = array(
       'uniquename' => array('data' => t('Tree ID'), 'field' => 'n.uniquename', 'sort' => 'asc'),
