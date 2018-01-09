@@ -42,6 +42,8 @@
     bottom: 12px;
     left: -50px;
     min-width: 360px;
+    max-height: 240px;
+    overflow-y: scroll;
 }
 .cartogratree_ol_popup:after, .cartogratree_ol_popup:before {
     top: 100%;
@@ -66,9 +68,12 @@
 }
 .cartogratree_ol_popup_closer {
     text-decoration: none;
-    position: absolute;
+    position: sticky;
+    float: right;
+    top: 0px;
+/*    position: absolute;
     top: 2px;
-    right: 8px;
+    right: 8px;*/
 }
 .cartogratree_ol_popup_closer:after {
     content: "✖";

@@ -582,9 +582,11 @@ function cartogratree_data_collection_form($form, &$form_state) {
     else {
         parse_str($_SERVER['QUERY_STRING'], $query_string);
         $session_id = $query_string['cartogratree_session_id'];
+//        $session_id = $_POST['cartogratree_session_id'];
+//        dpm($session_id);
     }
 
-    $form['session_id'] = array(
+    $form['cartogratree_session_id'] = array(
       '#type' => 'hidden',
       '#value' => $session_id,
     );
