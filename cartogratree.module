@@ -570,7 +570,7 @@ function cartogratree_data_collection_form($form, &$form_state) {
             drupal_write_record('cartogratree_session_records', $record);
         }
     }
-    else if ($_POST['cartogratree_session_id']) {
+    else if (isset($_POST['cartogratree_session_id'])) {
         $session_id = $_POST['cartogratree_session_id'];
     }
     else {
@@ -709,12 +709,16 @@ function cartogratree_data_collection_form($form, &$form_state) {
         }
     }
     $form['table'] = array(
+      '#prefix' => '<div id="cartogratree_collection_table">',
       '#type' => 'tableselect',
       '#header' => $header,
       '#options' => $options,
       '#emtpy' => t('No trees selected.'),
       '#attributes' => array('width' => '100%'),
+      '#suffix' => '</div>',
     );
+
+    drupal_add_css(drupal_get_path('module', 'cartogratree') . '/cartogratree_data_collection.css');
 
     return $form;
 }
