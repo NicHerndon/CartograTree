@@ -582,6 +582,11 @@ function cartogratree_data_collection_form($form, &$form_state) {
       '#type' => 'hidden',
       '#value' => $session_id,
     );
+
+    $form['cartogratree_skip_fields'] = array(
+      '#type' => 'hidden',
+      '#value' => 'genus,species,subkingdom,family,latitude,longitude,coordinate_type',
+    );
     
     // Only grab galaxy instances the current user has created.
     $records = db_query('SELECT url, api_key, servername
@@ -679,8 +684,6 @@ function cartogratree_data_collection_form($form, &$form_state) {
         $query['from'] .= ' JOIN {cartogratree_environmental_values} as ' . $tbl_id . ' on t2.latitude = cast(' . $tbl_id . '.latitude as double precision) and t2.longitude = cast(' . $tbl_id . '.longitude as double precision) and ' . $tbl_id . '.field_id = ' . $r->field_id;
     }
     $query['where'] = ' WHERE t1.id=:id';
-//    dpm($query['select'] . $query['from'] . $query['where']);
-//    dpm($id);
     $results = db_query($query['select'] . $query['from'] . $query['where'], array(':id' => $id));
 //    $results = array();
 ////    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
@@ -723,42 +726,65 @@ function cartogratree_data_collection_form($form, &$form_state) {
     return $form;
 }
 
-function cartogratree_data_collection_form_validate($form, &$form_state) {
-    // TO DO: check that user has access to record_ids and layers passed to form
-
-////    dpm($form_state);
-//    if(!isset($form_state['input']['ids'])) {
-//        form_set_error('ids', 'No IDs passed!');        
-//    }
-//
-//    $db_ids = array();
-//    $results = db_query('select uniquename from {chado.ct_view}');
-//    foreach ($results as $r) {
-//        array_push($db_ids, "'" . $r->uniquename . "'");
-//    }
-//    if (count(array_diff(explode(',', $form_state['input']['ids']), $db_ids))) {
-//        form_set_error('ids', 'Invalid IDs passed!');
-//    }
-}
-
 /**
  * Prepare data collection to upload to Galaxy: Submission.
  * URL suffix: ?q=cartogratree_data_collection
  */
 function cartogratree_data_collection_form_submit($form, &$form_state) {
-    $ids = array();
-    foreach ($form_state['values']['table'] as $id => $selected) {
-        if (isset($selected) && $selected != '') {
-            array_push($ids, $id);
+    $env_tbl = array(); $skip_fields = array(); $used_fields = array();
+    // get the list of skipped fields/columns
+    foreach (explode(',', $form_state['values']['cartogratree_skip_fields']) as $id => $val) {
+        $skip_fields[$val] = $val;
+    }
+    // get the header row
+    $env_tbl[0] = array();
+    foreach($form['table']['#header'] as $key => $val) {
+        if (!isset($skip_fields[$key])) {
+            array_push($used_fields, $key);
+            array_push($env_tbl[0], preg_replace ('/\s+/', '_', $val['data']));
         }
     }
-    // query the database using these ids
+    // get the values for the selected records
+    foreach ($form_state['values']['table'] as $id => $selected) {
+        if (isset($selected) && $selected != '') {
+            $row = array(0 => $id);
+            foreach($form['table']['#options'][$id] as $key => $val) {
+                $index = array_search($key, $used_fields);
+                if($index) {
+                    $row[$index] = $val;
+                }
+            }
+            array_push($env_tbl, $row);
+        }
+    }
     // create file(s)
     global $user;
-    $file_name = realpath('.') . '/' . date('Ymd_') . $user->uid . '_snps.tsv';
+    // parameter file
+    $file_name = realpath('.') . '/' . date('Ymd_') . $user->uid . '_params.tsv';
+    $data = '# Do environmental and genetic files have headers?' . PHP_EOL;
+    $data .='HEADERS YES' . PHP_EOL;
+    $data .= '# Number of columns in the environmental input' . PHP_EOL;
+    $data .= 'NUMVARENV ' . (count($used_fields) - 1) . PHP_EOL;
+    $data .= '# Number of columns in the matrix of genetic data' . PHP_EOL;
+    $data .= 'NUMMARK ?' . PHP_EOL;
+    $data .= '# The number of individuals (the number of rows of each file without the header)' . PHP_EOL;
+    $data .= 'NUMINDIV ' . (count($env_tbl) - 1) . PHP_EOL;
+    $data .= '# The name of the column that contains the samples identifiers' . PHP_EOL;
+    $data .= 'IDINDIV Tree_ID' . PHP_EOL;
+    $data .= '# The maximal degree of complexity for the models that will be built' . PHP_EOL;
+    $data .= 'DIMMAX 2' . PHP_EOL;
+    $data .= '# How should the output be written?' . PHP_EOL;
+    $data .= 'SAVETYPE END ALL' . PHP_EOL;
+    $file = file_put_contents($file_name, $data);
+    // upload file(s) to selected history
+    $galaxy = explode (',', $form_state['values']['galaxy_server']);
+    $cmd = realpath('.') . '/' . drupal_get_path('module', 'cartogratree') . '/includes/galaxy_api/upload_to_history.py ' . $galaxy[1] . ' ' .$galaxy[0] . '/galaxy ' . $form_state['values']['galaxy_history'] . ' ' . $file_name;
+    `python $cmd`;
+    // environmental file
+    $file_name = realpath('.') . '/' . date('Ymd_') . $user->uid . '_env.tsv';
     $data = '';
-    foreach ($ids as $id) {
-        $data .= $id . PHP_EOL;
+    foreach ($env_tbl as $row) {
+        $data .= implode("\t", $row) . PHP_EOL;
     }
     $file = file_put_contents($file_name, $data);
     // upload file(s) to selected history
@@ -767,5 +793,4 @@ function cartogratree_data_collection_form_submit($form, &$form_state) {
     `python $cmd`;
     // redirect user to galaxy instance
     $form_state['redirect'] = $galaxy[0];
-
 }
