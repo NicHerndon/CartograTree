@@ -656,11 +656,33 @@ function cartogratree_data_collection_form($form, &$form_state) {
     foreach ($records as $r) {
         $id = $r->id;
     }
-    $results = db_query('
-        SELECT	t2.*
-        FROM	{cartogratree_session_records} as t1
-        JOIN	{chado.ct_view} as t2 on t1.record_id = t2.uniquename
-        WHERE	t1.id=:id', array(':id' => $id));
+    // get the ids of the environmental layers the user has selected and has permissions to
+    // along with the field ids that should be shown in the table and their display names
+    $records = db_query('select t1.layer_id, t4.field_id, t4.display_name
+                from	{cartogratree_layer_permissions} as t1
+                        join {cartogratree_session_layers} as t2 on t1.layer_id = t2.layer_id
+                        join {cartogratree_layers} as t3 on t1.layer_id = t3.layer_id
+                        join {cartogratree_fields} as t4 on t1.layer_id = t4.layer_id
+                where	(t1.uid = 11 or t1.rid = 2) and t2.id = :id and t3.trees_layer = 0 and t4.data_table = 1', array(':id' => $id));
+    $query = array (
+      'select' => 'SELECT t2.*',
+      'from' => ' FROM {cartogratree_session_records} as t1 JOIN {chado.ct_view} as t2 on t1.record_id = t2.uniquename',
+    );
+    $tbl_num = 3;
+    $fields = array();
+    foreach ($records as $r) {
+        $field_id = 'field' . $r->field_id;
+        $tbl_id = 't' . $tbl_num++;
+        $header[$field_id] = array('data' => t($r->display_name), 'field' => 'n.' . $field_id);
+        array_push($fields, $field_id);
+        $query['select'] .= ', ' .$tbl_id . '.field_value as ' . $field_id;
+        $query['from'] .= ' JOIN {cartogratree_environmental_values} as ' . $tbl_id . ' on t2.latitude = cast(' . $tbl_id . '.latitude as double precision) and t2.longitude = cast(' . $tbl_id . '.longitude as double precision) and ' . $tbl_id . '.field_id = ' . $r->field_id;
+    }
+    $query['where'] = ' WHERE t1.id=:id';
+//    dpm($query['select'] . $query['from'] . $query['where']);
+//    dpm($id);
+    $results = db_query($query['select'] . $query['from'] . $query['where'], array(':id' => $id));
+//    $results = array();
 ////    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $_POST['cartogratree_data_collection_individual_ids']));
 ////    $results = db_query("select * from {chado.ct_view} where uniquename in (:ids)", array(':ids' => $ids));
 //    $results = db_query('select * from {chado.ct_view} where uniquename in (' . $ids . ')');
@@ -682,6 +704,9 @@ function cartogratree_data_collection_form($form, &$form_state) {
             'longitude' => $r->longitude,
             'coordinate_type' => $r->coordinate_type,
         );
+        foreach ($fields as $f) {
+            $options[$r->uniquename][$f] = $r->$f;
+        }
     }
     $form['table'] = array(
       '#type' => 'tableselect',
