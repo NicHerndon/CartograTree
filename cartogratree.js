@@ -68,12 +68,12 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                 var coordinate = e.coordinate, tree = '';
                 var latlon = 'lat/lon: ' + e.coordinate[1].toFixed(3) + '/' + e.coordinate[0].toFixed(3) + '<br/>';
 
-                $('#cartogratree_ol_popup_content').html('');   // wipe-out popup content
+                $('#cartogratree_popup_right').html('');   // wipe-out popup content
                 // add location to popup content
                 var html_content = '<h4>Location</h4>\n';
                 html_content += '<table><tr><td>Latitude</td><td>' + e.coordinate[1].toFixed(3) + '</td></tr>\n';
                 html_content += '<tr><td>Longitude</td><td>' + e.coordinate[0].toFixed(3) + '</td></tr></table>';
-                $('#cartogratree_ol_popup_content').append(html_content);
+                $('#cartogratree_popup_right').append(html_content);
 
                 var hdms = ol.coordinate.toStringHDMS(e.coordinate);
                 // for each environmental layer used
@@ -111,7 +111,7 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                             table += '</table>';
                             if (table !== '<table></table>') {
                                 html_content = '<h4>' + Drupal.settings.fields[layer_name]["Human-readable name for the layer"] + '</h4>' + table;
-                                $('#cartogratree_ol_popup_content').append(html_content);
+                                $('#cartogratree_popup_right').append(html_content);
                             }
                         }
                     });
@@ -166,7 +166,7 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                                             table += '</table>';
                                             if (table !== '<table></table>') {
                                                 html_content = '<h4>' + Drupal.settings.fields[layer_names[l]]["Human-readable name for the layer"] + '</h4>' + table;
-                                                $('#cartogratree_ol_popup_content').append(html_content);
+                                                $('#cartogratree_popup_right').append(html_content);
                                             }
                                         }
                                     }

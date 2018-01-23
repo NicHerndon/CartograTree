@@ -36,65 +36,82 @@
     background-color: white;
     -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
     filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-    padding: 15px;
     border-radius: 10px;
+    width: 420px;
+    height: 240px;
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
-    min-width: 360px;
-    max-height: 240px;
-    overflow-y: scroll;
 }
 .cartogratree_ol_popup:after, .cartogratree_ol_popup:before {
+    position: absolute;
     top: 100%;
+    left: 48px;
     border: solid transparent;
     content: " ";
     height: 0;
     width: 0;
-    position: absolute;
     pointer-events: none;
 }
 .cartogratree_ol_popup:after {
     border-top-color: white;
     border-width: 10px;
-    left: 48px;
     margin-left: -10px;
 }
 .cartogratree_ol_popup:before {
     border-top-color: #cccccc;
     border-width: 11px;
-    left: 48px;
     margin-left: -11px;
 }
 .cartogratree_ol_popup_closer {
     text-decoration: none;
-    position: sticky;
-    float: right;
-    top: 0px;
-/*    position: absolute;
+    position: absolute;
     top: 2px;
-    right: 8px;*/
+    right: 8px;
 }
 .cartogratree_ol_popup_closer:after {
     content: "✖";
 }
-#cartogratree_ol_popup_content {
+#cartogratree_popup_right {
+    position: absolute;
+    left: 100px;
+    height: 160px;
+    width: 319px;
     overflow-x: auto;
+    overflow-y: scroll;
 }
-#cartogratree_ol_popup_content table {
+#cartogratree_popup_right table {
     border-collapse: collapse;
     width: 100%;
 }
-#cartogratree_ol_popup_content th, #cartogratree_ol_popup_content td {
-    padding: 8px;
+#cartogratree_popup_right th, #cartogratree_popup_right td {
+    padding-right: 8px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
-#cartogratree_ol_popup_content tr:hover {
+#cartogratree_popup_right tr:hover {
     background-color: #f5f5f5;
 }
-#cartogratree_ol_popup_content h4 {
-    background-color: powderblue;
+#cartogratree_popup_right h4 {
+    color: #3897A5;
+}
+
+#cartogratree_popup_header h3 {
+    background-color: #cccccc;
+    line-height: 30px;
+    text-indent: 100px;
+    vertical-align: middle;
+    margin: 0px;
+}
+#cartogratree_popup_left {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 90px;
+    height: 230px;
+    /*background-color: #ddd;*/
+    background-color: white;
+    border-radius: 5px;
 }
 
 /*jQuery UI*/

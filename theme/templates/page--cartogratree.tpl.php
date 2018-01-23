@@ -182,9 +182,13 @@ print $messages;
     </div>
     <!--End of map and info-->
 
-    <!-- pop-up window shown when the user clicks on one of the four maps -->
+    <!-- pop-up window shown when the user clicks on the map -->
     <div id="cartogratree_ol_popup" class="cartogratree_ol_popup">
         <a href="#" id="cartogratree_ol_popup_closer" class="cartogratree_ol_popup_closer"></a>
-        <div id="cartogratree_ol_popup_content"></div>
+        <div id="cartogratree_ol_popup_content">
+            <div id="cartogratree_popup_header"><h3>CartograTree</h3></div>
+            <div id="cartogratree_popup_left">Photo</div>
+            <div id="cartogratree_popup_right"></div>
+        </div>
     </div>
 </div>
