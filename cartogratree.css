@@ -96,11 +96,10 @@
     color: #3897A5;
 }
 
-#cartogratree_popup_header h3 {
+#cartogratree_popup_header {
     background-color: #cccccc;
-    line-height: 30px;
+    height: 60px;
     text-indent: 100px;
-    vertical-align: middle;
     margin: 0px;
 }
 #cartogratree_popup_left {
@@ -112,6 +111,29 @@
     /*background-color: #ddd;*/
     background-color: white;
     border-radius: 5px;
+}
+#cartogratree_tree_img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 90px;
+    height: 90px;
+    background-color: #ddd;
+    border-radius: 5px;
+}
+#cartogratree_logo_img {
+    position: absolute;
+    top: 180px;
+    left: 0;
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border-radius: 4px;
+    z-index: 1;
+}
+#cartogratree_popup_left button {
+    position: relative;
+    top: 95px;
 }
 
 /*jQuery UI*/
