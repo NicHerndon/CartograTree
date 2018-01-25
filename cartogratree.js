@@ -65,6 +65,7 @@ var cartogratree_session = {'layers': {}, 'records': {}};
             cartogratree_map.on('singleclick', function (e) {
                 cartogratree_map.removeOverlay(overlay);
                 e.map.addOverlay(overlay);
+                $('#cartogratree_popup_left').css({'display': 'none'});
                 var coordinate = e.coordinate, tree = '';
                 var latlon = 'lat/lon: ' + e.coordinate[1].toFixed(3) + '/' + e.coordinate[0].toFixed(3) + '<br/>';
 
@@ -116,64 +117,80 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                         }
                     });
                 }
-                // get tree(s) info - update this section to display only some info, not all of it
+                // get tree(s) info
                 var trees_layers = (cartogratree_trees_layer.getSource() !== null) ? cartogratree_trees_layer.getSource().i.LAYERS.split(',') : [];
-                var trees_popup_fields = 0;
-                var trees_url = [];
-                for (var l = 0; l < trees_layers.length; l++) {
+                for (var l = 0; l < trees_layers.length; l++) {     // foreach tree layer used
+                    var trees_popup_fields = 0;
                     for (var key in Drupal.settings.fields[trees_layers[l]]) {
                         if (key !== 'Human-readable name for the layer' && key !== 'Layer ID') {
                             trees_popup_fields += parseInt(Drupal.settings.fields[trees_layers[l]][key]['Show this field in maps pop-up']);
                         }
                     }
-                }
-                if (trees_popup_fields) {
-                    var trees_layer = new ol.layer.Tile({
-                        source: new ol.source.TileWMS({
-                            url: cartogratree_gis,
-                            params: {LAYERS: trees_layers},
-                        })
-                    });
-                    trees_url = trees_layer.getSource().getGetFeatureInfoUrl(
-                            e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
-                            // supported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
-                                    {'INFO_FORMAT': 'application/json'});
-                            $.ajax({
-                                url: trees_url,
-                                dataType: 'text',
-                                success: function (data, textStatus, jqXHR) {
-                                    var response = JSON.parse(data).features[0];
-                                    if (response) {
-                                        var layer_names = get_layer_names(this.url);
-                                        for (var l = 0; l < layer_names.length; l++) {
-                                            var table = '<table>';
-                                            for (var key in response.properties) {
-                                                // should this field be shown in the pop-up
-                                                if (Drupal.settings.fields[layer_names[l]] !== undefined && Drupal.settings.fields[layer_names[l]][key] !== undefined && Drupal.settings.fields[layer_names[l]][key]['Show this field in maps pop-up'] === '1') {
-                                                    // should this value be masked
-                                                    if (Drupal.settings.fields[layer_names[l]][key]['Value returned by layer that should be masked'] == response.properties[key]) {
-                                                        table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + Drupal.settings.fields[layer_names[l]][key]['Text shown to user for masked values'] + '</td></tr>';
+                    if (trees_popup_fields) {
+                        var trees_layer = new ol.layer.Tile({
+                            source: new ol.source.TileWMS({
+                                url: cartogratree_gis,
+                                params: {LAYERS: trees_layers[l]},
+                            })
+                        });
+                        var trees_url = trees_layer.getSource().getGetFeatureInfoUrl(
+                                e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
+                                // supported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
+                                {'INFO_FORMAT': 'application/json'});
+                        $.ajax({
+                            url: trees_url,
+                            dataType: 'text',
+                            success: function (data, textStatus, jqXHR) {
+                                var response = JSON.parse(data).features[0];
+                                if (response) {
+                                    var layer_names = get_layer_names(this.url);
+                                    for (var l = 0; l < layer_names.length; l++) {
+                                        var table = '<table>';
+                                        for (var key in response.properties) {
+                                            // should this field be shown in the pop-up
+                                            if (Drupal.settings.fields[layer_names[l]] !== undefined && Drupal.settings.fields[layer_names[l]][key] !== undefined && Drupal.settings.fields[layer_names[l]][key]['Show this field in maps pop-up'] === '1') {
+                                                // should this value be masked
+                                                if (Drupal.settings.fields[layer_names[l]][key]['Value returned by layer that should be masked'] == response.properties[key]) {
+                                                    table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + Drupal.settings.fields[layer_names[l]][key]['Text shown to user for masked values'] + '</td></tr>';
+                                                } else {
+                                                    // type of value: continuous or discrete
+                                                    if (Drupal.settings.fields[layer_names[l]][key]['Type of filter'] === 'slider') {
+                                                        table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key].toFixed(Drupal.settings.fields[layer_names[l]][key]['Precision used with range values']) + '</td></tr>';
                                                     } else {
-                                                        // type of value: continuous or discrete
-                                                        if (Drupal.settings.fields[layer_names[l]][key]['Type of filter'] === 'slider') {
-                                                            table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key].toFixed(Drupal.settings.fields[layer_names[l]][key]['Precision used with range values']) + '</td></tr>';
-                                                        } else {
-                                                            table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key] + '</td></tr>';
-                                                        }
+                                                        table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key] + '</td></tr>';
                                                     }
                                                 }
                                             }
-                                            table += '</table>';
-                                            if (table !== '<table></table>') {
-                                                html_content = '<h4>' + Drupal.settings.fields[layer_names[l]]["Human-readable name for the layer"] + '</h4>' + table;
-                                                $('#cartogratree_popup_right').append(html_content);
+                                        }
+                                        table += '</table>';
+                                        if (table !== '<table></table>') {
+                                            html_content = '<h4>' + Drupal.settings.fields[layer_names[l]]["Human-readable name for the layer"] + '</h4>' + table;
+                                            $('#cartogratree_popup_right').append(html_content);
+                                            $('#cartogratree_popup_left').css({'display': 'inline'});
+                                            // set logo image
+                                            switch (layer_names[l]) {
+                                                case 'ct:ct_view':
+                                                    $('#cartogratree_logo_img').html('<a href="http://treegenesdb.org" target="_blank"><img src="' + Drupal.settings.logo.treegenes + '" alt="TreeGenes" style="width:100%;"></a>');
+                                                    $('#cartogratree_tree_img').html('<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.subkingdom] + '" alt="' + response.properties.subkingdom + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;">');
+                                                    break;
+                                                case 'ct:treesnap':
+                                                    $('#cartogratree_logo_img').html('<a href="http://treesnap.org" target="_blank"><img src="' + Drupal.settings.logo.treesnap + '" alt="TreeSnap"    style="width:100%;"></a>');
+                                                    $('#cartogratree_tree_img').html('<a href="' + response.properties.url
+ + '" target="_blank"><img src="' + response.properties.image_url
+ + '" style="width:100%;"></a>');
+                                                 break;
+                                                default:
+                                                    $('#cartogratree_logo_img').html('<a href="http://datadryad.org" target="_blank"><img src="' + Drupal.settings.logo.dryad + '" alt="Dryad"    style="width:100%;"></a>');
+                                                    $('#cartogratree_tree_img').html('<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.plant_group] + '" alt="' + response.properties.plant_group + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;">');
+                                                    break;
                                             }
                                         }
                                     }
                                 }
-                            });
-                        }
-                trees_popup_fields = 0; // reset it for the next trees layer
+                            }
+                        });
+                    }
+                }
                 overlay.setPosition(coordinate);
 
                 // hide the ol message box when the user clicks the x button

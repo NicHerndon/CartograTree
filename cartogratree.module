@@ -481,6 +481,21 @@ function cartogratree_preprocess_page(&$variables) {
           'layers' => $layers,
           'fields' => $fields,
           'session' => $session,
+          'logo' => array(  // hardcoded values - should be replaced with Drupal settings
+            'treegenes' => drupal_get_path('module', 'cartogratree') . '/theme/templates/logo_treegenes.png',
+            'dryad' => drupal_get_path('module', 'cartogratree') . '/theme/templates/logo_dryad.png',
+            'treesnap' => drupal_get_path('module', 'cartogratree') . '/theme/templates/logo_treesnap.png',
+          ),
+          'tree_img' => array(
+            'exact' => array(
+              'angiosperm' => drupal_get_path('module', 'cartogratree') . '/theme/templates/angio_exact.png',
+              'gymnosperm' => drupal_get_path('module', 'cartogratree') . '/theme/templates/gymno_exact.png',
+            ),
+            'approximate' => array(
+              'angiosperm' => drupal_get_path('module', 'cartogratree') . '/theme/templates/angio_approx.png',
+              'gymnosperm' => drupal_get_path('module', 'cartogratree') . '/theme/templates/gymno_approx.png',
+            ),
+          ),
         );
         drupal_add_js($settings, 'setting');
     }
