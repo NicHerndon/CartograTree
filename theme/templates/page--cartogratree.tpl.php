@@ -186,11 +186,13 @@ print $messages;
     <div id="cartogratree_ol_popup" class="cartogratree_ol_popup">
         <a href="#" id="cartogratree_ol_popup_closer" class="cartogratree_ol_popup_closer"></a>
         <div id="cartogratree_ol_popup_content">
-            <div id="cartogratree_popup_header"><!--<strong>Tree species</strong><p>Tree details</p>--></div>
+            <div id="cartogratree_popup_header"></div>
             <div id="cartogratree_popup_left">
-                <div id="cartogratree_tree_img"><!--Tree pic--></div>
+                <div id="cartogratree_tree_img"></div>
+                <button type="button" id="cartogratree_prev_tree" title="Display previous tree at this location" disabled="disabled">&lt;</button>&nbsp;
                 <button type="button" id="cartogratree_add_tree" title="Add to analysis">+</button>&nbsp;
-                <button type="button" id="cartogratree_remove_tree" title="Remove from analysis">-</button>
+                <button type="button" id="cartogratree_remove_tree" title="Remove from analysis">-</button>&nbsp;
+                <button type="button" id="cartogratree_next_tree" title="Display next tree at this location" disabled="disabled">&gt;</button>
                 <div id="cartogratree_logo_img"><!--Logo--></div>
             </div>
             <div id="cartogratree_popup_right"></div>

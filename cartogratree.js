@@ -3,7 +3,8 @@
  * Implements the dynamic functionality of the CartograTree app (i.e., ?q=cartogratree).
  */
 'use strict';
-var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, cartogratree_trees_layer_cql_filter = {};
+var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, cartogratree_trees_layer_cql_filter = {},
+        cartogratree_popup_index, cartogratree_trees = Array();
 var cartogratree_session = {'layers': {}, 'records': {}};
 
 (function ($) {
@@ -46,6 +47,7 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                 ],
                 controls: [new ol.control.Zoom(), new ol.control.ZoomSlider(), new ol.control.ScaleLine(), new ol.control.Attribution()],
                 target: target,
+                overlays: [overlay],
             });
 
             // change cursor to pointer when going over a tree location
@@ -63,20 +65,18 @@ var cartogratree_session = {'layers': {}, 'records': {}};
 
             // Add a click handler to the map to render the popup.
             cartogratree_map.on('singleclick', function (e) {
-                cartogratree_map.removeOverlay(overlay);
-                e.map.addOverlay(overlay);
-                $('#cartogratree_popup_left').css({'display': 'none'});
-                var coordinate = e.coordinate, tree = '';
-                var latlon = 'lat/lon: ' + e.coordinate[1].toFixed(3) + '/' + e.coordinate[0].toFixed(3) + '<br/>';
+                $('#cartogratree_popup_header').html('');               // 'clear' the header
+                $('#cartogratree_popup_right').html('');                // wipe-out right-side content
+                $('#cartogratree_popup_left').css({'display': 'none'}); // hide the left-side content
+                $('#cartogratree_prev_tree, #cartogratree_next_tree').attr('disabled', 'disabled'); // disable navigation buttons
+                var coordinate = e.coordinate;
 
-                $('#cartogratree_popup_right').html('');   // wipe-out popup content
                 // add location to popup content
                 var html_content = '<h4>Location</h4>\n';
                 html_content += '<table><tr><td>Latitude</td><td>' + e.coordinate[1].toFixed(3) + '</td></tr>\n';
                 html_content += '<tr><td>Longitude</td><td>' + e.coordinate[0].toFixed(3) + '</td></tr></table>';
                 $('#cartogratree_popup_right').append(html_content);
 
-                var hdms = ol.coordinate.toStringHDMS(e.coordinate);
                 // for each environmental layer used
                 for (var layer_id in cartogratree_mid_layer) {
                     var layer_name = cartogratree_mid_layer[layer_id].getSource().i.LAYERS;
@@ -118,87 +118,104 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                     });
                 }
                 // get tree(s) info
+                cartogratree_popup_index = 0;
+                cartogratree_trees = [];
                 var trees_layers = (cartogratree_trees_layer.getSource() !== null) ? cartogratree_trees_layer.getSource().i.LAYERS.split(',') : [];
                 for (var l = 0; l < trees_layers.length; l++) {     // foreach tree layer used
-                    var trees_popup_fields = 0;
-                    for (var key in Drupal.settings.fields[trees_layers[l]]) {
-                        if (key !== 'Human-readable name for the layer' && key !== 'Layer ID') {
-                            trees_popup_fields += parseInt(Drupal.settings.fields[trees_layers[l]][key]['Show this field in maps pop-up']);
-                        }
-                    }
-                    if (trees_popup_fields) {
-                        var trees_layer = new ol.layer.Tile({
-                            source: new ol.source.TileWMS({
-                                url: cartogratree_gis,
-                                params: {LAYERS: trees_layers[l]},
-                            })
-                        });
-                        var trees_url = trees_layer.getSource().getGetFeatureInfoUrl(
-                                e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
-                                // supported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
-                                {'INFO_FORMAT': 'application/json'});
-                        $.ajax({
-                            url: trees_url,
-                            dataType: 'text',
-                            success: function (data, textStatus, jqXHR) {
-                                var response = JSON.parse(data).features[0];
-                                if (response) {
-                                    var layer_names = get_layer_names(this.url);
-                                    for (var l = 0; l < layer_names.length; l++) {
-                                        var table = '<table>';
-                                        for (var key in response.properties) {
-                                            // should this field be shown in the pop-up
-                                            if (Drupal.settings.fields[layer_names[l]] !== undefined && Drupal.settings.fields[layer_names[l]][key] !== undefined && Drupal.settings.fields[layer_names[l]][key]['Show this field in maps pop-up'] === '1') {
-                                                // should this value be masked
-                                                if (Drupal.settings.fields[layer_names[l]][key]['Value returned by layer that should be masked'] == response.properties[key]) {
-                                                    table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + Drupal.settings.fields[layer_names[l]][key]['Text shown to user for masked values'] + '</td></tr>';
-                                                } else {
-                                                    // type of value: continuous or discrete
-                                                    if (Drupal.settings.fields[layer_names[l]][key]['Type of filter'] === 'slider') {
-                                                        table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key].toFixed(Drupal.settings.fields[layer_names[l]][key]['Precision used with range values']) + '</td></tr>';
-                                                    } else {
-                                                        table += '<tr><td>' + Drupal.settings.fields[layer_names[l]][key]['Field name shown to user'] + '</td><td>' + response.properties[key] + '</td></tr>';
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        table += '</table>';
-                                        if (table !== '<table></table>') {
-                                            html_content = '<h4>' + Drupal.settings.fields[layer_names[l]]["Human-readable name for the layer"] + '</h4>' + table;
-                                            $('#cartogratree_popup_right').append(html_content);
-                                            $('#cartogratree_popup_left').css({'display': 'inline'});
-                                            // set logo image
-                                            switch (layer_names[l]) {
-                                                case 'ct:ct_view':
-                                                    $('#cartogratree_logo_img').html('<a href="http://treegenesdb.org" target="_blank"><img src="' + Drupal.settings.logo.treegenes + '" alt="TreeGenes" style="width:100%;"></a>');
-                                                    $('#cartogratree_tree_img').html('<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.subkingdom] + '" alt="' + response.properties.subkingdom + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;">');
-                                                    break;
-                                                case 'ct:treesnap':
-                                                    $('#cartogratree_logo_img').html('<a href="http://treesnap.org" target="_blank"><img src="' + Drupal.settings.logo.treesnap + '" alt="TreeSnap"    style="width:100%;"></a>');
-                                                    $('#cartogratree_tree_img').html('<a href="' + response.properties.url
- + '" target="_blank"><img src="' + response.properties.image_url
- + '" style="width:100%;"></a>');
-                                                 break;
-                                                default:
-                                                    $('#cartogratree_logo_img').html('<a href="http://datadryad.org" target="_blank"><img src="' + Drupal.settings.logo.dryad + '" alt="Dryad"    style="width:100%;"></a>');
-                                                    $('#cartogratree_tree_img').html('<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.plant_group] + '" alt="' + response.properties.plant_group + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;">');
-                                                    break;
-                                            }
-                                        }
+                    var trees_layer = new ol.layer.Tile({
+                        source: new ol.source.TileWMS({
+                            url: cartogratree_gis,
+                            params: {LAYERS: trees_layers[l]},
+                        })
+                    });
+                    var trees_url = trees_layer.getSource().getGetFeatureInfoUrl(
+                            e.coordinate, e.map.getView().getResolution(), e.map.getView().getProjection(),
+                            // supported formats are [text/plain, application/vnd.ogc.gml, text/xml, application/vnd.ogc.gml/3.1.1, text/xml; subtype=gml/3.1.1, text/html, application/json]
+                            {'INFO_FORMAT': 'application/json'});
+                    $.ajax({
+                        url: trees_url,
+                        dataType: 'text',
+                        success: function (data, textStatus, jqXHR) {
+                            var response = JSON.parse(data).features[0];
+                            var tree = {cartogratree_logo_img: '', cartogratree_tree_img: '', cartogratree_popup_header: ''};
+                            if (response) {
+                                var layer_names = get_layer_names(this.url);
+                                for (var l = 0; l < layer_names.length; l++) {
+                                    $('#cartogratree_popup_left').css({'display': 'inline'});   // show the left-side content
+                                    switch (layer_names[l]) {
+                                        // TreeGenes
+                                        case 'ct:ct_view':
+                                            tree.cartogratree_logo_img = '<a href="http://treegenesdb.org" target="_blank"><img src="' + Drupal.settings.logo.treegenes + '" alt="TreeGenes" style="width:100%;"></a>';
+                                            tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.subkingdom] + '" alt="' + response.properties.subkingdom + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;">';
+                                            tree.cartogratree_popup_header = '<strong><em>' + response.properties.genus + ' ' + response.properties.species + '</em> (' + response.properties.subkingdom + ')</strong><p>Coordinate: ' + response.properties.coordinate_type + ' | ID: ' + response.properties.uniquename + '</p>';
+                                            break;
+                                        // TreeSNAP
+                                        case 'ct:treesnap':
+                                            tree.cartogratree_logo_img = '<a href="http://treesnap.org" target="_blank"><img src="' + Drupal.settings.logo.treesnap + '" alt="TreeSnap"    style="width:100%;border-radius:5px;"></a>';
+                                            tree.cartogratree_tree_img = '<a href="' + response.properties.url + '" target="_blank"><img src="' + response.properties.image_url + '" style="width:100%;border-radius:5px;"></a>';
+                                            tree.cartogratree_popup_header = '<strong><em>' + response.properties.genus + ' ' + response.properties.species + '</em> (' + response.properties.category + ')</strong>';
+                                            break;
+                                        // DRYAD
+                                        default:
+                                            tree.cartogratree_logo_img = '<a href="http://datadryad.org" target="_blank"><img src="' + Drupal.settings.logo.dryad + '" alt="Dryad"    style="width:100%;border-radius:5px;"></a>';
+                                            tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.plant_group] + '" alt="' + response.properties.plant_group + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;border-radius:5px;">';
+                                            tree.cartogratree_popup_header = '<strong><em>' + response.properties.species + '</em> (' + response.properties.plant_group + ')</strong><p>Coordinate: ' + response.properties.coordinate_type + '</p>';
+                                            break;
+                                    }
+                                    cartogratree_trees.push(tree);
+                                    if (cartogratree_trees.length === 1) {
+                                        // set logo image
+                                        $('#cartogratree_logo_img').html(cartogratree_trees[0].cartogratree_logo_img);
+                                        // set tree image
+                                        $('#cartogratree_tree_img').html(cartogratree_trees[0].cartogratree_tree_img);
+                                        // set header text
+                                        $('#cartogratree_popup_header').html(cartogratree_trees[0].cartogratree_popup_header);
+                                    }
+                                    else {
+                                        $('#cartogratree_next_tree').removeAttr('disabled');
                                     }
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
                 }
                 overlay.setPosition(coordinate);
 
                 // hide the ol message box when the user clicks the x button
                 $('#cartogratree_ol_popup_closer').click(function () {
-                    e.map.removeOverlay(overlay);
                     overlay.setPosition(undefined);
                     $('#cartogratree_ol_popup_closer').blur();
                     return false;
+                });
+                // display next tree at this location
+                $('#cartogratree_next_tree').off('click').on('click', function() {
+                    // disable cartogratree_next_tree button when end of list is reached
+                    if (++cartogratree_popup_index === cartogratree_trees.length - 1) {
+                        $('#cartogratree_next_tree').attr('disabled', 'disabled');
+                    }
+                    // set logo image
+                    $('#cartogratree_logo_img').html(cartogratree_trees[cartogratree_popup_index].cartogratree_logo_img);
+                    // set tree image
+                    $('#cartogratree_tree_img').html(cartogratree_trees[cartogratree_popup_index].cartogratree_tree_img);
+                    // set header text
+                    $('#cartogratree_popup_header').html(cartogratree_trees[cartogratree_popup_index].cartogratree_popup_header);
+                    // enable cartogratree_prev_tree button
+                    $('#cartogratree_prev_tree').removeAttr('disabled');
+                });
+                // display prev tree at this location
+                $('#cartogratree_prev_tree').off('click').on('click', function() {
+                    // disable cartogratree_next_tree button when end of list is reached
+                    if (--cartogratree_popup_index === 0) {
+                        $('#cartogratree_prev_tree').attr('disabled', 'disabled');
+                    }
+                    // set logo image
+                    $('#cartogratree_logo_img').html(cartogratree_trees[cartogratree_popup_index].cartogratree_logo_img);
+                    // set tree image
+                    $('#cartogratree_tree_img').html(cartogratree_trees[cartogratree_popup_index].cartogratree_tree_img);
+                    // set header text
+                    $('#cartogratree_popup_header').html(cartogratree_trees[cartogratree_popup_index].cartogratree_popup_header);
+                    // enable cartogratree_prev_tree button
+                    $('#cartogratree_next_tree').removeAttr('disabled');
                 });
             });
 

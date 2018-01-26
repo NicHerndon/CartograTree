@@ -134,6 +134,24 @@
 #cartogratree_popup_left button {
     position: relative;
     top: 95px;
+    padding: 1px 3px 1px 3px;
+    border-radius: 3px;
+    background-color: white;
+}
+#cartogratree_popup_left button:disabled {
+    background-color: lightgray;
+}
+#cartogratree_prev_tree {
+    border: 2px solid gray;
+}
+#cartogratree_add_tree {
+    border: 2px solid lightgreen;
+}
+#cartogratree_remove_tree {
+    border: 2px solid lightcoral;
+}
+#cartogratree_next_tree {
+    border: 2px solid gray;
 }
 
 /*jQuery UI*/
