@@ -63,7 +63,17 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                 e.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
             });
 
-            // Add a click handler to the map to render the popup.
+            /**
+             * When the user clicks on the map, it updates the contents of the map popup
+             * based on the location and the layers selected, and then renders it.
+             * Notes: WMS returns at most one tree for each tree layer. To display all
+             *   trees in a layer, at that location, use WFS using the coordinates of
+             *   the tree returned by WMS. This assumes the latitude/longitude are in
+             *   the same projection for all trees, and the column names are the same
+             *   in all tables (latitude/longitude). Another option would be to use WFS
+             *   with bounding box (BBOX) but this would complicate things (e.g., how big
+             *   should the BBOX be?, get zoom level, etc.).
+             */
             cartogratree_map.on('singleclick', function (e) {
                 $('#cartogratree_popup_header').html('');               // 'clear' the header
                 $('#cartogratree_popup_right').html('');                // wipe-out right-side content
@@ -89,7 +99,7 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                         dataType: 'text',
                         success: function (data, textStatus, jqXHR) {
                             var response = JSON.parse(data).features[0];
-                            layer_name = get_layer_names(this.url)[0];
+                            layer_name = get_layer_names(this.url, 'wms')[0];
                             var table = '<table>';
                             if (typeof (response) !== 'undefined') {
                                 for (var key in response.properties) {
@@ -137,43 +147,60 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                         dataType: 'text',
                         success: function (data, textStatus, jqXHR) {
                             var response = JSON.parse(data).features[0];
-                            var tree = {cartogratree_logo_img: '', cartogratree_tree_img: '', cartogratree_popup_header: ''};
                             if (response) {
-                                var layer_names = get_layer_names(this.url);
+                                var layer_names = get_layer_names(this.url, 'wms');
                                 for (var l = 0; l < layer_names.length; l++) {
-                                    $('#cartogratree_popup_left').css({'display': 'inline'});   // show the left-side content
-                                    switch (layer_names[l]) {
-                                        // TreeGenes
-                                        case 'ct:ct_view':
-                                            tree.cartogratree_logo_img = '<a href="http://treegenesdb.org" target="_blank"><img src="' + Drupal.settings.logo.treegenes + '" alt="TreeGenes" style="width:100%;"></a>';
-                                            tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.subkingdom] + '" alt="' + response.properties.subkingdom + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;">';
-                                            tree.cartogratree_popup_header = '<strong><em>' + response.properties.genus + ' ' + response.properties.species + '</em> (' + response.properties.subkingdom + ')</strong><p>Coordinate: ' + response.properties.coordinate_type + ' | ID: ' + response.properties.uniquename + '</p>';
-                                            break;
-                                        // TreeSNAP
-                                        case 'ct:treesnap':
-                                            tree.cartogratree_logo_img = '<a href="http://treesnap.org" target="_blank"><img src="' + Drupal.settings.logo.treesnap + '" alt="TreeSnap"    style="width:100%;border-radius:5px;"></a>';
-                                            tree.cartogratree_tree_img = '<a href="' + response.properties.url + '" target="_blank"><img src="' + response.properties.image_url + '" style="width:100%;border-radius:5px;"></a>';
-                                            tree.cartogratree_popup_header = '<strong><em>' + response.properties.genus + ' ' + response.properties.species + '</em> (' + response.properties.category + ')</strong>';
-                                            break;
-                                        // DRYAD
-                                        default:
-                                            tree.cartogratree_logo_img = '<a href="http://datadryad.org" target="_blank"><img src="' + Drupal.settings.logo.dryad + '" alt="Dryad"    style="width:100%;border-radius:5px;"></a>';
-                                            tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response.properties.coordinate_type][response.properties.plant_group] + '" alt="' + response.properties.plant_group + ' with ' + response.properties.coordinate_type + ' coordinates" style="width:100%;border-radius:5px;">';
-                                            tree.cartogratree_popup_header = '<strong><em>' + response.properties.species + '</em> (' + response.properties.plant_group + ')</strong><p>Coordinate: ' + response.properties.coordinate_type + '</p>';
-                                            break;
-                                    }
-                                    cartogratree_trees.push(tree);
-                                    if (cartogratree_trees.length === 1) {
-                                        // set logo image
-                                        $('#cartogratree_logo_img').html(cartogratree_trees[0].cartogratree_logo_img);
-                                        // set tree image
-                                        $('#cartogratree_tree_img').html(cartogratree_trees[0].cartogratree_tree_img);
-                                        // set header text
-                                        $('#cartogratree_popup_header').html(cartogratree_trees[0].cartogratree_popup_header);
-                                    }
-                                    else {
-                                        $('#cartogratree_next_tree').removeAttr('disabled');
-                                    }
+                                    // WFS
+                                    $.ajax({
+                                        url: Drupal.settings.cartogratree.gis.replace(
+                                                '/wms',
+                                                '/ows?service=WFS&version=2.0&request=GetFeature&typeName=' + layer_names[l] + '&outputFormat=application/json&SrsName=EPSG:4326&cql_filter=latitude=' + response.properties.latitude + '%20and%20longitude=' + response.properties.longitude),
+                                                // alternatively, could use bbox=latitude,longitude,latitude,longitude instead of cql_filter=
+                                        dataType: 'text',
+                                        success: function(data, textStatus, jqXHR) {
+                                            var response = JSON.parse(data).features;
+                                            for(var r = 0; r < response.length; r++) {
+                                                var tree = {cartogratree_logo_img: '', cartogratree_tree_img: '', cartogratree_popup_header: ''};
+                                                $('#cartogratree_popup_left').css({'display': 'inline'});   // show the left-side content
+                                                switch (get_layer_names(this.url, 'wfs')[0]) {
+                                                    // TreeGenes
+                                                    case 'ct:ct_view':
+                                                        tree.cartogratree_logo_img = '<a href="http://treegenesdb.org" target="_blank"><img src="' + Drupal.settings.logo.treegenes + '" alt="TreeGenes" style="width:100%;"></a>';
+                                                        tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response[r].properties.coordinate_type][response[r].properties.subkingdom] + '" alt="' + response[r].properties.subkingdom + ' with ' + response[r].properties.coordinate_type + ' coordinates" style="width:100%;">';
+                                                        tree.cartogratree_popup_header = '<strong><em>' + response[r].properties.genus + ' ' + response[r].properties.species + '</em> (' + response[r].properties.subkingdom + ')</strong><p>Coordinate: ' + response[r].properties.coordinate_type + ' | ID: ' + response[r].properties.uniquename + '</p>';
+                                                        break;
+                                                    // TreeSNAP
+                                                    case 'ct:treesnap':
+                                                        tree.cartogratree_logo_img = '<a href="http://treesnap.org" target="_blank"><img src="' + Drupal.settings.logo.treesnap + '" alt="TreeSnap"    style="width:100%;border-radius:5px;"></a>';
+                                                        tree.cartogratree_tree_img = '<a href="' + response[r].properties.url + '" target="_blank"><img src="' + response[r].properties.image_url + '" style="width:100%;border-radius:5px;"></a>';
+                                                        tree.cartogratree_popup_header = '<strong><em>' + response[r].properties.genus + ' ' + response[r].properties.species + '</em> (' + response[r].properties.category + ')</strong>';
+                                                        break;
+                                                    // DRYAD
+                                                    default:
+                                                        tree.cartogratree_logo_img = '<a href="http://datadryad.org" target="_blank"><img src="' + Drupal.settings.logo.dryad + '" alt="Dryad"    style="width:100%;border-radius:5px;"></a>';
+                                                        tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response[r].properties.coordinate_type][response[r].properties.plant_group] + '" alt="' + response[r].properties.plant_group + ' with ' + response[r].properties.coordinate_type + ' coordinates" style="width:100%;border-radius:5px;">';
+                                                        tree.cartogratree_popup_header = '<strong><em>' + response[r].properties.species + '</em> (' + response[r].properties.plant_group + ')</strong><p>Coordinate: ' + response[r].properties.coordinate_type + '</p>';
+                                                        break;
+                                                }
+                                                cartogratree_trees.push(tree);
+                                                if (cartogratree_trees.length === 1) {
+                                                    // set logo image
+                                                    $('#cartogratree_logo_img').html(cartogratree_trees[0].cartogratree_logo_img);
+                                                    // set tree image
+                                                    $('#cartogratree_tree_img').html(cartogratree_trees[0].cartogratree_tree_img);
+                                                    // set header text
+                                                    $('#cartogratree_popup_header').html(cartogratree_trees[0].cartogratree_popup_header);
+                                                    // remove 'x of y'/'count' text
+                                                    $('#cartogratree_tree').html('');
+                                                }
+                                                else {
+                                                    $('#cartogratree_next_tree').removeAttr('disabled');
+                                                    // set 'count' text
+                                                    $('#cartogratree_tree').html('1 of ' + cartogratree_trees.length.toLocaleString());
+                                                }
+                                            }
+                                        }
+                                    });
                                 }
                             }
                         }
@@ -201,6 +228,8 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                     $('#cartogratree_popup_header').html(cartogratree_trees[cartogratree_popup_index].cartogratree_popup_header);
                     // enable cartogratree_prev_tree button
                     $('#cartogratree_prev_tree').removeAttr('disabled');
+                    // update 'count' text
+                    $('#cartogratree_tree').html((cartogratree_popup_index + 1) + ' of ' + cartogratree_trees.length.toLocaleString());
                 });
                 // display prev tree at this location
                 $('#cartogratree_prev_tree').off('click').on('click', function() {
@@ -216,6 +245,8 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                     $('#cartogratree_popup_header').html(cartogratree_trees[cartogratree_popup_index].cartogratree_popup_header);
                     // enable cartogratree_prev_tree button
                     $('#cartogratree_next_tree').removeAttr('disabled');
+                    // update 'count' text
+                    $('#cartogratree_tree').html((cartogratree_popup_index + 1) + ' of ' + cartogratree_trees.length.toLocaleString());
                 });
             });
 
@@ -524,10 +555,17 @@ var cartogratree_session = {'layers': {}, 'records': {}};
         }
     }
     
-    function get_layer_names(url) {
+    function get_layer_names(url, service) {
         var query_strings = url.split('&');
         var layer_name = query_strings.find(function (query_string) {
-            return query_string.startsWith('LAYERS=');
+            switch(service) {
+                case 'wms':
+                    return query_string.startsWith('LAYERS=');
+                case 'wfs':
+                    return query_string.startsWith('typeName=');
+                default:
+                    return null;
+            }
         });
         layer_name = layer_name.split('=')[1].replace('%3A', ':').split('%2C');
         return layer_name;

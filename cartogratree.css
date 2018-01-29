@@ -153,6 +153,10 @@
 #cartogratree_next_tree {
     border: 2px solid gray;
 }
+#cartogratree_tree {
+    position: relative;
+    top: 105px;
+}
 
 /*jQuery UI*/
 #cartogratree_sidenav #cartogratree_info_tabs .ui-widget, .ui-buttonset, fieldset legend {

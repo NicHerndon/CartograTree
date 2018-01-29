@@ -193,7 +193,8 @@ print $messages;
                 <button type="button" id="cartogratree_add_tree" title="Add to analysis">+</button>&nbsp;
                 <button type="button" id="cartogratree_remove_tree" title="Remove from analysis">-</button>&nbsp;
                 <button type="button" id="cartogratree_next_tree" title="Display next tree at this location" disabled="disabled">&gt;</button>
-                <div id="cartogratree_logo_img"><!--Logo--></div>
+                <div id="cartogratree_logo_img"></div>
+                <span id="cartogratree_tree"></span>
             </div>
             <div id="cartogratree_popup_right"></div>
         </div>
