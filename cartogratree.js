@@ -4,7 +4,7 @@
  */
 'use strict';
 var cartogratree_map, cartogratree_mid_layer = {}, cartogratree_trees_layer, cartogratree_trees_layer_cql_filter = {},
-        cartogratree_popup_index, cartogratree_trees = Array();
+        cartogratree_popup_index, cartogratree_trees = Array(), cartogratree_add_remove_trees = {};
 var cartogratree_session = {'layers': {}, 'records': {}};
 
 (function ($) {
@@ -160,7 +160,7 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                                         success: function(data, textStatus, jqXHR) {
                                             var response = JSON.parse(data).features;
                                             for(var r = 0; r < response.length; r++) {
-                                                var tree = {cartogratree_logo_img: '', cartogratree_tree_img: '', cartogratree_popup_header: ''};
+                                                var tree = {cartogratree_logo_img: '', cartogratree_tree_img: '', cartogratree_popup_header: '', id: ''};
                                                 $('#cartogratree_popup_left').css({'display': 'inline'});   // show the left-side content
                                                 switch (get_layer_names(this.url, 'wfs')[0]) {
                                                     // TreeGenes
@@ -168,12 +168,14 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                                                         tree.cartogratree_logo_img = '<a href="http://treegenesdb.org" target="_blank"><img src="' + Drupal.settings.logo.treegenes + '" alt="TreeGenes" style="width:100%;"></a>';
                                                         tree.cartogratree_tree_img = '<img src="' + Drupal.settings.tree_img[response[r].properties.coordinate_type][response[r].properties.subkingdom] + '" alt="' + response[r].properties.subkingdom + ' with ' + response[r].properties.coordinate_type + ' coordinates" style="width:100%;">';
                                                         tree.cartogratree_popup_header = '<strong><em>' + response[r].properties.genus + ' ' + response[r].properties.species + '</em> (' + response[r].properties.subkingdom + ')</strong><p>Coordinate: ' + response[r].properties.coordinate_type + ' | ID: ' + response[r].properties.uniquename + '</p>';
+                                                        tree.id = response[r].properties.uniquename;
                                                         break;
                                                     // TreeSNAP
                                                     case 'ct:treesnap':
                                                         tree.cartogratree_logo_img = '<a href="http://treesnap.org" target="_blank"><img src="' + Drupal.settings.logo.treesnap + '" alt="TreeSnap"    style="width:100%;border-radius:5px;"></a>';
                                                         tree.cartogratree_tree_img = '<a href="' + response[r].properties.url + '" target="_blank"><img src="' + response[r].properties.image_url + '" style="width:100%;border-radius:5px;"></a>';
                                                         tree.cartogratree_popup_header = '<strong><em>' + response[r].properties.genus + ' ' + response[r].properties.species + '</em> (' + response[r].properties.category + ')</strong>';
+//                                                        tree.id = response[r].properties.url.split('/')[4];
                                                         break;
                                                     // DRYAD
                                                     default:
@@ -198,6 +200,8 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                                                     // set 'count' text
                                                     $('#cartogratree_tree').html('1 of ' + cartogratree_trees.length.toLocaleString());
                                                 }
+                                                // udpate 'add/remove' tree buttons
+                                                update_add_remove_tree_buttons(0);
                                             }
                                         }
                                     });
@@ -230,6 +234,8 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                     $('#cartogratree_prev_tree').removeAttr('disabled');
                     // update 'count' text
                     $('#cartogratree_tree').html((cartogratree_popup_index + 1) + ' of ' + cartogratree_trees.length.toLocaleString());
+                    // udpate 'add/remove' tree buttons
+                    update_add_remove_tree_buttons(cartogratree_popup_index);
                 });
                 // display prev tree at this location
                 $('#cartogratree_prev_tree').off('click').on('click', function() {
@@ -247,6 +253,28 @@ var cartogratree_session = {'layers': {}, 'records': {}};
                     $('#cartogratree_next_tree').removeAttr('disabled');
                     // update 'count' text
                     $('#cartogratree_tree').html((cartogratree_popup_index + 1) + ' of ' + cartogratree_trees.length.toLocaleString());
+                    // udpate 'add/remove' tree buttons
+                    update_add_remove_tree_buttons(cartogratree_popup_index);
+                });
+                // add this tree to the analysis
+                $('#cartogratree_add_tree').off('click').on('click', function() {
+                    if (cartogratree_add_remove_trees[cartogratree_trees[cartogratree_popup_index].id] === 'add') {
+                        delete cartogratree_add_remove_trees[cartogratree_trees[cartogratree_popup_index].id];
+                    }
+                    else {
+                        cartogratree_add_remove_trees[cartogratree_trees[cartogratree_popup_index].id] = 'add';
+                    }
+                    update_add_remove_tree_buttons(cartogratree_popup_index);
+                });
+                // remove this tree from the analysis
+                $('#cartogratree_remove_tree').off('click').on('click', function() {
+                    if (cartogratree_add_remove_trees[cartogratree_trees[cartogratree_popup_index].id] === 'remove') {
+                        delete cartogratree_add_remove_trees[cartogratree_trees[cartogratree_popup_index].id];
+                    }
+                    else {
+                        cartogratree_add_remove_trees[cartogratree_trees[cartogratree_popup_index].id] = 'remove';
+                    }
+                    update_add_remove_tree_buttons(cartogratree_popup_index);
                 });
             });
 
@@ -569,6 +597,28 @@ var cartogratree_session = {'layers': {}, 'records': {}};
         });
         layer_name = layer_name.split('=')[1].replace('%3A', ':').split('%2C');
         return layer_name;
+    }
+    
+    function update_add_remove_tree_buttons(id) {
+        // disable/enable 'add/remove' buttons
+        if (cartogratree_trees[id].id !== '') {
+            $('#cartogratree_add_tree, #cartogratree_remove_tree').removeAttr('disabled');
+        }
+        else {
+            $('#cartogratree_add_tree, #cartogratree_remove_tree').attr('disabled', 'disabled');
+        }
+        // set the color of the 'add/remove' buttons
+        if (typeof (cartogratree_add_remove_trees[cartogratree_trees[id].id]) === 'undefined') {
+            $('#cartogratree_add_tree, #cartogratree_remove_tree').css('background-color', 'white');
+        }
+        else if (cartogratree_add_remove_trees[cartogratree_trees[id].id] === 'add') {
+            $('#cartogratree_add_tree').css('background-color', 'lightgreen');
+            $('#cartogratree_remove_tree').css('background-color', 'white');
+        }
+        else {
+            $('#cartogratree_add_tree').css('background-color', 'white');
+            $('#cartogratree_remove_tree').css('background-color', 'lightcoral');
+        }
     }
 
 }(jQuery));
