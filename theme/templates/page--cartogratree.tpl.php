@@ -148,25 +148,13 @@ print $messages;
                 <p>The original concept of CartograTree was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograTree is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>
                 <br>
                 <h1><small>Development Team</small></h1>
-                <table>
+                <table style="width: 100%">
                     <tr><th>Member</th><th>Institution</th><th>Position</th></tr>
                     <tr><td>Nic Herndon</td><td>University of Connecticut</td><td>Programmer</td></tr>
                     <tr><td>Emily Grau</td><td>University of Connecticut</td><td>TreeGenes Lead Database Administrator</td></tr>
                     <tr><td>Taylor Falk</td><td>University of Connecticut</td><td>Bioinformatics Developer</td></tr>
                     <tr><td>Damian Gessler</td><td>Semantic Options, LLC</td><td>Programmer</td></tr>
                     <tr><td>Jill Wegrzyn</td><td>University of Connecticut</td><td>Principal Investigator</td></tr>
-                </table>
-                <h1><small>Forest Tree Biology Advisory Panel</small></h1>
-                <table>
-                    <tr><th>Member</th><th>Institution</th></tr>
-                    <tr><td>David Neale</td><td>University of California, Davis</td></tr>
-                    <tr><td>Missy Holbrook</td><td>Harvard University</td></tr>
-                    <tr><td>Daniel Kliebenstein</td><td>University of California, Davis</td></tr>
-                    <tr><td>Michael Dietze</td><td>University of Illinois</td></tr>
-                    <tr><td>Ram Oren</td><td>Duke University</td></tr>
-                    <tr><td>Ross Whetten</td><td>North Carolina State University</td></tr>
-                    <tr><td>Sally Aitken</td><td>University of British Columbia</td></tr>
-                    <tr><td>Sarah Mathews</td><td>Harvard University</td></tr>
                 </table>
             </div>
             <!--<div id="cartogratree_get_started_tab"></div>-->
